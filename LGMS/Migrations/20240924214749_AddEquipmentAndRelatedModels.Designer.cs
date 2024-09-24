@@ -4,6 +4,7 @@ using LGMS.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LGMS.Migrations
 {
     [DbContext(typeof(LgmsDbContext))]
-    partial class LgmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240924214749_AddEquipmentAndRelatedModels")]
+    partial class AddEquipmentAndRelatedModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,21 +24,6 @@ namespace LGMS.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("EmployeeEquipment", b =>
-                {
-                    b.Property<int>("AssigneesId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("EquipmentsId")
-                        .HasColumnType("int");
-
-                    b.HasKey("AssigneesId", "EquipmentsId");
-
-                    b.HasIndex("EquipmentsId");
-
-                    b.ToTable("EmployeeEquipment");
-                });
 
             modelBuilder.Entity("LGMS.Data.Model.Department", b =>
                 {
@@ -449,21 +437,6 @@ namespace LGMS.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("EmployeeEquipment", b =>
-                {
-                    b.HasOne("LGMS.Data.Model.Employee", null)
-                        .WithMany()
-                        .HasForeignKey("AssigneesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LGMS.Data.Model.Equipment", null)
-                        .WithMany()
-                        .HasForeignKey("EquipmentsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("LGMS.Data.Model.Employee", b =>
