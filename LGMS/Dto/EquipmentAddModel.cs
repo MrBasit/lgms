@@ -1,17 +1,19 @@
-﻿namespace LGMS.Data.Model
+﻿using LGMS.Data.Model;
+
+namespace LGMS.Dto
 {
-    public class Equipment
+    public class EquipmentAddModel
     {
-        public int Id { get; set; }
-        public string Number { get; set; }
+        public string? Number { get; set; }
+        public EquipmentType Type { get; set; }
         public Manufacturer Manufacturer { get; set; }
-        public List<Employee> Assignees { get; set; }
+        public List<Employee>? Assignees { get; set; }
         public EquipmentStatus Status { get; set; }
         public string Comments { get; set; }
         public Vendor Vendor { get; set; }
-        public EquipmentType Type { get; set; }
         public DateTime WarrantyExpiryDate { get; set; }
         public DateTime BuyingDate { get; set; }
         public DateTime UnboxingDate { get; set; }
+
     }
 }
