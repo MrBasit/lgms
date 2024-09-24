@@ -1,17 +1,12 @@
-﻿using System.ComponentModel;
-using LGMS.Data.Context;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.OpenApi;
-using Microsoft.EntityFrameworkCore;
+﻿using LGMS.Data.Model;
 
-namespace LGMS.Data.Model
+namespace LGMS.Dto
 {
-    public class Employee
+    public class EmployeeEditModel
     {
         public int Id { get; set; }
-        public int AttendanceId { get; set; }
-        public string Name { get; set; }
-        public string EmployeeNumber { get; set; }
+        public string EmployeeName { get; set; }
+        public int AttendanceId {get; set; }
         public DateTime BirthDate { get; set; }
         public Department Department { get; set; }
         public Designation Designation { get; set; }
@@ -20,5 +15,4 @@ namespace LGMS.Data.Model
         public DateTime AgreementExpiration { get; set; }
         public EmployeeStatus Status { get; set; }
     }
-
 }
