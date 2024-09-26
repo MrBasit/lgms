@@ -2,8 +2,9 @@
 
 namespace LGMS.Dto
 {
-    public class EquipmentAddModel
+    public class EquipmentEditModel
     {
+        public int Id { get; set; }
         public string? Number { get; set; }
         public EquipmentType Type { get; set; }
         public Manufacturer Manufacturer { get; set; }
@@ -14,7 +15,5 @@ namespace LGMS.Dto
         public DateTime WarrantyExpiryDate { get; set; }
         public DateTime BuyingDate { get; set; }
         public DateTime UnboxingDate { get; set; }
-
     }
-    
 }

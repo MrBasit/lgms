@@ -20,6 +20,8 @@ namespace LGMS.Data.Context
         public DbSet<EquipmentStatus> EquipmentStatus { get; set; }
         public DbSet<Vendor> Vendors { get; set; }
         public DbSet<Equipment> Equipments { get; set; }
+        public DbSet<EquipmentType> EquipmentTypes { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

@@ -21,7 +21,7 @@ namespace LGMS.Controllers
             _pagedData = new PagedData<Employee>();
         }
         [HttpPost("GetEmployees")]
-        public ActionResult GetEmployees(EmployeesSearchModel employeeSearchModel)
+        public IActionResult GetEmployees(EmployeesSearchModel employeeSearchModel)
         {
             if (employeeSearchModel == null) return BadRequest("Invalid search criteria");
 
@@ -103,7 +103,7 @@ namespace LGMS.Controllers
 
 
         [HttpGet("GetEmployee")]
-        public ActionResult GetEmployee(int employeeId)
+        public IActionResult GetEmployee(int employeeId)
         {
             var employee = _dbContext.Employees
                             .Include(_ => _.Department)
@@ -115,7 +115,7 @@ namespace LGMS.Controllers
         }
 
         [HttpGet("GetEmployeeByName")]
-        public ActionResult GetEmployeeByName(string employeeName)
+        public IActionResult GetEmployeeByName(string employeeName)
         {
             var employee = _dbContext.Employees
                             .Include(_ => _.Department)
@@ -128,9 +128,22 @@ namespace LGMS.Controllers
             if (employee.Count() > 1) return BadRequest(string.Format("Multiple employees found with employee name {0}", employeeName));
             return Ok(employee);
         }
+        [HttpGet("GetEmployessIdAndName")]
+        public IActionResult GetEmployeesIdAndName()
+        {
+            var employees = _dbContext.Employees
+                .Select(e => new
+                {
+                    Id = e.Id,
+                    Name = e.Name
+                })
+                .ToList();
+
+            return Ok(employees);
+        }
 
         [HttpPost("AddEmployee")]
-        public ActionResult AddEmployee(EmployeeAddModel employeeDetails)
+        public IActionResult AddEmployee(EmployeeAddModel employeeDetails)
         {
             if (_dbContext.Employees.FirstOrDefault(e => e.Name.ToUpper() == employeeDetails.EmployeeName.ToUpper()) != null) 
             {
