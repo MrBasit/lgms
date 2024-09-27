@@ -28,7 +28,7 @@ namespace LGMS.Controllers
                     await file.CopyToAsync(stream);
                     var equipments = _excelService.ParseEquipmentExcelFile(stream);
 
-                    return Ok($"{equipments.Count} records processed successfully.");
+                    return Ok(new { message = $"{equipments.Count} records processed successfully." });
                 }
             }
             catch (Exception ex)

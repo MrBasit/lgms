@@ -53,18 +53,17 @@ namespace LGMS.Services
                 {
                     if (!int.TryParse(worksheet.Cells[row, 1].Text, out int id))
                     {
-                        continue; // Skip rows without valid IDs
+                        continue; 
                     }
 
                     Equipment equipment;
 
                     if (existingEquipments.TryGetValue(id, out equipment))
                     {
-                        equipment.Assignees?.Clear(); // Clear existing assignees
+                        equipment.Assignees?.Clear(); 
                     }
                     else
                     {
-                        // Create new equipment
                         equipment = new Equipment();
                         _dbContext.Equipments.Add(equipment);
                     }
@@ -75,6 +74,19 @@ namespace LGMS.Services
                     equipment.Vendor = vendors.GetValueOrDefault(worksheet.Cells[row, 8].Text.ToLower());
 
                     string assigneesNames = worksheet.Cells[row, 5].Text;
+
+                    //List<string> employeeList = string.IsNullOrEmpty(assigneesNames)
+                    //    ? new List<string>()
+                    //    : assigneesNames.Split(',').Select(e=>e.Trim().ToUpper()).ToList();
+                    //var dbEmployeeList = _dbContext.Employees.Where(e => employeeList.Contains((e.Name.ToUpper()))).ToList();
+                    //var isEmployeesCorrect = employeeList.Count == dbEmployeeList.Count();
+
+
+
+
+
+
+
                     equipment.Assignees = string.IsNullOrEmpty(assigneesNames) ?
                                           new List<Employee>() :
                                           assigneesNames.Split(',')
