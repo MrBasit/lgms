@@ -4,6 +4,7 @@ using LGMS.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LGMS.Migrations
 {
     [DbContext(typeof(LgmsDbContext))]
-    partial class LgmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240927142120_AddAttandanceIdsTable")]
+    partial class AddAttandanceIdsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -114,9 +117,6 @@ namespace LGMS.Migrations
                     b.Property<DateTime>("AgreementExpiration")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("AttandanceIdId")
-                        .HasColumnType("int");
-
                     b.Property<int>("AttendanceId")
                         .HasColumnType("int");
 
@@ -147,8 +147,6 @@ namespace LGMS.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AttandanceIdId");
 
                     b.HasIndex("DepartmentId");
 
@@ -263,7 +261,7 @@ namespace LGMS.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EquipmentTypes");
+                    b.ToTable("EquipmentType");
                 });
 
             modelBuilder.Entity("LGMS.Data.Model.Manufacturer", b =>
@@ -521,12 +519,6 @@ namespace LGMS.Migrations
 
             modelBuilder.Entity("LGMS.Data.Model.Employee", b =>
                 {
-                    b.HasOne("LGMS.Data.Model.AttandanceId", "AttandanceId")
-                        .WithMany()
-                        .HasForeignKey("AttandanceIdId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("LGMS.Data.Model.Department", "Department")
                         .WithMany()
                         .HasForeignKey("DepartmentId")
@@ -544,8 +536,6 @@ namespace LGMS.Migrations
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("AttandanceId");
 
                     b.Navigation("Department");
 

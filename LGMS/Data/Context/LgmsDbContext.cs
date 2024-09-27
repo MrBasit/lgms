@@ -22,6 +22,7 @@ namespace LGMS.Data.Context
         public DbSet<Equipment> Equipments { get; set; }
         public DbSet<EquipmentType> EquipmentTypes { get; set; }
 
+        public DbSet<AttandanceId> AttandanceIds { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -54,6 +55,12 @@ namespace LGMS.Data.Context
             builder.Entity<EquipmentStatus>(entity =>
             {
                 entity.HasIndex(e => e.Title).IsUnique();
+            });
+
+            builder.Entity<AttandanceId>(entity =>
+            {
+                entity.HasIndex(e => e.MachineId).IsUnique();
+                entity.HasIndex(e => e.MachineName).IsUnique();
             });
         }
     }
