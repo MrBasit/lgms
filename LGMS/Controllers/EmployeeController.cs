@@ -278,7 +278,7 @@ namespace LGMS.Controllers
                 })
                 .Where(e => e.BirthdayThisYear >= today || e.BirthdayNextYear >= today) 
                 .OrderBy(e => e.BirthdayThisYear >= today ? e.BirthdayThisYear : e.BirthdayNextYear) 
-                .Take(3)
+                .Take(5)
                 .Select(e => e.Employee) 
                 .ToList();
 
@@ -295,9 +295,27 @@ namespace LGMS.Controllers
                 .Include(e => e.Status)
                 .Where(e => e.Status.Title == "Active")
                 .OrderBy(e => e.AgreementExpiration)
-                .Take(3)
+                .Take(5)
                 .ToList();
             return Ok(Employees);
         }
+
+        [HttpGet("GetDepartmentsWithEmployeeCount")]
+        public ActionResult GetDepartmentsWithEmployeeCount()
+        {
+            var departmentsWithCount = _dbContext.Departments
+                .Select(d => new
+                {
+                    DepartmentName = d.Name,
+                    EmployeeCount = _dbContext.Employees.Where(e=> e.Status.Title =="Active").Count(e => e.Department.Id == d.Id) 
+                })
+                .OrderByDescending(d => d.EmployeeCount)
+                .Take(5)
+                .ToList()
+                .Select(d => $"{d.DepartmentName} - ({d.EmployeeCount})"); 
+
+            return Ok(departmentsWithCount);
+        }
+
     }
 }

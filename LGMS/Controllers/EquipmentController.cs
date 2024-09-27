@@ -253,5 +253,22 @@ namespace LGMS.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [HttpGet("GetEquipmentTypesWithCount")]
+        public ActionResult GetEquipmentTypesWithCount()
+        {
+            var equipmentTypesWithCount = _dbContext.EquipmentTypes
+                .Select(t => new
+                {
+                    EquipmentName = t.Title,
+                    EqipmentCount = _dbContext.Equipments.Where(e => e.Status.Title == "Active").Count(e => e.Type.Id == t.Id)
+                })
+                .OrderByDescending(t => t.EqipmentCount) 
+                .Take(5) 
+                .ToList()
+                .Select(t => $"{t.EquipmentName} - ({t.EqipmentCount})");
+
+            return Ok(equipmentTypesWithCount);
+        }
+
     }
 }
