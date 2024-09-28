@@ -1,4 +1,5 @@
-﻿using LGMS.Interface;
+﻿using LGMS.Data.Model;
+using LGMS.Interface;
 
 namespace LGMS.Dto
 {
@@ -13,5 +14,6 @@ namespace LGMS.Dto
         public ISortRequestModel SortDetails { get; set; }
         public IPagedDataRequestModel PaginationDetails { get; set; }
         public ISearchRequestModel SearchDetails { get; set; }
+        public List<EquipmentStatus> Statuses { get; set; }
     }
 }

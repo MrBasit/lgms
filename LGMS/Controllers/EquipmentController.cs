@@ -45,6 +45,14 @@ namespace LGMS.Controllers
 
             if (!equipments.Any()) return NotFound("Equipments Not Found");
 
+            var equipmentWithSelectedStatuses = new List<Equipment>();
+            foreach (var status in equipmentSearchModel.Statuses)
+            {
+                equipmentWithSelectedStatuses.AddRange(equipments.Where(x => x.Status.Id == status.Id).ToList());
+            }
+
+            equipments = equipmentWithSelectedStatuses;
+
             if (!string.IsNullOrEmpty(equipmentSearchModel.SearchDetails.SearchTerm))
             {
                 var searchTerm = equipmentSearchModel.SearchDetails.SearchTerm.ToUpper();
@@ -69,28 +77,23 @@ namespace LGMS.Controllers
                         break;
                     case "manufacturer":
                         equipments = equipmentSearchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending
-                            ? equipments.OrderBy(e => e.Manufacturer).ToList()
-                            : equipments.OrderByDescending(e => e.Manufacturer).ToList();
-                        break;
-                    case "assignees":
-                        equipments = equipmentSearchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending
-                            ? equipments.OrderBy(e => e.Assignees).ToList()
-                            : equipments.OrderByDescending(e => e.Assignees).ToList();
+                            ? equipments.OrderBy(e => e.Manufacturer.Name).ToList()
+                            : equipments.OrderByDescending(e => e.Manufacturer.Name).ToList();
                         break;
                     case "status":
                         equipments = equipmentSearchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending
-                            ? equipments.OrderBy(e => e.Status).ToList()
-                            : equipments.OrderByDescending(e => e.Status).ToList();
+                            ? equipments.OrderBy(e => e.Status.Title).ToList()
+                            : equipments.OrderByDescending(e => e.Status.Title).ToList();
                         break;
                     case "vendor":
                         equipments = equipmentSearchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending
-                            ? equipments.OrderBy(e => e.Vendor).ToList()
-                            : equipments.OrderByDescending(e => e.Vendor).ToList();
+                            ? equipments.OrderBy(e => e.Vendor.Name).ToList()
+                            : equipments.OrderByDescending(e => e.Vendor.Name).ToList();
                         break;
                     case "type":
                         equipments = equipmentSearchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending
-                            ? equipments.OrderBy(e => e.Type).ToList()
-                            : equipments.OrderByDescending(e => e.Type).ToList();
+                            ? equipments.OrderBy(e => e.Type.Title).ToList()
+                            : equipments.OrderByDescending(e => e.Type.Title).ToList();
                         break;
                     default:
                         equipments = equipmentSearchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending
@@ -139,7 +142,9 @@ namespace LGMS.Controllers
                 Equipment equipment = new Equipment()
                 {
                     Number = equipmentDetails.Number,
-                    Type = equipmentDetails.Type,
+                    Type = equipmentDetails.Type.Id == 0
+                        ? equipmentDetails.Type
+                        : _dbContext.EquipmentTypes.Single(m => m.Id == equipmentDetails.Type.Id),
                     Manufacturer = equipmentDetails.Manufacturer.Id == 0
                         ? equipmentDetails.Manufacturer
                         : _dbContext.Manufacturers.Single(m => m.Id == equipmentDetails.Manufacturer.Id),
@@ -207,7 +212,9 @@ namespace LGMS.Controllers
             try
             {
                 existingEquipment.Number = equipmentDetails.Number;
-                existingEquipment.Type = equipmentDetails.Type;
+                existingEquipment.Type = equipmentDetails.Type.Id == 0
+                    ? equipmentDetails.Type
+                    : _dbContext.EquipmentTypes.Single(m => m.Id == equipmentDetails.Type.Id);
                 existingEquipment.Manufacturer = equipmentDetails.Manufacturer.Id == 0
                     ? equipmentDetails.Manufacturer
                     : _dbContext.Manufacturers.Single(m => m.Id == equipmentDetails.Manufacturer.Id);
@@ -269,6 +276,22 @@ namespace LGMS.Controllers
 
             return Ok(equipmentTypesWithCount);
         }
+        [HttpGet("GetAssigneesWithEquipmentCount")]
+        public ActionResult GetAssigneesWithEquipmentCount()
+        {
+            var equipmentTypesWithCount = _dbContext.Employees
+                .Include(e => e.Equipments)
+                .Select(t => new
+                {
+                    AssigneeName = t.Name,
+                    EqipmentCount = t.Equipments.Count()
+                })
+                .OrderByDescending(t => t.EqipmentCount)
+                .Take(5)
+                .ToList()
+                .Select(t => $"{t.AssigneeName} - ({t.EqipmentCount})");
 
+            return Ok(equipmentTypesWithCount);
+        }
     }
 }

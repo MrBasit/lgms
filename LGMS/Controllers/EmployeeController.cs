@@ -39,8 +39,17 @@ namespace LGMS.Controllers
             {
                 return BadRequest(ex.Message);
             }
-
             if (!employees.Any()) return NotFound("Employees Not Found");
+
+
+            var employeesWithIncludedStatuses = new List<Employee>();
+
+            foreach (var status in employeeSearchModel.Statuses)
+            {
+                employeesWithIncludedStatuses.AddRange(employees.Where(x => x.Status.Id == status.Id).ToList());
+            }
+
+            employees = employeesWithIncludedStatuses;
 
             if (!string.IsNullOrEmpty(employeeSearchModel.SearchDetails.SearchTerm))
             {
@@ -89,7 +98,7 @@ namespace LGMS.Controllers
             }
             else
             {
-                employees = employees.OrderByDescending(e => e.Name).ToList();
+                employees = employees.OrderBy(e => e.Name).ToList();
             }
 
             var pagedEmployeesResult = _pagedData.GetPagedData(
