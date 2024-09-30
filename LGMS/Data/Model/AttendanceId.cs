@@ -1,6 +1,6 @@
 ﻿namespace LGMS.Data.Model
 {
-    public class AttandanceId
+    public class AttendanceId
     {
         public int Id { get; set; }
         public string MachineName { get; set; }
