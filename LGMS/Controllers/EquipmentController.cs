@@ -270,9 +270,8 @@ namespace LGMS.Controllers
                     EqipmentCount = _dbContext.Equipments.Where(e => e.Status.Title == "Active").Count(e => e.Type.Id == t.Id)
                 })
                 .OrderByDescending(t => t.EqipmentCount) 
-                .Take(5) 
                 .ToList()
-                .Select(t => $"{t.EquipmentName} - ({t.EqipmentCount})");
+                .Select(t => $"{t.EquipmentName} ({t.EqipmentCount})");
 
             return Ok(equipmentTypesWithCount);
         }
@@ -284,12 +283,12 @@ namespace LGMS.Controllers
                 .Select(t => new
                 {
                     AssigneeName = t.Name,
-                    EqipmentCount = t.Equipments.Count()
+                    EqipmentCount = t.Equipments.Count(e => e.Status.Title == "Active")
                 })
                 .OrderByDescending(t => t.EqipmentCount)
                 .Take(5)
                 .ToList()
-                .Select(t => $"{t.AssigneeName} - ({t.EqipmentCount})");
+                .Select(t => $"{t.AssigneeName} ({t.EqipmentCount})");
 
             return Ok(equipmentTypesWithCount);
         }

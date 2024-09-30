@@ -287,7 +287,6 @@ namespace LGMS.Controllers
                 })
                 .Where(e => e.BirthdayThisYear >= today || e.BirthdayNextYear >= today) 
                 .OrderBy(e => e.BirthdayThisYear >= today ? e.BirthdayThisYear : e.BirthdayNextYear) 
-                .Take(5)
                 .Select(e => e.Employee) 
                 .ToList();
 
@@ -304,7 +303,6 @@ namespace LGMS.Controllers
                 .Include(e => e.Status)
                 .Where(e => e.Status.Title == "Active")
                 .OrderBy(e => e.AgreementExpiration)
-                .Take(5)
                 .ToList();
             return Ok(Employees);
         }
@@ -320,8 +318,7 @@ namespace LGMS.Controllers
                 })
                 .OrderByDescending(d => d.EmployeeCount)
                 .Take(5)
-                .ToList()
-                .Select(d => $"{d.DepartmentName} - ({d.EmployeeCount})"); 
+                .Select(d => $"{d.DepartmentName} ({d.EmployeeCount})"); 
 
             return Ok(departmentsWithCount);
         }
