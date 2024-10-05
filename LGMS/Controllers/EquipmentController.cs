@@ -115,7 +115,19 @@ namespace LGMS.Controllers
 
             return Ok(pagedEquipmentsResult);
         }
-
+        [HttpGet("GetEquipmentById")]
+        public IActionResult GetEquipmentById(int equipmentId)
+        {
+            var equipment = _dbContext.Equipments
+                .Include(e => e.Type)
+                .Include(e => e.Assignees)
+                .Include(e => e.Status)
+                .Include(e => e.Manufacturer)
+                .Include(e => e.Vendor)
+                .SingleOrDefault(e => e.Id == equipmentId);
+            if (equipment == null) return BadRequest(string.Format("Equipment with id {0} doesn't exist", equipmentId));
+            return Ok(equipment);
+        }
 
         [HttpPost("AddEquipment")]
         public IActionResult AddEquipment(EquipmentAddModel equipmentDetails)

@@ -23,6 +23,8 @@ namespace LGMS.Data.Context
         public DbSet<EquipmentType> EquipmentTypes { get; set; }
 
         public DbSet<AttendanceId> AttendanceIds { get; set; }
+        public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
+        public DbSet<AttendanceRecordStatus> AttendanceRecordStatuses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

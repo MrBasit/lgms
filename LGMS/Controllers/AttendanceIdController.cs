@@ -19,8 +19,8 @@ namespace LGMS.Controllers
             _dbContext = dbContext;
             _pagedData = new PagedData<AttendanceId>();
         }
-        [HttpPost("GetAttendanceIds")]
-        public IActionResult GetAttendanceIds(AttendanceIdsSearchModel searchModel)
+        [HttpPost("GetAttendanceIdsWithFilters")]
+        public IActionResult GetAttendanceIdsWithFilters(AttendanceIdsSearchModel searchModel)
         {
             if (searchModel == null) return BadRequest("Invalid search criteria");
             var attendanceIds = new List<AttendanceId>();
@@ -68,6 +68,22 @@ namespace LGMS.Controllers
             return Ok(pagedAttendanceIdsResult);
         }
 
+        [HttpGet("GetAttendanceIdById")]
+        public IActionResult GetAttendanceIdById(int id)
+        {
+            var attendanceId = _dbContext.AttendanceIds
+                .SingleOrDefault(a => a.Id == id);
+            if (attendanceId == null) return BadRequest(string.Format("AttendanceId with id {0} doesn't exist", attendanceId));
+            return Ok(attendanceId);
+        }
+
+        [HttpGet("GetAttendanceIds")]
+        public IActionResult GetAttendanceIds()
+        {
+            var attendanceIds = _dbContext.AttendanceIds.ToList();
+            return Ok(attendanceIds);
+        }
+
         [HttpPost("AddAttendanceId")]
         public IActionResult AddAttendanceId(AttendanceIdAddModel attendanceIdDetails)
         {
@@ -106,9 +122,12 @@ namespace LGMS.Controllers
                 return NotFound("AttendanceId not Found");
             }
 
-            if (_dbContext.AttendanceIds.FirstOrDefault(a => a.MachineName.ToUpper() == attendanceIdDetails.MachineName.ToUpper()) != null)
+            if (_dbContext.AttendanceIds.Any(a => a.MachineName.ToUpper() == attendanceIdDetails.MachineName.ToUpper() && a.Id != attendanceIdDetails.Id))
             {
-                return BadRequest("AttendanceId with this Machine Name already Exist");
+                return BadRequest(new
+                {
+                    message = "AttendanceId with this Machine Name already Exist"
+                });
             }
             try
             {

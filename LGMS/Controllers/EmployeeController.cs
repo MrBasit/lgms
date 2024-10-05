@@ -33,6 +33,7 @@ namespace LGMS.Controllers
                                       .Include(e => e.Status)
                                       .Include(e => e.Department)
                                       .Include(e => e.Designation)
+                                      .Include(e => e.AttendanceId)
                                       .ToList();
             }
             catch (Exception ex)
@@ -76,8 +77,8 @@ namespace LGMS.Controllers
                         break;
                     case "attendanceId":
                         employees = employeeSearchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
-                                    employees.OrderBy(e => e.AttendanceId).ToList() :
-                                    employees.OrderByDescending(e => e.AttendanceId).ToList();
+                                    employees.OrderBy(e => e.AttendanceId.Id).ToList() :
+                                    employees.OrderByDescending(e => e.AttendanceId.Id).ToList();
                         break;
                     case "basicSalary":
                         employees = employeeSearchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
@@ -111,13 +112,15 @@ namespace LGMS.Controllers
 
 
 
-        [HttpGet("GetEmployee")]
-        public IActionResult GetEmployee(int employeeId)
+        [HttpGet("GetEmployeeById")]
+        public IActionResult GetEmployeeById(int employeeId)
         {
             var employee = _dbContext.Employees
                             .Include(_ => _.Department)
                             .Include(_ => _.Designation)
                             .Include(_ => _.Status)
+                            .Include(e => e.AttendanceId)
+                            .Include(e => e.Equipments).ThenInclude(eq => eq.Type)
                             .SingleOrDefault(e => e.Id == employeeId);
             if (employee == null) return BadRequest(string.Format("Employee with id {0} doesn't exist", employeeId));
             return Ok(employee);
@@ -158,11 +161,14 @@ namespace LGMS.Controllers
             {
                 return BadRequest("Employee with this Name already Exist");
             }
+
+            var attendanceId = _dbContext.AttendanceIds.SingleOrDefault(a => a.Id == employeeDetails.AttendanceId);
+            if (attendanceId == null) return BadRequest(string.Format("Attendance Id {0} not found.", attendanceId));
             try
             {
                 Employee employee = new Employee()
                 {
-                    AttendanceId = employeeDetails.AttendanceId,
+                    AttendanceId = attendanceId,
                     Name = employeeDetails.EmployeeName,
                     EmployeeNumber = string.Format("{0}{1}", "EMP", DateTime.Now.ToString("yyMMddHHmmss")),
                     BirthDate = employeeDetails.BirthDate,
@@ -207,11 +213,17 @@ namespace LGMS.Controllers
             {
                 return BadRequest("Another employee with this name already exists");
             }
+            var attendanceId = _dbContext.AttendanceIds.SingleOrDefault(a => a.Id == employeeDetails.AttendanceId);
+            if (attendanceId == null) return BadRequest(string.Format("Attendance Id {0} not found.", attendanceId));
+            if (_dbContext.Employees.Any(e => e.AttendanceId.Id == employeeDetails.AttendanceId && e.Id != employeeDetails.Id))
+            {
+                return BadRequest("Another employee with this Attendance ID already exists");
+            }
 
             try
             {
                 existingEmployee.Name = employeeDetails.EmployeeName;
-                existingEmployee.AttendanceId = employeeDetails.AttendanceId;
+                existingEmployee.AttendanceId = attendanceId;
                 existingEmployee.BirthDate = employeeDetails.BirthDate;
                 existingEmployee.Department = employeeDetails.Department.Id == 0 ?
                                               employeeDetails.Department :
