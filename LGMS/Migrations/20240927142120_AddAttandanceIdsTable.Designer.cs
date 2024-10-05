@@ -4,6 +4,7 @@ using LGMS.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LGMS.Migrations
 {
     [DbContext(typeof(LgmsDbContext))]
-    partial class LgmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240927142120_AddAttandanceIdsTable")]
+    partial class AddAttandanceIdsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,7 +40,7 @@ namespace LGMS.Migrations
                     b.ToTable("EmployeeEquipment");
                 });
 
-            modelBuilder.Entity("LGMS.Data.Model.AttendanceId", b =>
+            modelBuilder.Entity("LGMS.Data.Model.AttandanceId", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -60,71 +63,7 @@ namespace LGMS.Migrations
                     b.HasIndex("MachineName")
                         .IsUnique();
 
-                    b.ToTable("AttendanceIds");
-                });
-
-            modelBuilder.Entity("LGMS.Data.Model.AttendanceRecord", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<TimeSpan>("ActualTime")
-                        .HasColumnType("time");
-
-                    b.Property<int>("AttendanceIdId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CheckIns")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CheckOuts")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsRecordOk")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("OverHours")
-                        .HasColumnType("int");
-
-                    b.Property<TimeSpan>("RequiredTime")
-                        .HasColumnType("time");
-
-                    b.Property<int>("StatusId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UnderHours")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AttendanceIdId");
-
-                    b.HasIndex("StatusId");
-
-                    b.ToTable("AttendanceRecords");
-                });
-
-            modelBuilder.Entity("LGMS.Data.Model.AttendanceRecordStatus", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AttendanceRecordStatuses");
+                    b.ToTable("AttandanceIds");
                 });
 
             modelBuilder.Entity("LGMS.Data.Model.Department", b =>
@@ -178,7 +117,7 @@ namespace LGMS.Migrations
                     b.Property<DateTime>("AgreementExpiration")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("AttendanceIdId")
+                    b.Property<int>("AttendanceId")
                         .HasColumnType("int");
 
                     b.Property<int>("BasicSalary")
@@ -208,8 +147,6 @@ namespace LGMS.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AttendanceIdId");
 
                     b.HasIndex("DepartmentId");
 
@@ -324,7 +261,7 @@ namespace LGMS.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EquipmentTypes");
+                    b.ToTable("EquipmentType");
                 });
 
             modelBuilder.Entity("LGMS.Data.Model.Manufacturer", b =>
@@ -580,31 +517,8 @@ namespace LGMS.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("LGMS.Data.Model.AttendanceRecord", b =>
-                {
-                    b.HasOne("LGMS.Data.Model.AttendanceId", "AttendanceId")
-                        .WithMany()
-                        .HasForeignKey("AttendanceIdId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LGMS.Data.Model.AttendanceRecordStatus", "Status")
-                        .WithMany()
-                        .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AttendanceId");
-
-                    b.Navigation("Status");
-                });
-
             modelBuilder.Entity("LGMS.Data.Model.Employee", b =>
                 {
-                    b.HasOne("LGMS.Data.Model.AttendanceId", "AttendanceId")
-                        .WithMany()
-                        .HasForeignKey("AttendanceIdId");
-
                     b.HasOne("LGMS.Data.Model.Department", "Department")
                         .WithMany()
                         .HasForeignKey("DepartmentId")
@@ -622,8 +536,6 @@ namespace LGMS.Migrations
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("AttendanceId");
 
                     b.Navigation("Department");
 

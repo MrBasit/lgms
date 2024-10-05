@@ -1,11 +1,10 @@
-﻿using LGMS.Data.Model;
-using LGMS.Interface;
+﻿using LGMS.Interface;
 
 namespace LGMS.Dto
 {
-    public class EquipmentsSearchModel
+    public class AttendanceIdsSearchModel
     {
-        public EquipmentsSearchModel()
+        public AttendanceIdsSearchModel()
         {
             SortDetails = new SortRequestModel();
             PaginationDetails = new PagedDataRequestModel();
@@ -14,6 +13,5 @@ namespace LGMS.Dto
         public ISortRequestModel SortDetails { get; set; }
         public IPagedDataRequestModel PaginationDetails { get; set; }
         public ISearchRequestModel SearchDetails { get; set; }
-        public List<EquipmentStatus> Statuses { get; set; }
     }
 }

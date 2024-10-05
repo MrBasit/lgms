@@ -9,7 +9,7 @@ namespace LGMS.Data.Model
     public class Employee
     {
         public int Id { get; set; }
-        public int AttendanceId { get; set; }
+        public AttendanceId? AttendanceId { get; set; }
         public string Name { get; set; }
         public string EmployeeNumber { get; set; }
         public DateTime BirthDate { get; set; }
