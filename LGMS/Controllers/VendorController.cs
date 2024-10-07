@@ -31,7 +31,7 @@ namespace LGMS.Controllers
         [HttpPost("GetVendorsWithFilters")]
         public IActionResult GetVendorsWithFilters(VendorsSearchModel vendorSearchModel)
         {
-            if (vendorSearchModel == null) return BadRequest("Invalid search criteria");
+            if (vendorSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
             var vendors = new List<Vendor>();
             try
             {
@@ -39,10 +39,10 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
 
-            if (!vendors.Any()) return NotFound("Vendors Not Found");
+            if (!vendors.Any()) return NotFound(new { message = "Vendors Not Found" });
 
             if (!string.IsNullOrEmpty(vendorSearchModel.SearchDetails.SearchTerm))
             {

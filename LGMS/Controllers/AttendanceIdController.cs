@@ -22,7 +22,7 @@ namespace LGMS.Controllers
         [HttpPost("GetAttendanceIdsWithFilters")]
         public IActionResult GetAttendanceIdsWithFilters(AttendanceIdsSearchModel searchModel)
         {
-            if (searchModel == null) return BadRequest("Invalid search criteria");
+            if (searchModel == null) return BadRequest(new{message = "Invalid search criteria" });
             var attendanceIds = new List<AttendanceId>();
             try
             {
@@ -33,7 +33,7 @@ namespace LGMS.Controllers
                 return BadRequest(ex.Message);
             }
 
-            if (!attendanceIds.Any()) return NotFound("AttendanceIds Not Found");
+            if (!attendanceIds.Any()) return NotFound(new{message="AttendanceIds Not Found"});
             if (!string.IsNullOrEmpty(searchModel.SortDetails.SortColumn) &&
                searchModel.SortDetails.SortDirection != Enum.SortDirections.None)
             {
@@ -73,7 +73,7 @@ namespace LGMS.Controllers
         {
             var attendanceId = _dbContext.AttendanceIds
                 .SingleOrDefault(a => a.Id == id);
-            if (attendanceId == null) return BadRequest(string.Format("AttendanceId with id {0} doesn't exist", attendanceId));
+            if (attendanceId == null) return BadRequest(new { message = string.Format("AttendanceId with id {0} doesn't exist", attendanceId) });
             return Ok(attendanceId);
         }
 
@@ -89,7 +89,7 @@ namespace LGMS.Controllers
         {
             if (_dbContext.AttendanceIds.FirstOrDefault(a => a.MachineName.ToUpper() == attendanceIdDetails.MachineName.ToUpper()) != null)
             {
-                return BadRequest("AttendanceId with this Machine Name already Exist");
+                return BadRequest(new { message = "AttendanceId with this Machine Name already Exist" });
             }
             try
             {

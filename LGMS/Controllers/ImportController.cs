@@ -29,7 +29,7 @@ namespace LGMS.Controllers
         public async Task<IActionResult> UploadEquipments(IFormFile file)
         {
             if (file == null || file.Length == 0)
-                return BadRequest("Invalid file.");
+                return BadRequest(new { message = "Invalid file." });
 
             try
             {
@@ -43,7 +43,7 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new{message = $"Internal server error: {ex.Message}" });
             }
         }
 
@@ -51,7 +51,7 @@ namespace LGMS.Controllers
         public async Task<IActionResult> UploadAttendanceRecords(IFormFile file)
         {
             if (file == null || file.Length == 0)
-                return BadRequest("Invalid file.");
+                return BadRequest(new { message = "Invalid file." });
 
             try
             {
@@ -65,7 +65,7 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
 
@@ -74,7 +74,7 @@ namespace LGMS.Controllers
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest("File not selected.");
+                return BadRequest(new { message = "File not selected." });
             }
 
             try
@@ -142,7 +142,7 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
     }

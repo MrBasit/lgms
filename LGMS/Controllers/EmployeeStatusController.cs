@@ -31,7 +31,7 @@ namespace LGMS.Controllers
         [HttpPost("GetEmployeeStatusesWithFilters")]
         public IActionResult GetEmployeeStatusesWithFilters(EmployeeStatusesSearchModel employeeStatusesSearchModel)
         {
-            if (employeeStatusesSearchModel == null) return BadRequest("Invalid search criteria");
+            if (employeeStatusesSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 
             var employeeStatuses = new List<EmployeeStatus>();
 
@@ -44,7 +44,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            if (!employeeStatuses.Any()) return NotFound("Employee status Not Found");
+            if (!employeeStatuses.Any()) return NotFound(new { message = "Employee status Not Found" });
 
             if (!string.IsNullOrEmpty(employeeStatusesSearchModel.SearchDetails.SearchTerm))
             {

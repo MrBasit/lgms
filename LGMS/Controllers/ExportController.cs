@@ -24,7 +24,7 @@ namespace LGMS.Controllers
         [HttpPost("DownloadEquipment")]
         public IActionResult DownloadEquipment(EquipmentExportSearchModel searchModel)
         {
-            if (searchModel == null) return BadRequest("Invalid search criteria");
+            if (searchModel == null) return BadRequest(new { message = "Invalid search criteria" });
             var equipments = new List<Equipment>();
 
             try
@@ -39,10 +39,10 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
 
-            if (!equipments.Any()) return NotFound("Equipments Not Found");
+            if (!equipments.Any()) return NotFound(new { message = "Equipments Not Found" });
 
             if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))
             {
@@ -111,7 +111,7 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
             
         }
@@ -119,7 +119,7 @@ namespace LGMS.Controllers
         [HttpPost("DownloadAttendanceRecords")]
         public IActionResult DownloadAttendanceRecords(AttendanceRecordExportSearchModel searchModel)
         {
-            if (searchModel == null) return BadRequest("Invalid search criteria");
+            if (searchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 
             var attendanceRecords = new List<AttendanceRecord>();
 
@@ -132,7 +132,7 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
 
             if (searchModel.Year > 0)
@@ -141,7 +141,7 @@ namespace LGMS.Controllers
             }
             else
             {
-                return BadRequest("Year is required");
+                return BadRequest(new { message = "Year is required" });
             }
 
             if (searchModel.Month > 0)
@@ -150,7 +150,7 @@ namespace LGMS.Controllers
             }
             else
             {
-                return BadRequest("Month is required.");
+                return BadRequest(new { message = "Month is required." });
             }
             var recordsWithIncludedNames = new List<AttendanceRecord>();
 

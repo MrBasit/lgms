@@ -31,7 +31,7 @@ namespace LGMS.Controllers
         [HttpPost("GetDesignationsWithFilters")]
         public IActionResult GetDesignationsWithFilters(DesignationsSearchModel designationsSearchModel)
         {
-            if (designationsSearchModel == null) return BadRequest("Invalid search criteria");
+            if (designationsSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 
             var designations = new List<Designation>();
 
@@ -44,7 +44,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            if (!designations.Any()) return NotFound("Employee status Not Found");
+            if (!designations.Any()) return NotFound(new { message = "Employee status Not Found" });
 
             if (!string.IsNullOrEmpty(designationsSearchModel.SearchDetails.SearchTerm))
             {

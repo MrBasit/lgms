@@ -31,7 +31,7 @@ namespace LGMS.Controllers
         [HttpPost("GetManufacturersWithFilters")]
         public IActionResult GetManufacturersWithFilters(ManufacturersSearchModel manufacturerSearchModel)
         {
-            if (manufacturerSearchModel == null) return BadRequest("Invalid search criteria");
+            if (manufacturerSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
             var manufacturers = new List<Manufacturer>();
             try
             {
@@ -39,10 +39,10 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
 
-            if (!manufacturers.Any()) return NotFound("Manufacturer Not Found");
+            if (!manufacturers.Any()) return NotFound(new { message = "Manufacturer Not Found" });
 
             if (!string.IsNullOrEmpty(manufacturerSearchModel.SearchDetails.SearchTerm))
             {

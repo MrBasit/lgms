@@ -31,7 +31,7 @@ namespace LGMS.Controllers
         [HttpPost("GetEquipmentTypesWithFilters")]
         public IActionResult GetEquipmentTypesWithFilters(EquipmentTypesSearchModel equipmentTypesSearchModel)
         {
-            if (equipmentTypesSearchModel == null) return BadRequest("Invalid search criteria");
+            if (equipmentTypesSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
             var equipmentTypes = new List<EquipmentType>();
             try
             {
@@ -39,10 +39,10 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
 
-            if (!equipmentTypes.Any()) return NotFound("EquipmentType Not Found");
+            if (!equipmentTypes.Any()) return NotFound(new { message = "EquipmentType Not Found" });
 
             if (!string.IsNullOrEmpty(equipmentTypesSearchModel.SearchDetails.SearchTerm))
             {

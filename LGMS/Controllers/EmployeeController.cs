@@ -23,7 +23,7 @@ namespace LGMS.Controllers
         [HttpPost("GetEmployees")]
         public IActionResult GetEmployees(EmployeesSearchModel employeeSearchModel)
         {
-            if (employeeSearchModel == null) return BadRequest("Invalid search criteria");
+            if (employeeSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 
             var employees = new List<Employee>();
 
@@ -40,7 +40,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            if (!employees.Any()) return NotFound("Employees Not Found");
+            if (!employees.Any()) return NotFound(new { message = "Employees Not Found" });
 
 
             var employeesWithIncludedStatuses = new List<Employee>();
@@ -122,7 +122,7 @@ namespace LGMS.Controllers
                             .Include(e => e.AttendanceId)
                             .Include(e => e.Equipments).ThenInclude(eq => eq.Type)
                             .SingleOrDefault(e => e.Id == employeeId);
-            if (employee == null) return BadRequest(string.Format("Employee with id {0} doesn't exist", employeeId));
+            if (employee == null) return BadRequest(new { message = string.Format("Employee with id {0} doesn't exist", employeeId) });
             return Ok(employee);
         }
 
@@ -136,8 +136,8 @@ namespace LGMS.Controllers
                             .Where(e => e.Name == employeeName)
                             .ToList();
 
-            if (employee == null) return BadRequest(string.Format("Employee with employeeName {0} doesn't exist", employeeName));
-            if (employee.Count() > 1) return BadRequest(string.Format("Multiple employees found with employee name {0}", employeeName));
+            if (employee == null) return BadRequest(new { message = string.Format("Employee with employeeName {0} doesn't exist", employeeName) });
+            if (employee.Count() > 1) return BadRequest(new { message = string.Format("Multiple employees found with employee name {0}", employeeName) });
             return Ok(employee);
         }
         [HttpGet("GetEmployessIdAndName")]
@@ -159,11 +159,11 @@ namespace LGMS.Controllers
         {
             if (_dbContext.Employees.FirstOrDefault(e => e.Name.ToUpper() == employeeDetails.EmployeeName.ToUpper()) != null) 
             {
-                return BadRequest("Employee with this Name already Exist");
+                return BadRequest(new { message = "Employee with this Name already Exist" });
             }
 
             var attendanceId = _dbContext.AttendanceIds.SingleOrDefault(a => a.Id == employeeDetails.AttendanceId);
-            if (attendanceId == null) return BadRequest(string.Format("Attendance Id {0} not found.", attendanceId));
+            if (attendanceId == null) return BadRequest(new { message = string.Format("Attendance Id {0} not found.", attendanceId) });
             try
             {
                 Employee employee = new Employee()
@@ -206,18 +206,18 @@ namespace LGMS.Controllers
 
             if (existingEmployee == null)
             {
-                return NotFound("Employee not found");
+                return NotFound(new { message = "Employee not found" });
             }
 
             if (_dbContext.Employees.Any(e => e.Name.ToUpper() == employeeDetails.EmployeeName.ToUpper() && e.Id != employeeDetails.Id))
             {
-                return BadRequest("Another employee with this name already exists");
+                return BadRequest(new { message = "Another employee with this name already exists" });
             }
             var attendanceId = _dbContext.AttendanceIds.SingleOrDefault(a => a.Id == employeeDetails.AttendanceId);
             if (attendanceId == null) return BadRequest(string.Format("Attendance Id {0} not found.", attendanceId));
             if (_dbContext.Employees.Any(e => e.AttendanceId.Id == employeeDetails.AttendanceId && e.Id != employeeDetails.Id))
             {
-                return BadRequest("Another employee with this Attendance ID already exists");
+                return BadRequest(new { message = "Another employee with this Attendance ID already exists" });
             }
 
             try
@@ -260,8 +260,8 @@ namespace LGMS.Controllers
                 Employee? employee = _dbContext.Employees.FirstOrDefault(e => e.Id == EmployeeId);
                 EmployeeStatus? employeeStatus =
                     _dbContext.EmployeeStatus.FirstOrDefault(s => s.Title.ToUpper() == "DELETED");
-                if (employee == null) return BadRequest("Employee Id is not correct");
-                if (employeeStatus == null) return BadRequest("Deleted Status Not Found");
+                if (employee == null) return BadRequest(new { message = "Employee Id is not correct" });
+                if (employeeStatus == null) return BadRequest(new { message = "Deleted Status Not Found" });
 
                 employee.Status = employeeStatus;
                 _dbContext.Employees.Update(employee);
@@ -272,7 +272,7 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
 

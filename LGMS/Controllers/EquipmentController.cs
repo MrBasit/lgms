@@ -24,7 +24,7 @@ namespace LGMS.Controllers
         [HttpPost("GetEquipments")]
         public IActionResult GetEquipments(EquipmentsSearchModel equipmentSearchModel)
         {
-            if (equipmentSearchModel == null) return BadRequest("Invalid search criteria");
+            if (equipmentSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 
             var equipments = new List<Equipment>();
 
@@ -43,7 +43,7 @@ namespace LGMS.Controllers
                 return BadRequest(ex.Message);
             }
 
-            if (!equipments.Any()) return NotFound("Equipments Not Found");
+            if (!equipments.Any()) return NotFound(new { message = "Equipments Not Found" });
 
             var equipmentWithSelectedStatuses = new List<Equipment>();
             foreach (var status in equipmentSearchModel.Statuses)
@@ -125,7 +125,7 @@ namespace LGMS.Controllers
                 .Include(e => e.Manufacturer)
                 .Include(e => e.Vendor)
                 .SingleOrDefault(e => e.Id == equipmentId);
-            if (equipment == null) return BadRequest(string.Format("Equipment with id {0} doesn't exist", equipmentId));
+            if (equipment == null) return BadRequest(new { message = string.Format("Equipment with id {0} doesn't exist", equipmentId) });
             return Ok(equipment);
         }
 
@@ -139,14 +139,14 @@ namespace LGMS.Controllers
                 var employee = _dbContext.Employees.SingleOrDefault(e => e.Id == assigneeDetails.Id);
                 if (employee == null)
                 {
-                    return NotFound($"Employee with ID {assigneeDetails.Id} not found.");
+                    return NotFound(new { message = $"Employee with ID {assigneeDetails.Id} not found." });
                 }
 
                 assignees.Add(employee);
             }
             if (_dbContext.Equipments.Any(e => e.Number == equipmentDetails.Number))
             {
-                return BadRequest("Another equipment with this number already exists");
+                return BadRequest(new { message = "Another equipment with this number already exists" });
             }
 
             try
@@ -178,7 +178,7 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
 
@@ -191,12 +191,12 @@ namespace LGMS.Controllers
 
             if (existingEquipment == null)
             {
-                return NotFound("Equipment not found");
+                return NotFound(new { message = "Equipment not found" });
             }
 
             if (_dbContext.Equipments.Any(e => e.Number == equipmentDetails.Number && e.Id != equipmentDetails.Id))
             {
-                return BadRequest("Another equipment with this number already exists");
+                return BadRequest(new { message = "Another equipment with this number already exists" });
             }
 
             var newAssigneeIds = new HashSet<int>(equipmentDetails.Assignees.Select(a => a.Id));
@@ -214,7 +214,7 @@ namespace LGMS.Controllers
                     var employee = _dbContext.Employees.SingleOrDefault(e => e.Id == assigneeDetails.Id);
                     if (employee == null)
                     {
-                        return NotFound($"Employee with ID {assigneeDetails.Id} not found.");
+                        return NotFound(new { message = $"Employee with ID {assigneeDetails.Id} not found." });
                     }
 
                     existingEquipment.Assignees.Add(employee);
@@ -245,7 +245,7 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
 
@@ -257,8 +257,8 @@ namespace LGMS.Controllers
                 Equipment? equipment = _dbContext.Equipments.FirstOrDefault(e => e.Id == EquipmentId);
                 EquipmentStatus? equipmentStatus =
                     _dbContext.EquipmentStatus.FirstOrDefault(s => s.Title.ToUpper() == "DELETED");
-                if (equipment == null) return BadRequest("Equipment Id is not correct");
-                if (equipmentStatus == null) return BadRequest("Deleted Status Not Found");
+                if (equipment == null) return BadRequest(new { message = "Equipment Id is not correct" });
+                if (equipmentStatus == null) return BadRequest(new { message = "Deleted Status Not Found" });
 
                 equipment.Status = equipmentStatus;
                 _dbContext.Equipments.Update(equipment);
@@ -269,7 +269,7 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
         [HttpGet("GetEquipmentTypesWithCount")]

@@ -32,7 +32,7 @@ namespace LGMS.Controllers
         [HttpPost("GetDepartmentsWithFilters")]
         public IActionResult GetDepartmentsWithFilters(DepartmentsSearchModel departmentSearchModel)
         {
-            if (departmentSearchModel == null) return BadRequest("Invalid search criteria");
+            if (departmentSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 
             var departments = new List<Department>();
 
@@ -45,7 +45,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            if (!departments.Any()) return NotFound("departments Not Found");
+            if (!departments.Any()) return NotFound(new { message = "departments Not Found" });
 
             if (!string.IsNullOrEmpty(departmentSearchModel.SearchDetails.SearchTerm))
             {

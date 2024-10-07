@@ -26,7 +26,7 @@ namespace LGMS.Controllers
         [HttpPost("GetAttendanceRecords")]
         public IActionResult GetAttendanceRecords(AttendanceRecordSearchModel searchModel)
         {
-            if (searchModel == null) return BadRequest("Invalid search criteria");
+            if (searchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 
             var attendanceRecords = new List<AttendanceRecord>();
 
@@ -48,7 +48,7 @@ namespace LGMS.Controllers
             }
             else
             {
-                return BadRequest("Year is required");
+                return BadRequest(new { message = "Year is required" });
             }
 
             if (searchModel.Month > 0)
@@ -57,7 +57,7 @@ namespace LGMS.Controllers
             }
             else
             {
-                return BadRequest("Month is required.");
+                return BadRequest(new { message = "Month is required." });
             }
             var recordsWithIncludedNames = new List<AttendanceRecord>();
 
