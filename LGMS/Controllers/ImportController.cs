@@ -89,11 +89,30 @@ namespace LGMS.Controllers
                         ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
                         int rowCount = worksheet.Dimension.Rows;
 
+                        var machineIds = new HashSet<int>();
                         for (int row = 2; row <= rowCount; row++)
                         {
-                            var excelAttendanceId = worksheet.Cells[row, 2].Value?.ToString();
-                            var existingAttendanceId = _dbContext.AttendanceIds.FirstOrDefault(a => a.MachineName == excelAttendanceId);
+                            var excelMachineIdValue = worksheet.Cells[row, 1].Value;
+                            if (excelMachineIdValue != null && int.TryParse(excelMachineIdValue.ToString(), out int machineId))
+                            {
+                                machineIds.Add(machineId);
+                            }
+                        }
 
+                        var existingAttendanceIds = _dbContext.AttendanceIds
+                            .Where(a => machineIds.Contains(a.MachineId))
+                            .ToList();
+
+                        var existingRecords = _dbContext.AttendanceRecords
+                            .Where(r => existingAttendanceIds.Select(a => a.Id).Contains(r.AttendanceId.Id))
+                            .ToList();
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            var excelMachineIdValue = worksheet.Cells[row, 1].Value;
+                            int machineId = Convert.ToInt32(excelMachineIdValue);
+
+                            var existingAttendanceId = existingAttendanceIds.FirstOrDefault(a => a.MachineId == machineId);
                             if (existingAttendanceId == null)
                             {
                                 continue;
@@ -101,12 +120,10 @@ namespace LGMS.Controllers
 
                             var date = DateTime.Parse(worksheet.Cells[row, 3].Value?.ToString());
 
-                            var existingRecord = _dbContext.AttendanceRecords
-                                .FirstOrDefault(r => r.AttendanceId == existingAttendanceId && r.Date == date);
-
+                            var existingRecord = existingRecords.FirstOrDefault(r => r.AttendanceId.Id == existingAttendanceId.Id && r.Date == date);
                             if (existingRecord != null)
                             {
-                                continue;
+                                continue; 
                             }
 
                             var attendanceRecord = new AttendanceRecord
@@ -116,7 +133,9 @@ namespace LGMS.Controllers
                                 CheckIns = worksheet.Cells[row, 4].Value?.ToString(),
                                 CheckOuts = worksheet.Cells[row, 5].Value?.ToString(),
                                 RequiredTime = TimeSpan.Parse(worksheet.Cells[row, 6].Value?.ToString()),
-                                ActualTime = TimeSpan.Parse(worksheet.Cells[row, 7].Value?.ToString())
+                                ActualTime = TimeSpan.Parse(worksheet.Cells[row, 7].Value?.ToString()),
+                                TimeTable = worksheet.Cells[row, 8].Value?.ToString(),
+                                LateIn = TimeSpan.Parse(worksheet.Cells[row, 12].Value?.ToString()),
                             };
 
                             attendanceRecord.Status = _attendanceRecordService.CalculateStatus(
@@ -124,7 +143,7 @@ namespace LGMS.Controllers
                                 attendanceRecord.RequiredTime.ToString(),
                                 attendanceRecord.ActualTime.ToString(),
                                 "00:00:00",
-                                "00:00:00",
+                                attendanceRecord.LateIn.ToString(),
                                 attendanceRecord.CheckIns
                             );
                             attendanceRecord.OverHours = _attendanceRecordService.CalculateOverHours(attendanceRecord.RequiredTime, attendanceRecord.ActualTime);
@@ -136,14 +155,16 @@ namespace LGMS.Controllers
                     }
                 }
 
-                _attendanceRecordService.SaveAttendanceRecords(attendanceRecords);
+                await _attendanceRecordService.SaveAttendanceRecordsAsync(attendanceRecords);
 
-                return Ok(new {message = "File processed and attendance records saved successfully." });
+                return Ok(new { message = "File processed and attendance records saved successfully." });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+
     }
 }

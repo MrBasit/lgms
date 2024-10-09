@@ -20,8 +20,8 @@ namespace LGMS.Controllers
             _dbContext = dbContext;
             _pagedData = new PagedData<Employee>();
         }
-        [HttpPost("GetEmployees")]
-        public IActionResult GetEmployees(EmployeesSearchModel employeeSearchModel)
+        [HttpPost("GetEmployeesWithFilters")]
+        public IActionResult GetEmployeesWithFilters(EmployeesSearchModel employeeSearchModel)
         {
             if (employeeSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 
@@ -110,8 +110,13 @@ namespace LGMS.Controllers
             return Ok(pagedEmployeesResult);
         }
 
-
-
+        [HttpGet("GetEmployees")]
+        public IActionResult GetEmployees()
+        {
+            var employees = _dbContext.Employees.Include(e => e.AttendanceId).ToList();
+            return Ok(employees);
+        }
+        
         [HttpGet("GetEmployeeById")]
         public IActionResult GetEmployeeById(int employeeId)
         {
@@ -140,6 +145,7 @@ namespace LGMS.Controllers
             if (employee.Count() > 1) return BadRequest(new { message = string.Format("Multiple employees found with employee name {0}", employeeName) });
             return Ok(employee);
         }
+        
         [HttpGet("GetEmployessIdAndName")]
         public IActionResult GetEmployeesIdAndName()
         {
@@ -164,6 +170,10 @@ namespace LGMS.Controllers
 
             var attendanceId = _dbContext.AttendanceIds.SingleOrDefault(a => a.Id == employeeDetails.AttendanceId);
             if (attendanceId == null) return BadRequest(new { message = string.Format("Attendance Id {0} not found.", attendanceId) });
+            if (_dbContext.Employees.Any(e => e.AttendanceId.Id == employeeDetails.AttendanceId))
+            {
+                return BadRequest(new { message = "Another employee with this Attendance ID already exists" });
+            }
             try
             {
                 Employee employee = new Employee()

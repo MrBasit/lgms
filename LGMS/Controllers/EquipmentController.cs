@@ -21,8 +21,8 @@ namespace LGMS.Controllers
             _pagedData = new PagedData<Equipment>();
         }
 
-        [HttpPost("GetEquipments")]
-        public IActionResult GetEquipments(EquipmentsSearchModel equipmentSearchModel)
+        [HttpPost("GetEquipmentsWithFilters")]
+        public IActionResult GetEquipmentsWithFilters(EquipmentsSearchModel equipmentSearchModel)
         {
             if (equipmentSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 
@@ -115,6 +115,20 @@ namespace LGMS.Controllers
 
             return Ok(pagedEquipmentsResult);
         }
+
+        [HttpGet("GetEquipments")]
+        public IActionResult GetEquipments()
+        {
+            var equipments = _dbContext.Equipments
+                .Include(e => e.Type)
+                .Include(e => e.Assignees)
+                .Include(e => e.Manufacturer)
+                .Include(e => e.Vendor)
+                .Include(e => e.Status)
+                .ToList();
+            return Ok(equipments);
+        }
+
         [HttpGet("GetEquipmentById")]
         public IActionResult GetEquipmentById(int equipmentId)
         {
@@ -124,6 +138,8 @@ namespace LGMS.Controllers
                 .Include(e => e.Status)
                 .Include(e => e.Manufacturer)
                 .Include(e => e.Vendor)
+                .Include(e => e.ParentEquipment)
+                .ThenInclude(eq => eq.Type)
                 .SingleOrDefault(e => e.Id == equipmentId);
             if (equipment == null) return BadRequest(new { message = string.Format("Equipment with id {0} doesn't exist", equipmentId) });
             return Ok(equipment);
@@ -148,6 +164,8 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new { message = "Another equipment with this number already exists" });
             }
+            var parentEquipment =
+                _dbContext.Equipments.SingleOrDefault(e => e.Id == equipmentDetails.ParentEquipmentId);
 
             try
             {
@@ -170,7 +188,8 @@ namespace LGMS.Controllers
                         : _dbContext.Vendors.Single(m => m.Id == equipmentDetails.Vendor.Id),
                     WarrantyExpiryDate = equipmentDetails.WarrantyExpiryDate,
                     BuyingDate = equipmentDetails.BuyingDate,
-                    UnboxingDate = equipmentDetails.UnboxingDate
+                    UnboxingDate = equipmentDetails.UnboxingDate,
+                    ParentEquipment = parentEquipment
                 };
                 _dbContext.Equipments.Add(equipment);
                 _dbContext.SaveChanges();
@@ -186,6 +205,7 @@ namespace LGMS.Controllers
         public IActionResult EditEquipment(EquipmentEditModel equipmentDetails)
         {
             var existingEquipment = _dbContext.Equipments
+                .Include(e => e.ParentEquipment)
                 .Include(e => e.Assignees)
                 .FirstOrDefault(e => e.Id == equipmentDetails.Id);
 
@@ -221,6 +241,17 @@ namespace LGMS.Controllers
                 }
             }
 
+            var parentEquipment =
+                _dbContext.Equipments.Include(e => e.ParentEquipment).SingleOrDefault(e => e.Id == equipmentDetails.ParentEquipmentId);
+            if (parentEquipment != null && parentEquipment == existingEquipment)
+            {
+                return BadRequest(new { message = "Cannot make equipment its own parent" });
+            }
+            if (parentEquipment != null && parentEquipment.ParentEquipment == existingEquipment)
+            {
+                return BadRequest(new { message = "Cannot assign parent equipment as it is a child of the equipment being edited." });
+            }
+
             try
             {
                 existingEquipment.Number = equipmentDetails.Number;
@@ -240,6 +271,7 @@ namespace LGMS.Controllers
                 existingEquipment.WarrantyExpiryDate = equipmentDetails.WarrantyExpiryDate;
                 existingEquipment.BuyingDate = equipmentDetails.BuyingDate;
                 existingEquipment.UnboxingDate = equipmentDetails.UnboxingDate;
+                existingEquipment.ParentEquipment = parentEquipment;
                 _dbContext.SaveChanges();
                 return Ok(existingEquipment);
             }
@@ -298,7 +330,6 @@ namespace LGMS.Controllers
                     EqipmentCount = t.Equipments.Count(e => e.Status.Title == "Active")
                 })
                 .OrderByDescending(t => t.EqipmentCount)
-                .Take(5)
                 .ToList()
                 .Select(t => $"{t.AssigneeName} ({t.EqipmentCount})");
 

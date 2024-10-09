@@ -5,7 +5,8 @@
         public int Id { get; set; }
         public string Number { get; set; }
         public Manufacturer Manufacturer { get; set; }
-        public List<Employee> Assignees { get; set; }
+        public List<Employee>? Assignees { get; set; }
+        public Equipment? ParentEquipment{ get; set; }
         public EquipmentStatus Status { get; set; }
         public string Comments { get; set; }
         public Vendor Vendor { get; set; }

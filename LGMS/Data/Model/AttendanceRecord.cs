@@ -9,7 +9,9 @@
         public string? CheckOuts { get; set; } 
         public AttendanceRecordStatus Status { get; set; }         
         public TimeSpan RequiredTime { get; set; }  
-        public TimeSpan ActualTime { get; set; }    
+        public TimeSpan ActualTime { get; set; }
+        public string? TimeTable { get; set; }
+        public TimeSpan LateIn { get; set; }
         public int UnderHours { get; set; }  
         public int OverHours { get; set; }     
         public bool IsRecordOk { get; set; }  

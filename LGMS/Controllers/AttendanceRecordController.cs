@@ -85,6 +85,11 @@ namespace LGMS.Controllers
             {
                 switch (searchModel.SortDetails.SortColumn)
                 {
+                    case "name":
+                        attendanceRecords = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
+                            attendanceRecords.OrderBy(e => e.AttendanceId.MachineName).ToList() :
+                            attendanceRecords.OrderByDescending(e => e.AttendanceId.MachineName).ToList();
+                        break;
                     case "date":
                         attendanceRecords = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
                             attendanceRecords.OrderBy(e => e.Date).ToList() :
@@ -107,14 +112,14 @@ namespace LGMS.Controllers
                         break;
                     default:
                         attendanceRecords = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
-                            attendanceRecords.OrderBy(e => e.Date).ToList() :
-                            attendanceRecords.OrderByDescending(e => e.Date).ToList();
+                            attendanceRecords.OrderBy(e => e.AttendanceId.MachineName).ToList() :
+                            attendanceRecords.OrderByDescending(e => e.AttendanceId.MachineName).ToList();
                         break;
                 }
             }
             else
             {
-                attendanceRecords = attendanceRecords.OrderBy(e => e.Date).ToList();
+                attendanceRecords = attendanceRecords.OrderBy(e => e.AttendanceId.MachineName).ToList();
             }
 
             var pagedAttendanceRecordResult = _pagedData.GetPagedData(

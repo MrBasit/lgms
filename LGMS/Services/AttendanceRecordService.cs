@@ -10,49 +10,56 @@ namespace LGMS.Services
     public class AttendanceRecordService
     {
         private readonly LgmsDbContext _context;
+        private readonly Dictionary<string, AttendanceRecordStatus> _statuses;
 
         public AttendanceRecordService(LgmsDbContext context)
         {
             _context = context;
-        }
-
-        public AttendanceRecordStatus GetStatusFromDb(string statusName)
-        {
-            var status = _context.AttendanceRecordStatuses
-                                 .FirstOrDefault(s => s.Title == statusName);
-            if (status == null)
-            {
-                throw new Exception($"Status {statusName} not found.");
-            }
-            return status;
+            _statuses = _context.AttendanceRecordStatuses.ToDictionary(s => s.Title, s => s);
         }
 
         public AttendanceRecordStatus CalculateStatus(DateTime date, string requiredWork, string actualWork, string absentTime, string lateTime, string checkIn)
         {
+            if (!_statuses.ContainsKey("Weekend") ||
+                !_statuses.ContainsKey("Extra Day") ||
+                !_statuses.ContainsKey("Day Off") ||
+                !_statuses.ContainsKey("On Time") ||
+                !_statuses.ContainsKey("Late In"))
+            {
+                throw new Exception("One or more statuses are missing in the database.");
+            }
+
             if (requiredWork == "00:00:00")
-                return GetStatusFromDb("Weekend");
+                return _statuses["Weekend"];
 
             if (date.DayOfWeek == DayOfWeek.Sunday && actualWork == "00:00:00")
-                return GetStatusFromDb("Weekend");
+                return _statuses["Weekend"];
 
             if (date.DayOfWeek == DayOfWeek.Sunday && actualWork != "00:00:00")
-                return GetStatusFromDb("Extra Day");
+                return _statuses["Extra Day"];
 
             if (date.DayOfWeek != DayOfWeek.Sunday && actualWork == "00:00:00" && string.IsNullOrEmpty(checkIn))
-                return GetStatusFromDb("Day Off");
+                return _statuses["Day Off"];
 
             if (lateTime == "00:00:00")
-                return GetStatusFromDb("On Time");
+                return _statuses["On Time"];
 
-            return GetStatusFromDb("Late In");
+            return _statuses["Late In"];
         }
 
         public int CalculateOverHours(TimeSpan requiredTime, TimeSpan actualTime)
         {
-            if (actualTime.TotalMinutes > requiredTime.TotalMinutes + 45)
+            var requiredTotalMinutes = (int)requiredTime.TotalMinutes;
+            var actualTotalMinutes = (int)actualTime.TotalMinutes;
+            var totalMinutes = actualTotalMinutes - requiredTotalMinutes;
+
+            if (totalMinutes > 45)
             {
-                return (int)((actualTime.TotalMinutes - requiredTime.TotalMinutes) / 60);
+                int overtimeHours = (int)Math.Floor((double)totalMinutes / 60);
+                overtimeHours += (totalMinutes % 60 > 45 ? 1 : 0);
+                return overtimeHours;
             }
+
             return 0;
         }
 
@@ -60,21 +67,26 @@ namespace LGMS.Services
         {
             if ((status == "Weekend" || status == "Day Off") && actualTime.TotalMinutes == 0) return 0;
             if (status != "Day Off" && actualTime.TotalMinutes == 0) return 0;
+            var requiredTotalMinutes = (int)requiredTime.TotalMinutes;
+            var actualTotalMinutes = (int)actualTime.TotalMinutes;
+            var totalMinutes = requiredTotalMinutes - actualTotalMinutes;
 
-            if (requiredTime > actualTime)
+            if (totalMinutes > 30)
             {
-                return (int)((requiredTime.TotalMinutes - actualTime.TotalMinutes) / 60);
+                int underTimeHours = (int)Math.Floor((double)totalMinutes / 60);
+                underTimeHours += (totalMinutes % 60 > 30 ? 1 : 0);
+                return underTimeHours;
             }
             return 0;
         }
 
-        public void SaveAttendanceRecords(List<AttendanceRecord> records)
+        public async Task SaveAttendanceRecordsAsync(List<AttendanceRecord> records)
         {
             foreach (var record in records)
             {
-                _context.AttendanceRecords.Add(record);
+                await _context.AttendanceRecords.AddAsync(record);
             }
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }

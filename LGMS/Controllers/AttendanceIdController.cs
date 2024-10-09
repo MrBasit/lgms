@@ -91,6 +91,10 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new { message = "AttendanceId with this Machine Name already Exist" });
             }
+            if (_dbContext.AttendanceIds.FirstOrDefault(a => a.MachineId == attendanceIdDetails.MachineId) != null)
+            {
+                return BadRequest(new { message = "AttendanceId with this Machine Id already Exist" });
+            }
             try
             {
                 AttendanceId attendanceId = new AttendanceId()
@@ -127,6 +131,13 @@ namespace LGMS.Controllers
                 return BadRequest(new
                 {
                     message = "AttendanceId with this Machine Name already Exist"
+                });
+            }
+            if (_dbContext.AttendanceIds.Any(a => a.MachineId == attendanceIdDetails.MachineId && a.Id != attendanceIdDetails.Id))
+            {
+                return BadRequest(new
+                {
+                    message = "AttendanceId with this Machine Id already Exist"
                 });
             }
             try

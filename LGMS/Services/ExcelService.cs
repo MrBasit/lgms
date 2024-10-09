@@ -25,6 +25,7 @@ namespace LGMS.Services
                 worksheet.Cells[1, 9].Value = "Warranty Duration";
                 worksheet.Cells[1, 10].Value = "Buying Date";
                 worksheet.Cells[1, 11].Value = "Unboxing Date";
+               
 
                 using (var headerRange = worksheet.Cells[1, 1, 1, 11])
                 {
@@ -78,8 +79,11 @@ namespace LGMS.Services
                 worksheet.Cells[1, 9].Value = "Under Hours";
                 worksheet.Cells[1, 10].Value = "Over Hours";
                 worksheet.Cells[1, 11].Value = "Is Record OK";
+                worksheet.Cells[1, 12].Value = "Time Table";
+                worksheet.Cells[1, 13].Value = "Late In";
 
-                using (var headerRange = worksheet.Cells[1, 1, 1, 11])
+
+                using (var headerRange = worksheet.Cells[1, 1, 1, 13])
                 {
                     headerRange.Style.Font.Bold = true;
                     headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
@@ -100,9 +104,11 @@ namespace LGMS.Services
                     worksheet.Cells[i + 2, 9].Value = data[i].UnderHours;
                     worksheet.Cells[i + 2, 10].Value = data[i].OverHours;
                     worksheet.Cells[i + 2, 11].Value = data[i].IsRecordOk ? "Yes" : "No";
+                    worksheet.Cells[i + 2, 12].Value = data[i].TimeTable;
+                    worksheet.Cells[i + 2, 13].Value = data[i].LateIn;
                 }
 
-                using (var dataRange = worksheet.Cells[1, 1, data.Count + 1, 11])
+                using (var dataRange = worksheet.Cells[1, 1, data.Count + 1, 13])
                 {
                     dataRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                 }

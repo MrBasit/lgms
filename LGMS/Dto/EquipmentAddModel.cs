@@ -8,6 +8,7 @@ namespace LGMS.Dto
         public EquipmentType Type { get; set; }
         public Manufacturer Manufacturer { get; set; }
         public List<EquipmentAssigneeModel>? Assignees { get; set; }
+        public int? ParentEquipmentId { get; set; }
         public EquipmentStatus Status { get; set; }
         public string Comments { get; set; }
         public Vendor Vendor { get; set; }

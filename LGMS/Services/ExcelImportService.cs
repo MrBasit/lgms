@@ -323,6 +323,20 @@ namespace LGMS.Services
 
                     string isRecordOkStr = worksheet.Cells[row, 11].Value?.ToString().Trim();
                     attendanceRecord.IsRecordOk = isRecordOkStr.Equals("Yes", StringComparison.OrdinalIgnoreCase);
+                    attendanceRecord.TimeTable = worksheet.Cells[row, 12].Value?.ToString().Trim();
+
+                    string LateInStr = worksheet.Cells[row, 13].Value?.ToString().Trim();
+
+                    if (TimeSpan.TryParse(LateInStr, out TimeSpan LateIn))
+                    {
+                        attendanceRecord.LateIn = LateIn;
+                    }
+                    else
+                    {
+                        attendanceRecord.LateIn = TimeSpan.Zero;
+                    }
+
+                    
 
                     attendanceRecordList.Add(attendanceRecord);
                 }

@@ -4,6 +4,7 @@ using LGMS.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LGMS.Migrations
 {
     [DbContext(typeof(LgmsDbContext))]
-    partial class LgmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241007115408_AddingColumnsToAttendanceRecord")]
+    partial class AddingColumnsToAttendanceRecord
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -102,6 +105,7 @@ namespace LGMS.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("TimeTable")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UnderHours")
@@ -268,9 +272,6 @@ namespace LGMS.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ParentEquipmentId")
-                        .HasColumnType("int");
-
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
 
@@ -289,8 +290,6 @@ namespace LGMS.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ManufacturerId");
-
-                    b.HasIndex("ParentEquipmentId");
 
                     b.HasIndex("StatusId");
 
@@ -651,10 +650,6 @@ namespace LGMS.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LGMS.Data.Model.Equipment", "ParentEquipment")
-                        .WithMany()
-                        .HasForeignKey("ParentEquipmentId");
-
                     b.HasOne("LGMS.Data.Model.EquipmentStatus", "Status")
                         .WithMany()
                         .HasForeignKey("StatusId")
@@ -674,8 +669,6 @@ namespace LGMS.Migrations
                         .IsRequired();
 
                     b.Navigation("Manufacturer");
-
-                    b.Navigation("ParentEquipment");
 
                     b.Navigation("Status");
 
