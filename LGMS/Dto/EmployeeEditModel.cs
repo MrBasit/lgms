@@ -6,7 +6,7 @@ namespace LGMS.Dto
     {
         public int Id { get; set; }
         public string EmployeeName { get; set; }
-        public int AttendanceId {get; set; }
+        public string? AttendanceId {get; set; }
         public DateTime BirthDate { get; set; }
         public Department Department { get; set; }
         public Designation Designation { get; set; }

@@ -113,7 +113,7 @@ namespace LGMS.Controllers
         [HttpGet("GetEmployees")]
         public IActionResult GetEmployees()
         {
-            var employees = _dbContext.Employees.Include(e => e.AttendanceId).ToList();
+            var employees = _dbContext.Employees.Include(e => e.AttendanceId).Where(e => e.AttendanceId != null).ToList();
             return Ok(employees);
         }
         
@@ -163,38 +163,55 @@ namespace LGMS.Controllers
         [HttpPost("AddEmployee")]
         public IActionResult AddEmployee(EmployeeAddModel employeeDetails)
         {
-            if (_dbContext.Employees.FirstOrDefault(e => e.Name.ToUpper() == employeeDetails.EmployeeName.ToUpper()) != null) 
+            if (_dbContext.Employees.Any(e => e.Name.ToUpper() == employeeDetails.EmployeeName.ToUpper()))
             {
-                return BadRequest(new { message = "Employee with this Name already Exist" });
+                return BadRequest(new { message = "Employee with this Name already exists." });
             }
 
-            var attendanceId = _dbContext.AttendanceIds.SingleOrDefault(a => a.Id == employeeDetails.AttendanceId);
-            if (attendanceId == null) return BadRequest(new { message = string.Format("Attendance Id {0} not found.", attendanceId) });
-            if (_dbContext.Employees.Any(e => e.AttendanceId.Id == employeeDetails.AttendanceId))
+            AttendanceId attendanceId = null;
+
+            if (!string.IsNullOrEmpty(employeeDetails.AttendanceId))
             {
-                return BadRequest(new { message = "Another employee with this Attendance ID already exists" });
+                var stringFromFrontend = employeeDetails.AttendanceId;
+                var numberMatch = System.Text.RegularExpressions.Regex.Match(stringFromFrontend, @"\d+");
+
+                if (!numberMatch.Success)
+                {
+                    return BadRequest(new { message = "No valid number found in the attendance ID string." });
+                }
+
+                var extractedNumber = int.Parse(numberMatch.Value);
+
+                attendanceId = _dbContext.AttendanceIds.SingleOrDefault(a => a.MachineId == extractedNumber);
+
+                if (attendanceId != null && _dbContext.Employees.Any(e => e.AttendanceId.Id == attendanceId.Id))
+                {
+                    return BadRequest(new { message = "This Attendance ID is already linked to another employee." });
+                }
             }
+
             try
             {
                 Employee employee = new Employee()
                 {
                     AttendanceId = attendanceId,
                     Name = employeeDetails.EmployeeName,
-                    EmployeeNumber = string.Format("{0}{1}", "EMP", DateTime.Now.ToString("yyMMddHHmmss")),
+                    EmployeeNumber = $"EMP{DateTime.Now:yyMMddHHmmss}",
                     BirthDate = employeeDetails.BirthDate,
-                    Department = employeeDetails.Department.Id == 0 ? 
+                    Department = employeeDetails.Department.Id == 0 ?
                                  employeeDetails.Department :
                                  _dbContext.Departments.Single(d => d.Id == employeeDetails.Department.Id),
                     Designation = employeeDetails.Designation.Id == 0 ?
-                                 employeeDetails.Designation :
-                                 _dbContext.Designations.Single(d => d.Id == employeeDetails.Designation.Id),
+                                   employeeDetails.Designation :
+                                   _dbContext.Designations.Single(d => d.Id == employeeDetails.Designation.Id),
                     JoiningDate = employeeDetails.JoiningDate,
                     BasicSalary = employeeDetails.BasicSalary,
                     AgreementExpiration = employeeDetails.AgreementExpiration,
                     Status = employeeDetails.Status.Id == 0 ?
-                                 employeeDetails.Status :
-                                 _dbContext.EmployeeStatus.Single(d => d.Id == employeeDetails.Status.Id)
+                             employeeDetails.Status :
+                             _dbContext.EmployeeStatus.Single(d => d.Id == employeeDetails.Status.Id)
                 };
+
                 _dbContext.Employees.Add(employee);
                 _dbContext.SaveChanges();
                 return Ok(employee);
@@ -203,16 +220,17 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new
                 {
-                    message=ex.Message,
-                    innerMessage = ex.InnerException!=null?ex.InnerException.Message:""
+                    message = ex.Message,
+                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
                 });
             }
         }
 
+
         [HttpPost("EditEmployee")]
         public ActionResult EditEmployee(EmployeeEditModel employeeDetails)
         {
-            var existingEmployee = _dbContext.Employees.FirstOrDefault(e => e.Id == employeeDetails.Id);
+            var existingEmployee = _dbContext.Employees.Include(e => e.AttendanceId).Include(e => e.Equipments).FirstOrDefault(e => e.Id == employeeDetails.Id);
 
             if (existingEmployee == null)
             {
@@ -223,17 +241,35 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new { message = "Another employee with this name already exists" });
             }
-            var attendanceId = _dbContext.AttendanceIds.SingleOrDefault(a => a.Id == employeeDetails.AttendanceId);
-            if (attendanceId == null) return BadRequest(string.Format("Attendance Id {0} not found.", attendanceId));
-            if (_dbContext.Employees.Any(e => e.AttendanceId.Id == employeeDetails.AttendanceId && e.Id != employeeDetails.Id))
+
+            if (!string.IsNullOrEmpty(employeeDetails.AttendanceId))
             {
-                return BadRequest(new { message = "Another employee with this Attendance ID already exists" });
+                var stringFromFrontend = employeeDetails.AttendanceId;
+                var numberMatch = System.Text.RegularExpressions.Regex.Match(stringFromFrontend, @"\d+");
+                if (!numberMatch.Success)
+                {
+                    return BadRequest(new { message = "No valid number found in the attendance ID string." });
+                }
+
+                var extractedNumber = int.Parse(numberMatch.Value);
+
+                var attendanceId = _dbContext.AttendanceIds.SingleOrDefault(a => a.MachineId == extractedNumber);
+
+                if (attendanceId != null && _dbContext.Employees.Any(e => e.AttendanceId.Id == attendanceId.Id && e.Id != employeeDetails.Id))
+                {
+                    return BadRequest(new { message = "Another employee with this Attendance ID already exists" });
+                }
+
+                existingEmployee.AttendanceId = attendanceId;
+            }
+            else
+            {
+                existingEmployee.AttendanceId = null;
             }
 
             try
             {
                 existingEmployee.Name = employeeDetails.EmployeeName;
-                existingEmployee.AttendanceId = attendanceId;
                 existingEmployee.BirthDate = employeeDetails.BirthDate;
                 existingEmployee.Department = employeeDetails.Department.Id == 0 ?
                                               employeeDetails.Department :
@@ -261,6 +297,7 @@ namespace LGMS.Controllers
                 });
             }
         }
+
 
         [HttpPost("DeleteEmployee")]
         public IActionResult DeleteEmployee([FromBody]int EmployeeId)

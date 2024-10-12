@@ -16,6 +16,7 @@ builder.Services.AddTransient<ExcelService>();
 builder.Services.AddScoped<ExcelImportService>();
 builder.Services.AddScoped<AttendanceRecordService>();
 builder.Services.AddScoped<AttendanceReportService>();
+builder.Services.AddScoped<SalarySlipService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

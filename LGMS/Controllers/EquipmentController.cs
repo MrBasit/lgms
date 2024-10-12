@@ -164,8 +164,13 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new { message = "Another equipment with this number already exists" });
             }
+            string parentEquipmentNumber = null;
+            if (!string.IsNullOrEmpty(equipmentDetails.ParentEquipmentNumber))
+            {
+                parentEquipmentNumber = equipmentDetails.ParentEquipmentNumber.Split(new[] { " - " }, StringSplitOptions.None)[0];
+            }
             var parentEquipment =
-                _dbContext.Equipments.SingleOrDefault(e => e.Id == equipmentDetails.ParentEquipmentId);
+                _dbContext.Equipments.SingleOrDefault(e => e.Number == parentEquipmentNumber);
 
             try
             {
@@ -206,6 +211,7 @@ namespace LGMS.Controllers
         {
             var existingEquipment = _dbContext.Equipments
                 .Include(e => e.ParentEquipment)
+                .ThenInclude(eq => eq.Type)
                 .Include(e => e.Assignees)
                 .FirstOrDefault(e => e.Id == equipmentDetails.Id);
 
@@ -240,9 +246,14 @@ namespace LGMS.Controllers
                     existingEquipment.Assignees.Add(employee);
                 }
             }
+            string parentEquipmentNumber = null;
+            if (!string.IsNullOrEmpty(equipmentDetails.ParentEquipmentNumber))
+            {
+                parentEquipmentNumber = equipmentDetails.ParentEquipmentNumber.Split(new[] { " - " }, StringSplitOptions.None)[0];
+            }
 
             var parentEquipment =
-                _dbContext.Equipments.Include(e => e.ParentEquipment).SingleOrDefault(e => e.Id == equipmentDetails.ParentEquipmentId);
+                _dbContext.Equipments.Include(e => e.ParentEquipment).ThenInclude(eq => eq.Type).SingleOrDefault(e => e.Number == parentEquipmentNumber);
             if (parentEquipment != null && parentEquipment == existingEquipment)
             {
                 return BadRequest(new { message = "Cannot make equipment its own parent" });

@@ -96,10 +96,20 @@ namespace LGMS.Controllers
                                 attendanceReports.OrderBy(e => e.Name).ToList() :
                                 attendanceReports.OrderByDescending(e => e.Name).ToList();
                             break;
-                        case "badRecords":
+                        case "onTimes":
                             attendanceReports = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
-                                attendanceReports.OrderBy(e => e.BadRecords).ToList() :
-                                attendanceReports.OrderByDescending(e => e.BadRecords).ToList();
+                                attendanceReports.OrderBy(e => e.OnTimes).ToList() :
+                                attendanceReports.OrderByDescending(e => e.OnTimes).ToList();
+                            break;
+                        case "lateIns":
+                            attendanceRecords = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
+                                attendanceRecords.OrderBy(e => e.LateIn).ToList() :
+                                attendanceRecords.OrderByDescending(e => e.LateIn).ToList();
+                            break;
+                        case "dayOffs":
+                            attendanceReports = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
+                                attendanceReports.OrderBy(e => e.DayOffs).ToList() :
+                                attendanceReports.OrderByDescending(e => e.DayOffs).ToList();
                             break;
                         case "overHours":
                             attendanceReports = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?

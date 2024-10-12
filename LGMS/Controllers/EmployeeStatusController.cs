@@ -86,5 +86,71 @@ namespace LGMS.Controllers
 
             return Ok(pagedEmployeeStatusesResult);
         }
+        [HttpGet("GetEmployeeStatusById")]
+        public IActionResult GetEmployeeStatusById(int id)
+        {
+            var employeeStatus = _dbContext.EmployeeStatus
+                .SingleOrDefault(d => d.Id == id);
+            if (employeeStatus == null) return BadRequest(new { message = string.Format("EmployeeStatus with id {0} doesn't exist", id) });
+            return Ok(employeeStatus);
+        }
+
+        [HttpPost("EditEmployeeStatus")]
+        public IActionResult EditEmployeeStatus(EmployeeStatusEditModel statusDetails)
+        {
+            var existingStatus = _dbContext.EmployeeStatus.FirstOrDefault(d => d.Id == statusDetails.Id);
+
+            if (existingStatus == null)
+            {
+                return NotFound("EmployeeStatus not Found");
+            }
+
+            if (_dbContext.EmployeeStatus.Any(d => d.Title.ToUpper() == statusDetails.Title.ToUpper() && d.Id != statusDetails.Id))
+            {
+                return BadRequest(new
+                {
+                    message = "EmployeeStatus with this Title already Exist"
+                });
+            }
+            try
+            {
+                existingStatus.Title = statusDetails.Title;
+                _dbContext.SaveChanges();
+                return Ok(existingStatus);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                });
+            }
+        }
+        [HttpPost("DeleteEmployeeStatus")]
+        public IActionResult DeleteEmployeeStatus([FromBody] int id)
+        {
+            var existingStatus = _dbContext.EmployeeStatus.FirstOrDefault(d => d.Id == id);
+
+            if (existingStatus == null)
+            {
+                return NotFound("EmployeeStatus not Found");
+            }
+
+            try
+            {
+                _dbContext.EmployeeStatus.Remove(existingStatus);
+                _dbContext.SaveChanges();
+                return Ok(new { message = $"{existingStatus.Title} has been deleted." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                });
+            }
+        }
     }
 }

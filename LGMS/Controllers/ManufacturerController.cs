@@ -81,5 +81,71 @@ namespace LGMS.Controllers
 
             return Ok(pagedManufacturersResult);
         }
+        [HttpGet("GetManufacturerById")]
+        public IActionResult GetManufacturerById(int id)
+        {
+            var manufacturer = _dbContext.Manufacturers
+                .SingleOrDefault(d => d.Id == id);
+            if (manufacturer == null) return BadRequest(new { message = string.Format("Manufacturer with id {0} doesn't exist", id) });
+            return Ok(manufacturer);
+        }
+
+        [HttpPost("EditManufacturer")]
+        public IActionResult EditManufacturer(ManufacturerEditModel manufacturerDetails)
+        {
+            var existingManufacturer = _dbContext.Vendors.FirstOrDefault(d => d.Id == manufacturerDetails.Id);
+
+            if (existingManufacturer == null)
+            {
+                return NotFound("Manufacturer not Found");
+            }
+
+            if (_dbContext.Manufacturers.Any(d => d.Name.ToUpper() == manufacturerDetails.Name.ToUpper() && d.Id != manufacturerDetails.Id))
+            {
+                return BadRequest(new
+                {
+                    message = "Manufacturer with this Name already Exist"
+                });
+            }
+            try
+            {
+                existingManufacturer.Name = manufacturerDetails.Name;
+                _dbContext.SaveChanges();
+                return Ok(existingManufacturer);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                });
+            }
+        }
+        [HttpPost("DeleteManufacturer")]
+        public IActionResult DeleteManufacturer([FromBody] int id)
+        {
+            var existingManufacturer = _dbContext.Manufacturers.FirstOrDefault(d => d.Id == id);
+
+            if (existingManufacturer == null)
+            {
+                return NotFound("Manufacturer not Found");
+            }
+
+            try
+            {
+                _dbContext.Manufacturers.Remove(existingManufacturer);
+                _dbContext.SaveChanges();
+                return Ok(new { message = $"{existingManufacturer.Name} has been deleted." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                });
+            }
+        }
     }
 }

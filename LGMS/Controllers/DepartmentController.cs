@@ -87,5 +87,71 @@ namespace LGMS.Controllers
 
             return Ok(pagedDepartmentsResult);
         }
+        [HttpGet("GetDepartmentById")]
+        public IActionResult GetDepartmentById(int id)
+        {
+            var department = _dbContext.Departments
+                .SingleOrDefault(d => d.Id == id);
+            if (department == null) return BadRequest(new { message = string.Format("Department with id {0} doesn't exist", id) });
+            return Ok(department);
+        }
+
+        [HttpPost("EditDepartment")]
+        public IActionResult EditDepartment(DepartmentEditModel departmentDetails)
+        {
+            var existingDepartment = _dbContext.Departments.FirstOrDefault(d => d.Id == departmentDetails.Id);
+
+            if (existingDepartment == null)
+            {
+                return NotFound("Department not Found");
+            }
+
+            if (_dbContext.Departments.Any(d => d.Name.ToUpper() == departmentDetails.Name.ToUpper() && d.Id != departmentDetails.Id))
+            {
+                return BadRequest(new
+                {
+                    message = "Department with this Name already Exist"
+                });
+            }
+            try
+            {
+                existingDepartment.Name = departmentDetails.Name;
+                _dbContext.SaveChanges();
+                return Ok(existingDepartment);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                });
+            }
+        }
+        [HttpPost("DeleteDepartment")]
+        public IActionResult DeleteDepartment([FromBody] int id)
+        {
+            var existingDepartment = _dbContext.Departments.FirstOrDefault(d => d.Id == id);
+
+            if (existingDepartment == null)
+            {
+                return NotFound("Department not Found");
+            }
+
+            try
+            {
+                _dbContext.Departments.Remove(existingDepartment);
+                _dbContext.SaveChanges();
+                return Ok(new {message = $"{existingDepartment.Name} has been deleted."});
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                });
+            }
+        }
     }
 }

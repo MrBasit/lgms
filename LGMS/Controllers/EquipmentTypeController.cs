@@ -81,5 +81,71 @@ namespace LGMS.Controllers
 
             return Ok(pagedEquipmentTypesResult);
         }
+        [HttpGet("GetEquipmentTypeById")]
+        public IActionResult GetEquipmentTypeById(int id)
+        {
+            var equipmentType = _dbContext.EquipmentTypes
+                .SingleOrDefault(d => d.Id == id);
+            if (equipmentType == null) return BadRequest(new { message = string.Format("Equipment type with id {0} doesn't exist", id) });
+            return Ok(equipmentType);
+        }
+
+        [HttpPost("EditEquipmentType")]
+        public IActionResult EditEquipmentType(EquipmentTypeEditModel equipmentTypeDetails)
+        {
+            var existingEquipmentType = _dbContext.EquipmentTypes.FirstOrDefault(d => d.Id == equipmentTypeDetails.Id);
+
+            if (existingEquipmentType == null)
+            {
+                return NotFound("Equipment Type not Found");
+            }
+
+            if (_dbContext.EquipmentTypes.Any(d => d.Title.ToUpper() == equipmentTypeDetails.Title.ToUpper() && d.Id != equipmentTypeDetails.Id))
+            {
+                return BadRequest(new
+                {
+                    message = "Equipment Type with this Title already Exist"
+                });
+            }
+            try
+            {
+                existingEquipmentType.Title = equipmentTypeDetails.Title;
+                _dbContext.SaveChanges();
+                return Ok(existingEquipmentType);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                });
+            }
+        }
+        [HttpPost("DeleteEquipmentType")]
+        public IActionResult DeleteEquipmentType([FromBody] int id)
+        {
+            var existingEquipmentType = _dbContext.EquipmentTypes.FirstOrDefault(d => d.Id == id);
+
+            if (existingEquipmentType == null)
+            {
+                return NotFound("Equipment Type not Found");
+            }
+
+            try
+            {
+                _dbContext.EquipmentTypes.Remove(existingEquipmentType);
+                _dbContext.SaveChanges();
+                return Ok(new { message = $"{existingEquipmentType.Title} has been deleted." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                });
+            }
+        }
     }
 }

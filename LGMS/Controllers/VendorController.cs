@@ -81,5 +81,71 @@ namespace LGMS.Controllers
 
             return Ok(pagedVendorsResult);
         }
+        [HttpGet("GetVendorById")]
+        public IActionResult GetVendorById(int id)
+        {
+            var vendor = _dbContext.Vendors
+                .SingleOrDefault(d => d.Id == id);
+            if (vendor == null) return BadRequest(new { message = string.Format("Vendor with id {0} doesn't exist", id) });
+            return Ok(vendor);
+        }
+
+        [HttpPost("EditVendor")]
+        public IActionResult EditVendor(VendorEditModel vendorDetails)
+        {
+            var existingVendor = _dbContext.Vendors.FirstOrDefault(d => d.Id == vendorDetails.Id);
+
+            if (existingVendor == null)
+            {
+                return NotFound("Vendor not Found");
+            }
+
+            if (_dbContext.Vendors.Any(d => d.Name.ToUpper() == vendorDetails.Name.ToUpper() && d.Id != vendorDetails.Id))
+            {
+                return BadRequest(new
+                {
+                    message = "Vendor with this Name already Exist"
+                });
+            }
+            try
+            {
+                existingVendor.Name = vendorDetails.Name;
+                _dbContext.SaveChanges();
+                return Ok(existingVendor);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                });
+            }
+        }
+        [HttpPost("DeleteVendor")]
+        public IActionResult DeleteVendor([FromBody] int id)
+        {
+            var existingVendor = _dbContext.Vendors.FirstOrDefault(d => d.Id == id);
+
+            if (existingVendor == null)
+            {
+                return NotFound("Vendor not Found");
+            }
+
+            try
+            {
+                _dbContext.Vendors.Remove(existingVendor);
+                _dbContext.SaveChanges();
+                return Ok(new { message = $"{existingVendor.Name} has been deleted." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                });
+            }
+        }
     }
 }
