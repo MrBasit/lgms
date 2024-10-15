@@ -376,7 +376,6 @@ namespace LGMS.Controllers
                     EmployeeCount = _dbContext.Employees.Where(e=> e.Status.Title =="Active").Count(e => e.Department.Id == d.Id) 
                 })
                 .OrderByDescending(d => d.EmployeeCount)
-                .Take(5)
                 .Select(d => $"{d.DepartmentName} ({d.EmployeeCount})"); 
 
             return Ok(departmentsWithCount);

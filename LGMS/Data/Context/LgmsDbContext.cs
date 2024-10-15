@@ -25,6 +25,7 @@ namespace LGMS.Data.Context
         public DbSet<AttendanceId> AttendanceIds { get; set; }
         public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
         public DbSet<AttendanceRecordStatus> AttendanceRecordStatuses { get; set; }
+        public DbSet<SalarySlip> SalarySlips { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

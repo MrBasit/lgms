@@ -8,12 +8,15 @@ namespace LGMS.Services
         {
             var salarySlip = new SalarySlipDTO
             {
-                Name = report.Name,
+                Name = configuration.Name,
+                Designation = configuration.Designation,
                 Salary = configuration.Salary,
                 Deductions = CalculateDeductions(report, configuration.Salary),
                 OnTimeAllowance = CalculateOnTimeAllowance(report),
                 AttendanceAllowance = CalculateAttendanceAllowance(report),
+                PerformanceAllowance = false,
                 Overtime = CalculateOvertime(report, configuration.Salary),
+                Comission = 0
             };
 
             salarySlip.Total = CalculateTotal(salarySlip);

@@ -33,15 +33,14 @@ namespace LGMS.Controllers
 
             try
             {
-                var attendanceRecords = _dbContext.AttendanceRecords
+                var query = _dbContext.AttendanceRecords
                     .Include(e => e.AttendanceId)
                     .Include(e => e.Status)
-                    .ToList();
+                    .AsQueryable();
 
                 if (searchModel.Year > 0)
                 {
-                    attendanceRecords = attendanceRecords
-                        .Where(ar => ar.Date.Year == searchModel.Year).ToList();
+                    query = query.Where(ar => ar.Date.Year == searchModel.Year);
                 }
                 else
                 {
@@ -50,8 +49,7 @@ namespace LGMS.Controllers
 
                 if (searchModel.Month > 0)
                 {
-                    attendanceRecords = attendanceRecords
-                        .Where(ar => ar.Date.Month == searchModel.Month).ToList();
+                    query = query.Where(ar => ar.Date.Month == searchModel.Month);
                 }
                 else
                 {
@@ -60,11 +58,12 @@ namespace LGMS.Controllers
 
                 if (searchModel.MachineNames?.Any() == true)
                 {
-                    attendanceRecords = attendanceRecords
-                        .Where(ar => searchModel.MachineNames
-                            .Any(name => ar.AttendanceId.MachineName.Equals(name, StringComparison.OrdinalIgnoreCase)))
-                        .ToList();
+                    var lowerCaseMachineNames = searchModel.MachineNames.Select(name => name.ToLower()).ToList();
+                    query = query.Where(ar => lowerCaseMachineNames.Contains(ar.AttendanceId.MachineName.ToLower()));
                 }
+
+
+                var attendanceRecords = query.ToList();
 
                 var attendanceReports = new List<AttendanceReportDTO>();
                 var reportService = _excelService;
@@ -81,13 +80,16 @@ namespace LGMS.Controllers
                         attendanceReports.Add(report);
                     }
                 }
+
                 if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))
                 {
-                    attendanceReports = attendanceReports.Where(e =>
-                        e.Name.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper())).ToList();
+                    attendanceReports = attendanceReports
+                        .Where(e => e.Name.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper()))
+                        .ToList();
                 }
+
                 if (!string.IsNullOrEmpty(searchModel.SortDetails.SortColumn) &&
-                searchModel.SortDetails.SortDirection != Enum.SortDirections.None)
+                    searchModel.SortDetails.SortDirection != Enum.SortDirections.None)
                 {
                     switch (searchModel.SortDetails.SortColumn)
                     {
@@ -102,9 +104,9 @@ namespace LGMS.Controllers
                                 attendanceReports.OrderByDescending(e => e.OnTimes).ToList();
                             break;
                         case "lateIns":
-                            attendanceRecords = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
-                                attendanceRecords.OrderBy(e => e.LateIn).ToList() :
-                                attendanceRecords.OrderByDescending(e => e.LateIn).ToList();
+                            attendanceReports = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
+                                attendanceReports.OrderBy(e => e.LateIns).ToList() :
+                                attendanceReports.OrderByDescending(e => e.LateIns).ToList();
                             break;
                         case "dayOffs":
                             attendanceReports = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
@@ -145,6 +147,7 @@ namespace LGMS.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
 
 
     }
