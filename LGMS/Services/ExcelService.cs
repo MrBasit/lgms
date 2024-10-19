@@ -116,13 +116,13 @@ namespace LGMS.Services
                     idNameDateRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray); 
                 }
 
-                using (var checkInCheckOutRange = worksheet.Cells[2, 5, data.Count + 1, 9])
+                using (var checkInCheckOutRange = worksheet.Cells[2, 5, data.Count + 1, 8])
                 {
                     checkInCheckOutRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
                     checkInCheckOutRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGreen); 
                 }
 
-                using (var statusRange = worksheet.Cells[2, 10, data.Count + 1, 13])
+                using (var statusRange = worksheet.Cells[2, 9, data.Count + 1, 13])
                 {
                     statusRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
                     statusRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightCoral); 
