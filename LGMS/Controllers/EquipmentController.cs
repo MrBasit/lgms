@@ -59,6 +59,7 @@ namespace LGMS.Controllers
 
                 equipments = equipments.Where(e =>
                     e.Type.Title.ToUpper().Contains(searchTerm) ||
+                    e.Number.ToUpper().Contains(searchTerm) ||
                     e.Manufacturer.Name.ToUpper().Contains(searchTerm) ||
                     e.Vendor.Name.ToUpper().Contains(searchTerm) ||
                     e.Assignees.Any(a => a.Name.ToUpper().Contains(searchTerm))
@@ -117,7 +118,7 @@ namespace LGMS.Controllers
         }
 
         [HttpGet("GetEquipments")]
-        public IActionResult GetEquipments()
+        public IActionResult GetEquipments(int? excludeId = null)
         {
             var equipments = _dbContext.Equipments
                 .Include(e => e.Type)
@@ -126,6 +127,12 @@ namespace LGMS.Controllers
                 .Include(e => e.Vendor)
                 .Include(e => e.Status)
                 .ToList();
+
+            if (excludeId.HasValue)
+            {
+                equipments = equipments.Where(e => e.Id != excludeId.Value).ToList();
+            }
+
             return Ok(equipments);
         }
 
@@ -325,8 +332,7 @@ namespace LGMS.Controllers
                     EqipmentCount = _dbContext.Equipments.Where(e => e.Status.Title == "Active").Count(e => e.Type.Id == t.Id)
                 })
                 .OrderByDescending(t => t.EqipmentCount) 
-                .ToList()
-                .Select(t => $"{t.EquipmentName} ({t.EqipmentCount})");
+                .Select(t => $"{t.EquipmentName} - {t.EqipmentCount}");
 
             return Ok(equipmentTypesWithCount);
         }
@@ -341,8 +347,7 @@ namespace LGMS.Controllers
                     EqipmentCount = t.Equipments.Count(e => e.Status.Title == "Active")
                 })
                 .OrderByDescending(t => t.EqipmentCount)
-                .ToList()
-                .Select(t => $"{t.AssigneeName} ({t.EqipmentCount})");
+                .Select(t => $"{t.AssigneeName} - {t.EqipmentCount}");
 
             return Ok(equipmentTypesWithCount);
         }

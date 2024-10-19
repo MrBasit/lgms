@@ -97,7 +97,7 @@ namespace LGMS.Controllers
 
             if (existingEquipmentType == null)
             {
-                return NotFound("Equipment Type not Found");
+                return NotFound(new { message = "Equipment Type not Found" });
             }
 
             if (_dbContext.EquipmentTypes.Any(d => d.Title.ToUpper() == equipmentTypeDetails.Title.ToUpper() && d.Id != equipmentTypeDetails.Id))
@@ -129,7 +129,11 @@ namespace LGMS.Controllers
 
             if (existingEquipmentType == null)
             {
-                return NotFound("Equipment Type not Found");
+                return NotFound(new { message = "Equipment Type not Found" });
+            }
+            if (_dbContext.Equipments.Any(e => e.Type.Id == existingEquipmentType.Id))
+            {
+                return BadRequest(new { message = $"{existingEquipmentType.Title} is in use and it can't be delete." });
             }
 
             try

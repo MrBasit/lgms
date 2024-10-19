@@ -102,7 +102,7 @@ namespace LGMS.Controllers
 
             if (existingDesignation == null)
             {
-                return NotFound("Designation not Found");
+                return NotFound(new { message = "Designation not Found" });
             }
 
             if (_dbContext.Designations.Any(d => d.Title.ToUpper() == designationDetails.Title.ToUpper() && d.Id != designationDetails.Id))
@@ -134,7 +134,11 @@ namespace LGMS.Controllers
 
             if (existingDesignation == null)
             {
-                return NotFound("Designation not Found");
+                return NotFound(new { message = "Designation not Found" });
+            }
+            if (_dbContext.Employees.Any(e => e.Designation.Id == existingDesignation.Id))
+            {
+                return BadRequest(new {message=$"{existingDesignation.Title} is in use and it can't be delete."});
             }
 
             try

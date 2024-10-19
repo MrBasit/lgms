@@ -97,7 +97,7 @@ namespace LGMS.Controllers
 
             if (existingVendor == null)
             {
-                return NotFound("Vendor not Found");
+                return NotFound(new { message = "Vendor not Found" });
             }
 
             if (_dbContext.Vendors.Any(d => d.Name.ToUpper() == vendorDetails.Name.ToUpper() && d.Id != vendorDetails.Id))
@@ -129,7 +129,11 @@ namespace LGMS.Controllers
 
             if (existingVendor == null)
             {
-                return NotFound("Vendor not Found");
+                return NotFound(new { message = "Vendor not Found" });
+            }
+            if (_dbContext.Equipments.Any(e => e.Vendor.Id == existingVendor.Id))
+            {
+                return BadRequest(new { message = $"{existingVendor.Name} is in use and it can't be delete." });
             }
 
             try

@@ -113,7 +113,7 @@ namespace LGMS.Controllers
         [HttpGet("GetEmployees")]
         public IActionResult GetEmployees()
         {
-            var employees = _dbContext.Employees.Include(e => e.AttendanceId).Where(e => e.AttendanceId != null).ToList();
+            var employees = _dbContext.Employees.Include(e => e.AttendanceId).Where(e => e.AttendanceId != null && e.Status.Title == "Active").ToList();
             return Ok(employees);
         }
         
@@ -192,11 +192,24 @@ namespace LGMS.Controllers
 
             try
             {
+                var lastEmployeeNumber = _dbContext.Employees
+                .OrderByDescending(e => e.EmployeeNumber)
+                .FirstOrDefault()?.EmployeeNumber;
+
+                int newEmployeeNumber = 1;
+
+                if (lastEmployeeNumber != null && lastEmployeeNumber.StartsWith("LGEM"))
+                {
+                    var lastNumber = int.Parse(lastEmployeeNumber.Substring(4));
+                    newEmployeeNumber = lastNumber + 1;
+                }
+
+                string employeeNumber = $"LGEM{newEmployeeNumber:D4}";
                 Employee employee = new Employee()
                 {
                     AttendanceId = attendanceId,
                     Name = employeeDetails.EmployeeName,
-                    EmployeeNumber = $"EMP{DateTime.Now:yyMMddHHmmss}",
+                    EmployeeNumber = employeeNumber,
                     BirthDate = employeeDetails.BirthDate,
                     Department = employeeDetails.Department.Id == 0 ?
                                  employeeDetails.Department :
@@ -328,41 +341,37 @@ namespace LGMS.Controllers
         public ActionResult GetIncomingBirthDays()
         {
             DateTime today = DateTime.Today;
+            int currentYear = today.Year;
 
             var employees = _dbContext.Employees
-                .Include(e => e.Department)
-                .Include(e => e.Designation)
-                .Include(e => e.Status)
-                .Where(e => e.Status.Title == "Active").ToList();
-
-            int currentYear = today.Year;
+                .Where(e => e.Status.Title == "Active")
+                .ToList();
 
             var upcomingBirthdays = employees
                 .Select(e => new
                 {
                     Employee = e,
+                    OriginalBirthDate = e.BirthDate,
                     BirthdayThisYear = new DateTime(currentYear, e.BirthDate.Month, e.BirthDate.Day),
                     BirthdayNextYear = new DateTime(currentYear + 1, e.BirthDate.Month, e.BirthDate.Day)
                 })
-                .Where(e => e.BirthdayThisYear >= today || e.BirthdayNextYear >= today) 
-                .OrderBy(e => e.BirthdayThisYear >= today ? e.BirthdayThisYear : e.BirthdayNextYear) 
-                .Select(e => e.Employee) 
+                .Where(e => e.BirthdayThisYear >= today || e.BirthdayNextYear >= today)
+                .OrderBy(e => e.BirthdayThisYear >= today ? e.BirthdayThisYear : e.BirthdayNextYear)
+                .Select(e => $"{e.Employee.Name} - {e.OriginalBirthDate:MMM dd,yyyy}")
                 .ToList();
 
             return Ok(upcomingBirthdays);
         }
 
 
+
         [HttpGet("GetIncomingAgreementExpiration")]
         public ActionResult GetIncomingAgreementExpiration()
         {
             var Employees = _dbContext.Employees
-                .Include(e => e.Department)
-                .Include(e => e.Designation)
-                .Include(e => e.Status)
                 .Where(e => e.Status.Title == "Active")
                 .OrderBy(e => e.AgreementExpiration)
-                .ToList();
+                .Select(e => $"{e.Name} - {e.AgreementExpiration:MMM dd,yyyy}");
             return Ok(Employees);
         }
 
@@ -376,7 +385,7 @@ namespace LGMS.Controllers
                     EmployeeCount = _dbContext.Employees.Where(e=> e.Status.Title =="Active").Count(e => e.Department.Id == d.Id) 
                 })
                 .OrderByDescending(d => d.EmployeeCount)
-                .Select(d => $"{d.DepartmentName} ({d.EmployeeCount})"); 
+                .Select(d => $"{d.DepartmentName} - {d.EmployeeCount}"); 
 
             return Ok(departmentsWithCount);
         }

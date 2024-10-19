@@ -102,7 +102,7 @@ namespace LGMS.Controllers
 
             if (existingStatus == null)
             {
-                return NotFound("EmployeeStatus not Found");
+                return NotFound(new { message = "EmployeeStatus not Found" });
             }
 
             if (_dbContext.EmployeeStatus.Any(d => d.Title.ToUpper() == statusDetails.Title.ToUpper() && d.Id != statusDetails.Id))
@@ -134,7 +134,11 @@ namespace LGMS.Controllers
 
             if (existingStatus == null)
             {
-                return NotFound("EmployeeStatus not Found");
+                return NotFound(new { message = "EmployeeStatus not Found" });
+            }
+            if(_dbContext.Employees.Any(e => e.Status.Id == existingStatus.Id))
+            {
+                return BadRequest(new { message = $"{existingStatus.Title} is in use and it can't be delete." });
             }
 
             try

@@ -97,7 +97,7 @@ namespace LGMS.Controllers
 
             if (existingManufacturer == null)
             {
-                return NotFound("Manufacturer not Found");
+                return NotFound(new { message = "Manufacturer not Found" });
             }
 
             if (_dbContext.Manufacturers.Any(d => d.Name.ToUpper() == manufacturerDetails.Name.ToUpper() && d.Id != manufacturerDetails.Id))
@@ -129,7 +129,11 @@ namespace LGMS.Controllers
 
             if (existingManufacturer == null)
             {
-                return NotFound("Manufacturer not Found");
+                return NotFound(new { message = "Manufacturer not Found" });
+            }
+            if (_dbContext.Equipments.Any(e => e.Manufacturer.Id == existingManufacturer.Id))
+            {
+                return BadRequest(new { message = $"{existingManufacturer.Name} is in use and it can't be delete." });
             }
 
             try

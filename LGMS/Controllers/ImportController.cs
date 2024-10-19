@@ -43,7 +43,7 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new{message = $"Internal server error: {ex.Message}" });
+                return StatusCode(500, new{message = ex.Message });
             }
         }
 
@@ -109,48 +109,141 @@ namespace LGMS.Controllers
 
                         for (int row = 2; row <= rowCount; row++)
                         {
-                            var excelMachineIdValue = worksheet.Cells[row, 1].Value;
-                            int machineId = Convert.ToInt32(excelMachineIdValue);
-
-                            var existingAttendanceId = existingAttendanceIds.FirstOrDefault(a => a.MachineId == machineId);
-                            if (existingAttendanceId == null)
+                            try
                             {
-                                continue;
+                                var excelMachineIdValue = worksheet.Cells[row, 1].Value;
+                                if (!int.TryParse(excelMachineIdValue?.ToString(), out int machineId))
+                                {
+                                    throw new Exception($"Invalid Machine ID on row {row}.");
+                                }
+
+                                var existingAttendanceId = existingAttendanceIds.FirstOrDefault(a => a.MachineId == machineId);
+                                if (existingAttendanceId == null)
+                                {
+                                    throw new Exception($"Machine ID {machineId} not found.");
+                                }
+
+                                if (!DateTime.TryParse(worksheet.Cells[row, 3].Value?.ToString(), out DateTime date))
+                                {
+                                    throw new Exception($"Invalid date format on row {row}.");
+                                }
+
+                                var existingRecord = existingRecords.FirstOrDefault(r => r.AttendanceId.Id == existingAttendanceId.Id && r.Date == date);
+                                if (existingRecord != null)
+                                {
+                                    throw new Exception($"Record already exists for Machine ID {machineId} on date {date:dd-MMM-yy}.");
+                                }
+
+                                var checkIns = worksheet.Cells[row, 4].Value?.ToString();
+                                var checkOuts = worksheet.Cells[row, 5].Value?.ToString();
+
+                                if (string.IsNullOrEmpty(checkIns) && string.IsNullOrEmpty(checkOuts))
+                                {
+                                    checkIns = "";
+                                    checkOuts = "";
+                                }
+                                else if (string.IsNullOrEmpty(checkIns) || string.IsNullOrEmpty(checkOuts))
+                                {
+                                    throw new Exception($"One of Check-Ins or Check-Outs is null for Machine ID {machineId} on date {date:dd-MMM-yy}.");
+                                }
+
+
+                                var Intimes = checkIns.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+                                var OutTimes = checkOuts.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+
+                                var checkInList = new List<string>();    
+                                var checkOutList = new List<string>();
+                                
+                                for (int i = 0; i < Intimes.Length; i += 2)
+                                {
+                                    if (i + 1 < Intimes.Length)
+                                    {
+                                        checkInList.Add(Intimes[i] + " " + Intimes[i + 1]);
+                                    }
+                                }
+                                for (int i = 0; i < OutTimes.Length; i += 2)
+                                {
+                                    if (i + 1 < OutTimes.Length)
+                                    {
+                                        checkOutList.Add(OutTimes[i] + " " + OutTimes[i + 1]);
+                                    }
+                                }
+
+                                if (checkInList.Count != checkOutList.Count)
+                                {
+                                    throw new Exception($"The number of Check-Ins ({checkInList.Count}) does not match the number of Check-Outs ({checkOutList.Count}) for Machine ID {machineId} on date {date:dd-MMM-yy}.");
+                                }
+
+                                TimeSpan requiredTime = TimeSpan.Parse(worksheet.Cells[row, 6].Value.ToString());
+                                TimeSpan lateIn = TimeSpan.Parse(worksheet.Cells[row, 12].Value.ToString());
+                                TimeSpan totalWorkedTime = TimeSpan.Zero;
+
+                                for (int i = 0; i < checkInList.Count; i++)
+                                {
+                                    var checkInStr = checkInList[i].Trim();
+                                    var checkOutStr = checkOutList[i].Trim();
+
+                                    if (checkInStr.EndsWith("PM") && !checkInStr.StartsWith("12"))
+                                    {
+                                        checkInStr = (Convert.ToInt32(checkInStr.Substring(0, checkInStr.IndexOf(':'))) + 12) + checkInStr.Substring(checkInStr.IndexOf(':'));
+                                    }
+                                    else if (checkInStr.EndsWith("AM") && checkInStr.StartsWith("12"))
+                                    {
+                                        checkInStr = "00" + checkInStr.Substring(checkInStr.IndexOf(':'));
+                                    }
+
+                                    if (checkOutStr.EndsWith("PM") && !checkOutStr.StartsWith("12"))
+                                    {
+                                        checkOutStr = (Convert.ToInt32(checkOutStr.Substring(0, checkOutStr.IndexOf(':'))) + 12) + checkOutStr.Substring(checkOutStr.IndexOf(':'));
+                                    }
+                                    else if (checkOutStr.EndsWith("AM") && checkOutStr.StartsWith("12"))
+                                    {
+                                        checkOutStr = "00" + checkOutStr.Substring(checkOutStr.IndexOf(':'));
+                                    }
+
+                                    DateTime checkInTime = DateTime.Parse(checkInStr);
+                                    DateTime checkOutTime = DateTime.Parse(checkOutStr);
+
+                                    if (checkOutTime < checkInTime)
+                                    {
+                                        checkOutTime = checkOutTime.AddDays(1);
+                                    }
+
+                                    TimeSpan workedTime = checkOutTime - checkInTime;
+                                    totalWorkedTime += workedTime;
+                                }
+
+                                var attendanceRecord = new AttendanceRecord
+                                {
+                                    AttendanceId = existingAttendanceId,
+                                    Date = date,
+                                    CheckIns = checkIns,
+                                    CheckOuts = checkOuts,
+                                    RequiredTime = requiredTime,
+                                    ActualTime = totalWorkedTime,
+                                    TimeTable = worksheet.Cells[row, 8].Value?.ToString(),
+                                    LateIn = lateIn,
+                                };
+
+                                attendanceRecord.Status = _attendanceRecordService.CalculateStatus(
+                                    attendanceRecord.Date,
+                                    attendanceRecord.RequiredTime.ToString(),
+                                    attendanceRecord.ActualTime.ToString(),
+                                    "00:00:00",
+                                    attendanceRecord.LateIn.ToString(),
+                                    attendanceRecord.CheckIns
+                                );
+
+                                attendanceRecord.OverHours = _attendanceRecordService.CalculateOverHours(attendanceRecord.RequiredTime, attendanceRecord.ActualTime);
+                                attendanceRecord.UnderHours = _attendanceRecordService.CalculateUnderHours(attendanceRecord.RequiredTime, attendanceRecord.ActualTime, attendanceRecord.Status.Title);
+                                attendanceRecord.IsRecordOk = true;
+
+                                attendanceRecords.Add(attendanceRecord);
                             }
-
-                            var date = DateTime.Parse(worksheet.Cells[row, 3].Value?.ToString());
-
-                            var existingRecord = existingRecords.FirstOrDefault(r => r.AttendanceId.Id == existingAttendanceId.Id && r.Date == date);
-                            if (existingRecord != null)
+                            catch (Exception ex)
                             {
-                                continue; 
+                                return BadRequest(new { message = $"Error in row {row}: {ex.Message}" });
                             }
-
-                            var attendanceRecord = new AttendanceRecord
-                            {
-                                AttendanceId = existingAttendanceId,
-                                Date = date,
-                                CheckIns = worksheet.Cells[row, 4].Value?.ToString(),
-                                CheckOuts = worksheet.Cells[row, 5].Value?.ToString(),
-                                RequiredTime = TimeSpan.Parse(worksheet.Cells[row, 6].Value?.ToString()),
-                                ActualTime = TimeSpan.Parse(worksheet.Cells[row, 7].Value?.ToString()),
-                                TimeTable = worksheet.Cells[row, 8].Value?.ToString(),
-                                LateIn = TimeSpan.Parse(worksheet.Cells[row, 12].Value?.ToString()),
-                            };
-
-                            attendanceRecord.Status = _attendanceRecordService.CalculateStatus(
-                                attendanceRecord.Date,
-                                attendanceRecord.RequiredTime.ToString(),
-                                attendanceRecord.ActualTime.ToString(),
-                                "00:00:00",
-                                attendanceRecord.LateIn.ToString(),
-                                attendanceRecord.CheckIns
-                            );
-                            attendanceRecord.OverHours = _attendanceRecordService.CalculateOverHours(attendanceRecord.RequiredTime, attendanceRecord.ActualTime);
-                            attendanceRecord.UnderHours = _attendanceRecordService.CalculateUnderHours(attendanceRecord.RequiredTime, attendanceRecord.ActualTime, attendanceRecord.Status.Title);
-                            attendanceRecord.IsRecordOk = true;
-
-                            attendanceRecords.Add(attendanceRecord);
                         }
                     }
                 }

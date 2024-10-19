@@ -54,6 +54,13 @@ namespace LGMS.Controllers
                     e.Assignees.Any(a => a.Name.ToUpper().Contains(searchTerm))
                 ).ToList();
             }
+            var equipmentWithSelectedStatuses = new List<Equipment>();
+            foreach (var status in searchModel.Statuses)
+            {
+                equipmentWithSelectedStatuses.AddRange(equipments.Where(x => x.Status.Id == status.Id).ToList());
+            }
+
+            equipments = equipmentWithSelectedStatuses;
 
             if (!string.IsNullOrEmpty(searchModel.SortDetails.SortColumn) &&
                 searchModel.SortDetails.SortDirection != Enum.SortDirections.None)
@@ -200,14 +207,14 @@ namespace LGMS.Controllers
                         break;
                     default:
                         attendanceRecords = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
-                            attendanceRecords.OrderBy(e => e.Date).ToList() :
-                            attendanceRecords.OrderByDescending(e => e.Date).ToList();
+                            attendanceRecords.OrderBy(e => e.AttendanceId.MachineName).ToList() :
+                            attendanceRecords.OrderByDescending(e => e.AttendanceId.MachineName).ToList();
                         break;
                 }
             }
             else
             {
-                attendanceRecords = attendanceRecords.OrderBy(e => e.Date).ToList();
+                attendanceRecords = attendanceRecords.OrderBy(e => e.AttendanceId.MachineName).ToList();
             }
 
             var excelFile = _DownloadService.GenerateAttendanceRecordExcelFile(attendanceRecords);

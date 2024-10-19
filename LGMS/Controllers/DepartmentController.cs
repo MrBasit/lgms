@@ -103,7 +103,7 @@ namespace LGMS.Controllers
 
             if (existingDepartment == null)
             {
-                return NotFound("Department not Found");
+                return NotFound(new { message = "Department not Found" });
             }
 
             if (_dbContext.Departments.Any(d => d.Name.ToUpper() == departmentDetails.Name.ToUpper() && d.Id != departmentDetails.Id))
@@ -135,7 +135,11 @@ namespace LGMS.Controllers
 
             if (existingDepartment == null)
             {
-                return NotFound("Department not Found");
+                return NotFound(new { message = "Department not Found" });
+            }
+            if (_dbContext.Employees.Any(e => e.Department.Id == existingDepartment.Id))
+            {
+                return BadRequest(new { message = $"{existingDepartment.Name} is in use and it can't be delete." });
             }
 
             try

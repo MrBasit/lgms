@@ -4,6 +4,7 @@ using LGMS.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LGMS.Migrations
 {
     [DbContext(typeof(LgmsDbContext))]
-    partial class LgmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241016093247_AddingDateinSalarySlip")]
+    partial class AddingDateinSalarySlip
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -372,23 +375,14 @@ namespace LGMS.Migrations
                     b.Property<int?>("Comission")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Deductions")
                         .HasColumnType("int");
 
-                    b.Property<string>("Department")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Designation")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("GenratedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("IncomeTax")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Loan")
-                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -400,20 +394,17 @@ namespace LGMS.Migrations
                     b.Property<int>("Overtime")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("PayPeriod")
-                        .HasColumnType("datetime2");
-
                     b.Property<bool?>("PerformanceAllowance")
                         .HasColumnType("bit");
 
                     b.Property<int>("Salary")
                         .HasColumnType("int");
 
-                    b.Property<int?>("SecurityDeposit")
-                        .HasColumnType("int");
-
                     b.Property<int>("Total")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedDate")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 

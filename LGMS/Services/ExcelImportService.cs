@@ -19,8 +19,7 @@ namespace LGMS.Services
 
         public List<Equipment> ParseEquipmentExcelFile(Stream fileStream)
         {
-            // Set the License Context
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Use NonCommercial or Commercial as appropriate
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             var equipmentList = new List<Equipment>();
             var excelIds = new HashSet<int>();
@@ -43,160 +42,105 @@ namespace LGMS.Services
                     .Where(e => excelIds.Contains(e.Id))
                     .ToDictionary(e => e.Id);
 
-                //var types = _dbContext.EquipmentTypes.ToDictionary(t => t.Title.ToLower(), t => t);
-                //var manufacturers = _dbContext.Manufacturers.ToDictionary(m => m.Name.ToLower(), m => m);
-                //var statuses = _dbContext.EquipmentStatus.ToDictionary(s => s.Title.ToLower(), s => s);
-                //var vendors = _dbContext.Vendors.ToDictionary(v => v.Name.ToLower(), v => v);
-                //var allAssignees = _dbContext.Employees.ToDictionary(a => a.Name.ToLower(), a => a);
-
-                //for (int row = 2; row <= rowCount; row++)
-                //{
-                //    if (!int.TryParse(worksheet.Cells[row, 1].Text, out int id))
-                //    {
-                //        continue;
-                //    }
-
-                //    Equipment equipment;
-
-                //    if (existingEquipments.TryGetValue(id, out equipment))
-                //    {
-                //        equipment.Assignees?.Clear();
-                //    }
-                //    else
-                //    {
-                //        equipment = new Equipment();
-                //        _dbContext.Equipments.Add(equipment);
-                //    }
-
-                //    equipment.Type = types.GetValueOrDefault(worksheet.Cells[row, 3].Text.ToLower());
-                //    equipment.Manufacturer = manufacturers.GetValueOrDefault(worksheet.Cells[row, 4].Text.ToLower());
-                //    equipment.Status = statuses.GetValueOrDefault(worksheet.Cells[row, 6].Text.ToLower());
-                //    equipment.Vendor = vendors.GetValueOrDefault(worksheet.Cells[row, 8].Text.ToLower());
-
-                //    string assigneesNames = worksheet.Cells[row, 5].Text;
-
-                //    equipment.Assignees = string.IsNullOrEmpty(assigneesNames) ?
-                //                          new List<Employee>() :
-                //                          assigneesNames.Split(',')
-                //                                        .Select(a => a.Trim().ToLower())
-                //                                        .Where(assigneeName => allAssignees.ContainsKey(assigneeName))
-                //                                        .Select(assigneeName => allAssignees[assigneeName])
-                //                                        .ToList();
-
-                //    equipment.Number = worksheet.Cells[row, 2].Text;
-                //    equipment.Comments = worksheet.Cells[row, 7].Text;
-
-                //    DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime warrantyExpiryDate);
-                //    equipment.WarrantyExpiryDate = warrantyExpiryDate;
-
-                //    DateTime.TryParse(worksheet.Cells[row, 10].Text, out DateTime buyingDate);
-                //    equipment.BuyingDate = buyingDate;
-
-                //    DateTime.TryParse(worksheet.Cells[row, 11].Text, out DateTime unboxingDate);
-                //    equipment.UnboxingDate = unboxingDate;
-
-                //    equipmentList.Add(equipment);
-                //}
                 for (int row = 2; row <= rowCount; row++)
                 {
-                    if (!int.TryParse(worksheet.Cells[row, 1].Text, out int id))
+                    try
                     {
-                        continue;
-                    }
-
-                    Equipment equipment;
-
-                    if (existingEquipments.TryGetValue(id, out equipment))
-                    {
-                        equipment.Assignees?.Clear();
-                    }
-                    else
-                    {
-                        equipment = new Equipment();
-                        _dbContext.Equipments.Add(equipment);
-                    }
-
-                    string typeTitle = worksheet.Cells[row, 3].Text.ToLower();
-                    var type = _dbContext.EquipmentTypes
-                        .FirstOrDefault(t => t.Title.ToLower() == typeTitle);
-                    if (type != null)
-                    {
-                        equipment.Type = type;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    string manufacturerName = worksheet.Cells[row, 4].Text.ToLower();
-                    var manufacturer = _dbContext.Manufacturers
-                        .FirstOrDefault(m => m.Name.ToLower() == manufacturerName);
-                    if (manufacturer != null)
-                    {
-                        equipment.Manufacturer = manufacturer;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    string statusTitle = worksheet.Cells[row, 6].Text.ToLower();
-                    var status = _dbContext.EquipmentStatus
-                        .FirstOrDefault(s => s.Title.ToLower() == statusTitle);
-                    if (status != null)
-                    {
-                        equipment.Status = status;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    string vendorName = worksheet.Cells[row, 8].Text.ToLower();
-                    var vendor = _dbContext.Vendors
-                        .FirstOrDefault(v => v.Name.ToLower() == vendorName);
-                    if (vendor != null)
-                    {
-                        equipment.Vendor = vendor;
-                    }
-                    else
-                    {
-                        continue; 
-                    }
-
-                    string assigneesNames = worksheet.Cells[row, 5].Text;
-                    if (!string.IsNullOrEmpty(assigneesNames))
-                    {
-                        var assigneesList = assigneesNames.Split(',')
-                            .Select(a => a.Trim().ToLower())
-                            .Select(assigneeName => _dbContext.Employees
-                                .FirstOrDefault(e => e.Name.ToLower() == assigneeName))
-                            .Where(assignee => assignee != null)
-                            .ToList();
-
-                        if (assigneesList.Count > 0)
+                        if (!int.TryParse(worksheet.Cells[row, 1].Text, out int id))
                         {
-                            equipment.Assignees = assigneesList;
+                            throw new Exception($"Invalid Equipment ID.");
+                        }
+
+                        Equipment equipment;
+
+                        var equipmentNumber = worksheet.Cells[row, 2].Text;
+
+                        if (id == 0)
+                        {
+                            equipment = new Equipment();
+                            _dbContext.Equipments.Add(equipment);
+                        }
+                        else if (existingEquipments.TryGetValue(id, out equipment))
+                        {
+                            equipment.Assignees?.Clear();
                         }
                         else
                         {
-                            continue;
+                            throw new Exception($"Equipment with ID {id} not found in the database.");
                         }
+
+                        if (_dbContext.Equipments.Any(e => e.Number == equipmentNumber && e.Id != id))
+                        {
+                            throw new Exception($"Equipment number {equipmentNumber} already exists.");
+                        }
+
+                        string typeTitle = worksheet.Cells[row, 3].Text.ToLower();
+                        var type = _dbContext.EquipmentTypes.FirstOrDefault(t => t.Title.ToLower() == typeTitle);
+                        if (type == null)
+                        {
+                            type = new EquipmentType { Title = worksheet.Cells[row, 3].Text };
+                            _dbContext.EquipmentTypes.Add(type);
+                        }
+                        equipment.Type = type;
+
+                        string manufacturerName = worksheet.Cells[row, 4].Text.ToLower();
+                        var manufacturer = _dbContext.Manufacturers.FirstOrDefault(m => m.Name.ToLower() == manufacturerName);
+                        if (manufacturer == null)
+                        {
+                            manufacturer = new Manufacturer { Name = worksheet.Cells[row, 4].Text };
+                            _dbContext.Manufacturers.Add(manufacturer);
+                        }
+                        equipment.Manufacturer = manufacturer;
+
+                        string statusTitle = worksheet.Cells[row, 6].Text.ToLower();
+                        var status = _dbContext.EquipmentStatus.FirstOrDefault(s => s.Title.ToLower() == statusTitle);
+                        if (status == null)
+                        {
+                            status = new EquipmentStatus { Title = worksheet.Cells[row, 6].Text };
+                            _dbContext.EquipmentStatus.Add(status);
+                        }
+                        equipment.Status = status;
+
+                        string vendorName = worksheet.Cells[row, 8].Text.ToLower();
+                        var vendor = _dbContext.Vendors.FirstOrDefault(v => v.Name.ToLower() == vendorName);
+                        if (vendor == null)
+                        {
+                            vendor = new Vendor { Name = worksheet.Cells[row, 8].Text };
+                            _dbContext.Vendors.Add(vendor);
+                        }
+                        equipment.Vendor = vendor;
+
+                        string assigneesNames = worksheet.Cells[row, 5].Text;
+                        if (!string.IsNullOrEmpty(assigneesNames))
+                        {
+                            var assigneesList = assigneesNames.Split(',')
+                                .Select(a => a.Trim().ToLower())
+                                .Select(assigneeName => _dbContext.Employees
+                                    .FirstOrDefault(e => e.Name.ToLower() == assigneeName))
+                                .Where(assignee => assignee != null)
+                                .ToList();
+
+                            equipment.Assignees = assigneesList;
+                        }
+
+                        equipment.Number = equipmentNumber;
+                        equipment.Comments = worksheet.Cells[row, 7].Text;
+
+                        DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime warrantyExpiryDate);
+                        equipment.WarrantyExpiryDate = warrantyExpiryDate;
+
+                        DateTime.TryParse(worksheet.Cells[row, 10].Text, out DateTime buyingDate);
+                        equipment.BuyingDate = buyingDate;
+
+                        DateTime.TryParse(worksheet.Cells[row, 11].Text, out DateTime unboxingDate);
+                        equipment.UnboxingDate = unboxingDate;
+
+                        equipmentList.Add(equipment);
                     }
-
-                    equipment.Number = worksheet.Cells[row, 2].Text;
-                    equipment.Comments = worksheet.Cells[row, 7].Text;
-
-                    DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime warrantyExpiryDate);
-                    equipment.WarrantyExpiryDate = warrantyExpiryDate;
-
-                    DateTime.TryParse(worksheet.Cells[row, 10].Text, out DateTime buyingDate);
-                    equipment.BuyingDate = buyingDate;
-
-                    DateTime.TryParse(worksheet.Cells[row, 11].Text, out DateTime unboxingDate);
-                    equipment.UnboxingDate = unboxingDate;
-
-                    equipmentList.Add(equipment);
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Error in row {row}: {ex.Message}");
+                    }
                 }
 
                 if (equipmentList.Count > 0)
@@ -207,6 +151,8 @@ namespace LGMS.Services
 
             return equipmentList;
         }
+
+
 
         public List<AttendanceRecord> ParseAttendanceRecordExcelFile(Stream fileStream)
         {

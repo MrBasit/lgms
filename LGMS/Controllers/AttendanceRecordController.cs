@@ -130,6 +130,30 @@ namespace LGMS.Controllers
             return Ok(pagedAttendanceRecordResult);
 
         }
+        [HttpGet("GetAttendanceYearsRange")]
+        public ActionResult GetAttendanceYearsRange()
+        {
+            var firstAscendingYear = _dbContext.AttendanceRecords
+                .OrderBy(ar => ar.Date)
+                .Select(ar => ar.Date.Year)
+                .FirstOrDefault();
+
+            var firstDescendingYear = _dbContext.AttendanceRecords
+                .OrderByDescending(ar => ar.Date)
+                .Select(ar => ar.Date.Year)
+                .FirstOrDefault();
+
+            if (firstAscendingYear == 0 || firstDescendingYear == 0)
+            {
+                return Ok(new int[] { });
+            }
+
+            var yearsRange = Enumerable.Range(firstAscendingYear, firstDescendingYear - firstAscendingYear + 1).ToArray();
+
+            return Ok(yearsRange);
+        }
+
+
 
     }
 }
