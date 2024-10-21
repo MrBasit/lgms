@@ -5,16 +5,21 @@ using System.Linq;
 using LGMS.Data.Context;
 using LGMS.Data.Model;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Reflection.PortableExecutable;
 
 namespace LGMS.Services
 {
     public class ExcelImportService
     {
         private readonly LgmsDbContext _dbContext;
+        private readonly AttendanceRecordService _attendanceRecordService;
 
-        public ExcelImportService(LgmsDbContext dbContext)
+
+        public ExcelImportService(LgmsDbContext dbContext, AttendanceRecordService attendanceRecordService)
         {
             _dbContext = dbContext;
+            _attendanceRecordService = attendanceRecordService;
         }
 
         public List<Equipment> ParseEquipmentExcelFile(Stream fileStream)
@@ -184,107 +189,146 @@ namespace LGMS.Services
                 {
                     if (!int.TryParse(worksheet.Cells[row, 1].Text, out int id))
                     {
-                        continue;
+                        throw new Exception($"Error in row {row}:Value '{worksheet.Cells[row, 1].Text}' is not a valid ID.");
                     }
 
                     if (!existingAttendanceRecords.TryGetValue(id, out AttendanceRecord attendanceRecord))
                     {
-                        continue; 
+                        throw new Exception($"Error in row {row}:No attendance record found for id '{worksheet.Cells[row, 1].Text}'.");
                     }
 
-                    string machineName = worksheet.Cells[row, 2].Text;
-                    if (!string.IsNullOrEmpty(machineName))
+                    try
                     {
-                        var name = _dbContext.AttendanceIds.SingleOrDefault(a => a.MachineName.Trim().ToLower() == machineName.Trim().ToLower());
-                        if (name != null)
+                        var checkIns = worksheet.Cells[row, 5].Value?.ToString();
+                        var checkOuts = worksheet.Cells[row, 6].Value?.ToString();
+
+                        if (string.IsNullOrEmpty(checkIns) && string.IsNullOrEmpty(checkOuts))
                         {
-                            attendanceRecord.AttendanceId = name;
+                            checkIns = "";
+                            checkOuts = "";
                         }
-                        else
+                        else if (string.IsNullOrEmpty(checkIns) || string.IsNullOrEmpty(checkOuts))
                         {
-                            continue;
+                            throw new Exception($"One of Check-Ins or Check-Outs is null for Machine ID {attendanceRecord.AttendanceId.MachineId} on date {attendanceRecord.Date:dd-MMM-yy}.");
                         }
-                    }
-
-                    if (DateTime.TryParse(worksheet.Cells[row, 3].Text, out DateTime date))
-                    {
-                        attendanceRecord.Date = date;
-                    }
-
-                    attendanceRecord.CheckIns = worksheet.Cells[row, 4].Text;
-                    attendanceRecord.CheckOuts = worksheet.Cells[row, 5].Text;
-
-                    string statusTitle = worksheet.Cells[row, 6].Text.ToLower();
-                    var status = _dbContext.AttendanceRecordStatuses.FirstOrDefault(s => s.Title.ToLower() == statusTitle);
-                    if (status != null)
-                    {
-                        attendanceRecord.Status = status;
-                    }
-                    else
-                    {
-                        continue; 
-                    }
-
-                    string requiredTimeStr = worksheet.Cells[row, 7].Value?.ToString().Trim();
-                    string actualTimeStr = worksheet.Cells[row, 8].Value?.ToString().Trim();
 
 
-                    if (TimeSpan.TryParse(requiredTimeStr, out TimeSpan requiredTime))
-                    {
+                        var Intimes = checkIns.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        var OutTimes = checkOuts.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        var checkInList = new List<string>();
+                        var checkOutList = new List<string>();
+
+                        for (int i = 0; i < Intimes.Length; i += 2)
+                        {
+                            if (i + 1 < Intimes.Length)
+                            {
+                                checkInList.Add(Intimes[i] + " " + Intimes[i + 1]);
+                            }
+                        }
+                        for (int i = 0; i < OutTimes.Length; i += 2)
+                        {
+                            if (i + 1 < OutTimes.Length)
+                            {
+                                checkOutList.Add(OutTimes[i] + " " + OutTimes[i + 1]);
+                            }
+                        }
+                        if (checkInList.Count != checkOutList.Count)
+                        {
+                            throw new Exception($"The number of Check-Ins ({checkInList.Count}) does not match the number of Check-Outs ({checkOutList.Count}) for Machine ID {attendanceRecord.AttendanceId.MachineId} on date {attendanceRecord.Date:dd-MMM-yy}.");
+                        }
+                        attendanceRecord.CheckIns = checkIns;
+                        attendanceRecord.CheckOuts = checkOuts; 
+
+
+                        TimeSpan totalWorkedTime = TimeSpan.Zero;
+                        if (worksheet.Cells[row, 7].Value == null)
+                        {
+                            throw new Exception($"Required Time is missing for Machine ID {attendanceRecord.AttendanceId.MachineId} on date {attendanceRecord.Date:dd-MMM-yy}.");
+                        }
+                        if (worksheet.Cells[row, 8].Value == null)
+                        {
+                            throw new Exception($"Late In time is missing for Machine ID {attendanceRecord.AttendanceId.MachineId} on date {attendanceRecord.Date:dd-MMM-yy}.");
+                        }
+
+                        TimeSpan requiredTime;
+                        try
+                        {
+                            requiredTime = TimeSpan.Parse(worksheet.Cells[row, 7].Value.ToString());
+                        }
+                        catch
+                        {
+                            throw new Exception($"Required Time is invalid for Machine ID {attendanceRecord.AttendanceId.MachineId} on date {attendanceRecord.Date:dd-MMM-yy}.");
+                        }
+
+                        TimeSpan lateIn;
+                        try
+                        {
+                            lateIn = TimeSpan.Parse(worksheet.Cells[row, 8].Value.ToString());
+                        }
+                        catch
+                        {
+                            throw new Exception($"Late In Time is invalid for Machine ID {attendanceRecord.AttendanceId.MachineId} on date {attendanceRecord.Date:dd-MMM-yy}.");
+                        }
+
                         attendanceRecord.RequiredTime = requiredTime;
-                    }
-                    else
-                    {
-                        attendanceRecord.RequiredTime = TimeSpan.Zero; 
-                    }
+                        attendanceRecord.LateIn = lateIn;
 
-                    if (TimeSpan.TryParse(actualTimeStr, out TimeSpan actualTime))
-                    {
-                        attendanceRecord.ActualTime = actualTime;
-                    }
-                    else
-                    {
-                        attendanceRecord.ActualTime = TimeSpan.Zero; 
-                    }
+                        for (int i = 0; i < checkInList.Count; i++)
+                        {
+                            var checkInStr = checkInList[i].Trim();
+                            var checkOutStr = checkOutList[i].Trim();
 
-                    string underHoursStr = worksheet.Cells[row, 9].Value?.ToString();
-                    if (int.TryParse(underHoursStr, out int underHours))
-                    {
-                        attendanceRecord.UnderHours = underHours;
-                    }
-                    else
-                    {
-                        attendanceRecord.UnderHours = 0;  
-                    }
+                            if (checkInStr.EndsWith("PM") && !checkInStr.StartsWith("12"))
+                            {
+                                checkInStr = (Convert.ToInt32(checkInStr.Substring(0, checkInStr.IndexOf(':'))) + 12) + checkInStr.Substring(checkInStr.IndexOf(':'));
+                            }
+                            else if (checkInStr.EndsWith("AM") && checkInStr.StartsWith("12"))
+                            {
+                                checkInStr = "00" + checkInStr.Substring(checkInStr.IndexOf(':'));
+                            }
 
-                    string overHoursStr = worksheet.Cells[row, 10].Value?.ToString();
-                    if (int.TryParse(overHoursStr, out int overHours))
-                    {
-                        attendanceRecord.OverHours = overHours;
+                            if (checkOutStr.EndsWith("PM") && !checkOutStr.StartsWith("12"))
+                            {
+                                checkOutStr = (Convert.ToInt32(checkOutStr.Substring(0, checkOutStr.IndexOf(':'))) + 12) + checkOutStr.Substring(checkOutStr.IndexOf(':'));
+                            }
+                            else if (checkOutStr.EndsWith("AM") && checkOutStr.StartsWith("12"))
+                            {
+                                checkOutStr = "00" + checkOutStr.Substring(checkOutStr.IndexOf(':'));
+                            }
+
+                            DateTime checkInTime = DateTime.Parse(checkInStr);
+                            DateTime checkOutTime = DateTime.Parse(checkOutStr);
+
+                            if (checkOutTime < checkInTime)
+                            {
+                                checkOutTime = checkOutTime.AddDays(1);
+                            }
+
+                            TimeSpan workedTime = checkOutTime - checkInTime;
+                            totalWorkedTime += workedTime;
+                        }
+                        attendanceRecord.ActualTime = totalWorkedTime;
+
+                        attendanceRecord.Status = _attendanceRecordService.CalculateStatus(
+                                    attendanceRecord.Date,
+                                    attendanceRecord.RequiredTime.ToString(),
+                                    attendanceRecord.ActualTime.ToString(),
+                                    "00:00:00",
+                                    attendanceRecord.LateIn.ToString(),
+                                    attendanceRecord.CheckIns
+                                );
+                        attendanceRecord.OverHours = _attendanceRecordService.CalculateOverHours(attendanceRecord.RequiredTime, attendanceRecord.ActualTime);
+                        attendanceRecord.UnderHours = _attendanceRecordService.CalculateUnderHours(attendanceRecord.RequiredTime, attendanceRecord.ActualTime, attendanceRecord.Status.Title);
+                        attendanceRecord.IsRecordOk = true;
+
+
+                        attendanceRecordList.Add(attendanceRecord);
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        attendanceRecord.OverHours = 0; 
+                        throw new Exception($"Error in row {row}: {ex.Message}");
                     }
-
-                    string isRecordOkStr = worksheet.Cells[row, 11].Value?.ToString().Trim();
-                    attendanceRecord.IsRecordOk = isRecordOkStr.Equals("Yes", StringComparison.OrdinalIgnoreCase);
-                    attendanceRecord.TimeTable = worksheet.Cells[row, 12].Value?.ToString().Trim();
-
-                    string LateInStr = worksheet.Cells[row, 13].Value?.ToString().Trim();
-
-                    if (TimeSpan.TryParse(LateInStr, out TimeSpan LateIn))
-                    {
-                        attendanceRecord.LateIn = LateIn;
-                    }
-                    else
-                    {
-                        attendanceRecord.LateIn = TimeSpan.Zero;
-                    }
-
-                    
-
-                    attendanceRecordList.Add(attendanceRecord);
                 }
 
                 if (attendanceRecordList.Count > 0)
@@ -295,6 +339,7 @@ namespace LGMS.Services
 
             return attendanceRecordList;
         }
+
 
     }
 }

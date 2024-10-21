@@ -65,7 +65,7 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
+                return StatusCode(500, new { message = ex.Message });
             }
         }
 
@@ -99,13 +99,16 @@ namespace LGMS.Controllers
                             }
                         }
 
-                        var existingAttendanceIds = _dbContext.AttendanceIds
-                            .Where(a => machineIds.Contains(a.MachineId))
-                            .ToList();
+                        //var existingAttendanceIds = _dbContext.AttendanceIds
+                        //    .Where(a => machineIds.Contains(a.MachineId))
+                        //    .ToList();
 
-                        var existingRecords = _dbContext.AttendanceRecords
-                            .Where(r => existingAttendanceIds.Select(a => a.Id).Contains(r.AttendanceId.Id))
-                            .ToList();
+                        //var existingRecords = _dbContext.AttendanceRecords
+                        //    .Where(r => existingAttendanceIds.Select(a => a.Id).Contains(r.AttendanceId.Id))
+                        //    .ToList();
+                        var existingAttendanceMappings = _dbContext.AttendanceIds
+                                    .Where(a => machineIds.Contains(a.MachineId))
+                                    .ToDictionary(a => a.MachineId, a => a);
 
                         for (int row = 2; row <= rowCount; row++)
                         {
@@ -116,20 +119,29 @@ namespace LGMS.Controllers
                                 {
                                     throw new Exception($"Invalid Machine ID on row {row}.");
                                 }
-
-                                var existingAttendanceId = existingAttendanceIds.FirstOrDefault(a => a.MachineId == machineId);
-                                if (existingAttendanceId == null)
+                                if (!existingAttendanceMappings.TryGetValue(machineId, out var existingAttendanceId))
                                 {
                                     throw new Exception($"Machine ID {machineId} not found.");
                                 }
+                                //var existingAttendanceId = existingAttendanceIds.FirstOrDefault(a => a.MachineId == machineId);
+                                //if (existingAttendanceId == null)
+                                //{
+                                //    throw new Exception($"Machine ID {machineId} not found.");
+                                //}
 
                                 if (!DateTime.TryParse(worksheet.Cells[row, 3].Value?.ToString(), out DateTime date))
                                 {
                                     throw new Exception($"Invalid date format on row {row}.");
                                 }
 
-                                var existingRecord = existingRecords.FirstOrDefault(r => r.AttendanceId.Id == existingAttendanceId.Id && r.Date == date);
-                                if (existingRecord != null)
+                                //var existingRecord = existingRecords.FirstOrDefault(r => r.AttendanceId.Id == existingAttendanceId.Id && r.Date == date);
+                                //if (existingRecord != null)
+                                //{
+                                //    throw new Exception($"Record already exists for Machine ID {machineId} on date {date:dd-MMM-yy}.");
+                                //}
+                                var existingRecordExists = _dbContext.AttendanceRecords
+                                             .Any(r => r.AttendanceId.Id == existingAttendanceId.Id && r.Date == date);
+                                if (existingRecordExists)
                                 {
                                     throw new Exception($"Record already exists for Machine ID {machineId} on date {date:dd-MMM-yy}.");
                                 }
@@ -173,9 +185,17 @@ namespace LGMS.Controllers
                                 {
                                     throw new Exception($"The number of Check-Ins ({checkInList.Count}) does not match the number of Check-Outs ({checkOutList.Count}) for Machine ID {machineId} on date {date:dd-MMM-yy}.");
                                 }
+                                var requiredTimeCell = worksheet.Cells[row, 6].Value;
+                                if (requiredTimeCell == null || !TimeSpan.TryParse(requiredTimeCell.ToString(), out TimeSpan requiredTime))
+                                {
+                                    throw new Exception($"Invalid Required Time format on row {row}.");
+                                }
+                                var lateInCell = worksheet.Cells[row, 12].Value;
+                                if (lateInCell == null || !TimeSpan.TryParse(lateInCell.ToString(), out TimeSpan lateIn))
+                                {
+                                    throw new Exception($"Invalid Late In format on row {row}.");
+                                }
 
-                                TimeSpan requiredTime = TimeSpan.Parse(worksheet.Cells[row, 6].Value.ToString());
-                                TimeSpan lateIn = TimeSpan.Parse(worksheet.Cells[row, 12].Value.ToString());
                                 TimeSpan totalWorkedTime = TimeSpan.Zero;
 
                                 for (int i = 0; i < checkInList.Count; i++)
@@ -250,7 +270,7 @@ namespace LGMS.Controllers
 
                 await _attendanceRecordService.SaveAttendanceRecordsAsync(attendanceRecords);
 
-                return Ok(new { message = "File processed and attendance records saved successfully." });
+                return Ok(new { message = $"{attendanceRecords.Count} records processed successfully."});
             }
             catch (Exception ex)
             {

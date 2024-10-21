@@ -243,7 +243,112 @@ namespace LGMS.Controllers
         }
 
         [HttpPost("GenerateSalarySlips")]
-        public IActionResult GenerateSalarySlips([FromBody] List<SalarySlipDTO> salarySlips, int month, int year)
+        public IActionResult GenerateSalarySlips([FromBody] List<SalarySlipDTO> salarySlips)
+        {
+            if (salarySlips == null || !salarySlips.Any())
+            {
+                return BadRequest(new { message = "Salary slips data is required." });
+            }
+
+            string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "company-logo.png");
+
+            try
+            {
+                var dbSlips = salarySlips.Select(slip => new SalarySlip()
+                {
+                    Name = slip.Name,
+                    Designation = slip.Designation,
+                    Department = slip.Department,
+                    GenratedDate = slip.GenratedDate,
+                    PayPeriod = slip.PayPeriod,
+                    Salary = slip.Salary,
+                    Deductions = slip.Deductions,
+                    OnTimeAllowance = slip.OnTimeAllowance,
+                    PerformanceAllowance = slip.PerformanceAllowance,
+                    AttendanceAllowance = slip.AttendanceAllowance,
+                    Overtime = slip.Overtime,
+                    SecurityDeposit = slip.SecurityDeposit,
+                    IncomeTax = slip.IncomeTax,
+                    Loan = slip.Loan,
+                    Comission = slip.Comission,
+                    Total = slip.Total
+                }).ToList();
+
+                _dbContext.SalarySlips.AddRange(dbSlips);
+                _dbContext.SaveChanges();
+                using (var zipStream = new MemoryStream())
+                {
+                    using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
+                    {
+                        foreach (var slip in salarySlips)
+                        {
+                            using (var memoryStream = new MemoryStream())
+                            {
+                                var document = _pdfService.CreateSalarySlipPdf(slip, logoPath);
+                                document.GeneratePdf(memoryStream);
+
+                                var zipEntry = archive.CreateEntry($"{slip.Name}_SalarySlip.pdf", CompressionLevel.Optimal);
+                                using (var entryStream = zipEntry.Open())
+                                {
+                                    memoryStream.Seek(0, SeekOrigin.Begin);
+                                    memoryStream.CopyTo(entryStream);
+                                }
+                            }
+                        }
+                    }
+                    return File(zipStream.ToArray(), "application/zip", "SalarySlips.zip");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
+        [HttpPost("SaveSalarySlips")]
+        public IActionResult SaveSalarySlips([FromBody] List<SalarySlipDTO> salarySlips)
+        {
+            if (salarySlips == null || !salarySlips.Any())
+            {
+                return BadRequest(new { message = "Salary slips data is required." });
+            }
+
+            try
+            {
+                var dbSlips = salarySlips.Select(slip => new SalarySlip()
+                {
+                    Name = slip.Name,
+                    Designation = slip.Designation,
+                    Department = slip.Department,
+                    GenratedDate = slip.GenratedDate,
+                    PayPeriod = slip.PayPeriod,
+                    Salary = slip.Salary,
+                    Deductions = slip.Deductions,
+                    OnTimeAllowance = slip.OnTimeAllowance,
+                    PerformanceAllowance = slip.PerformanceAllowance,
+                    AttendanceAllowance = slip.AttendanceAllowance,
+                    Overtime = slip.Overtime,
+                    SecurityDeposit = slip.SecurityDeposit,
+                    IncomeTax = slip.IncomeTax,
+                    Loan = slip.Loan,
+                    Comission = slip.Comission,
+                    Total = slip.Total
+                }).ToList();
+
+                _dbContext.SalarySlips.AddRange(dbSlips);
+                _dbContext.SaveChanges();
+
+                return Ok(new {message = $"{salarySlips.Count()} slips saved successfully."});
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("DownloadSalarySlips")]
+        public IActionResult DownloadSalarySlips([FromBody] List<SalarySlip> salarySlips)
         {
             string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "company-logo.png");
             using (var zipStream = new MemoryStream())
@@ -254,27 +359,7 @@ namespace LGMS.Controllers
                     {
                         using (var memoryStream = new MemoryStream())
                         {
-                            var dbSlip = new SalarySlip()
-                            {
-                                Name = slip.Name,
-                                Designation = slip.Designation,
-                                Department = slip.Department,
-                                GenratedDate = slip.GenratedDate,
-                                PayPeriod = slip.PayPeriod,
-                                Salary = slip.Salary,
-                                Deductions = slip.Deductions,
-                                OnTimeAllowance = slip.OnTimeAllowance,
-                                PerformanceAllowance = slip.PerformanceAllowance,
-                                AttendanceAllowance = slip.AttendanceAllowance,
-                                Overtime = slip.Overtime,
-                                SecurityDeposit = slip.SecurityDeposit,
-                                IncomeTax = slip.IncomeTax,
-                                Loan = slip.Loan,
-                                Comission = slip.Comission,
-                                Total = slip.Total
-                            };
-                            _dbContext.SalarySlips.Add(dbSlip);
-                            var document = _pdfService.CreateSalarySlipPdf(slip, logoPath);
+                            var document = _pdfService.DownloadSalarySlip(slip, logoPath);
                             document.GeneratePdf(memoryStream);
 
                             var zipEntry = archive.CreateEntry($"{slip.Name}_SalarySlip.pdf", CompressionLevel.Optimal);
@@ -285,10 +370,10 @@ namespace LGMS.Controllers
                             }
                         }
                     }
-                    _dbContext.SaveChanges();
                 }
                 return File(zipStream.ToArray(), "application/zip", "SalarySlips.zip");
             }
         }
+
     }
 }
