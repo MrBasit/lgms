@@ -110,17 +110,6 @@ namespace LGMS.Services
                     worksheet.Cells[i + 2, 13].Value = data[i].IsRecordOk ? "Yes" : "No";
                 }
 
-                worksheet.Cells.Style.Locked = false;
-
-                if (data.Count > 0)
-                {
-                    worksheet.Cells[2, 1, data.Count + 1, 4].Style.Locked = true;
-                }
-                worksheet.Protection.IsProtected = true;
-                worksheet.Protection.SetPassword("password");
-                worksheet.Protection.AllowSelectLockedCells = false;
-
-
                 using (var idNameDateRange = worksheet.Cells[2, 1, data.Count + 1, 4])
                 {
                     idNameDateRange.Style.Fill.PatternType = ExcelFillStyle.Solid;

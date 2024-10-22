@@ -152,7 +152,88 @@ namespace LGMS.Controllers
 
             return Ok(yearsRange);
         }
+        [HttpGet("GetUnderHoursWithEmployees")]
+        public ActionResult GetUnderHoursWithEmployees()
+        {
+            var currentDate = DateTime.Now;
+            var previousMonthStart = new DateTime(currentDate.Year, currentDate.Month, 1).AddMonths(-1);
+            var previousMonthEnd = new DateTime(currentDate.Year, currentDate.Month, 1).AddDays(-1);
 
+            var employeesWithUnderHours = _dbContext.AttendanceRecords
+                .Where(a => a.Date >= previousMonthStart && a.Date <= previousMonthEnd)
+                .GroupBy(a => a.AttendanceId)
+                .Select(group => new
+                {
+                    AttendanceId = group.Key,
+                    TotalUnderHours = group.Sum(a => a.UnderHours),
+                })
+                .OrderByDescending(e => e.TotalUnderHours)
+                .ToList();
+
+            var result = employeesWithUnderHours.Select(e =>
+            {
+                var employee = _dbContext.Employees
+                                 .FirstOrDefault(emp => emp.AttendanceId == e.AttendanceId);
+                var hourLabel = e.TotalUnderHours == 1 ? "hour" : "hours";
+                return $"{employee.Name} - {e.TotalUnderHours} {hourLabel}";
+            }).ToList();
+
+            return Ok(result);
+        }
+        [HttpGet("GetOverHoursWithEmployees")]
+        public ActionResult GetOverHoursWithEmployees()
+        {
+            var currentDate = DateTime.Now;
+            var previousMonthStart = new DateTime(currentDate.Year, currentDate.Month, 1).AddMonths(-1);
+            var previousMonthEnd = new DateTime(currentDate.Year, currentDate.Month, 1).AddDays(-1);
+
+            var employeesWithOverHours = _dbContext.AttendanceRecords
+                .Where(a => a.Date >= previousMonthStart && a.Date <= previousMonthEnd)
+                .GroupBy(a => a.AttendanceId)
+                .Select(group => new
+                {
+                    AttendanceId = group.Key,
+                    TotalOverHours = group.Sum(a => a.OverHours),
+                })
+                .OrderByDescending(e => e.TotalOverHours)
+                .ToList();
+
+            var result = employeesWithOverHours.Select(e => {
+                var employee = _dbContext.Employees
+                                 .FirstOrDefault(emp => emp.AttendanceId == e.AttendanceId);
+                var hourLabel = e.TotalOverHours == 1 ? "hour" : "hours";
+                return $"{employee.Name} - {e.TotalOverHours} {hourLabel}";
+            }).ToList();
+
+            return Ok(result);
+        }
+        [HttpGet("GetDaysOffWithEmployees")]
+        public ActionResult GetDaysOffWithEmployees()
+        {
+            var currentDate = DateTime.Now;
+            var startOfYear = new DateTime(currentDate.Year, 1, 1);
+
+            var employeesWithDayOffs = _dbContext.AttendanceRecords
+                .Where(a => a.Date >= startOfYear && a.Date <= currentDate)
+                .GroupBy(a => a.AttendanceId)
+                .Select(group => new
+                {
+                    AttendanceId = group.Key,
+                    TotalDaysOff = group.Count(a => a.Status.Title == "Day Off")
+                })
+                .OrderByDescending(e => e.TotalDaysOff)
+                .ToList();
+
+            var result = employeesWithDayOffs.Select(e =>
+            {
+                var employee = _dbContext.Employees
+                                 .FirstOrDefault(emp => emp.AttendanceId == e.AttendanceId);
+                var dayLabel = e.TotalDaysOff == 1 ? "day" : "days";
+                return $"{employee.Name} - {e.TotalDaysOff} {dayLabel}";
+            }).ToList();
+
+            return Ok(result);
+        }
 
 
     }
