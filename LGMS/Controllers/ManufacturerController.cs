@@ -93,7 +93,7 @@ namespace LGMS.Controllers
         [HttpPost("EditManufacturer")]
         public IActionResult EditManufacturer(ManufacturerEditModel manufacturerDetails)
         {
-            var existingManufacturer = _dbContext.Vendors.FirstOrDefault(d => d.Id == manufacturerDetails.Id);
+            var existingManufacturer = _dbContext.Manufacturers.FirstOrDefault(d => d.Id == manufacturerDetails.Id);
 
             if (existingManufacturer == null)
             {
@@ -150,6 +150,47 @@ namespace LGMS.Controllers
                     innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
                 });
             }
+        }
+        [HttpPost("AddManufacturers")]
+        public IActionResult AddManufacturers([FromBody] List<string> names)
+        {
+            if (names == null || !names.Any())
+            {
+                return BadRequest(new { message = "No manufacturer names provided." });
+            }
+
+            var manufacturerNames = names.Select(name => ToTitleCase(name.Trim()))
+                                   .Where(name => !string.IsNullOrEmpty(name))
+                                   .Distinct(StringComparer.OrdinalIgnoreCase)
+                                   .ToList();
+
+            if (manufacturerNames.Count != names.Count)
+            {
+                return BadRequest(new { message = "Duplicate manufacturer names found in the input." });
+            }
+
+            var lowerCaseNames = manufacturerNames.Select(name => name.ToLower()).ToList();
+
+            var existingManufacturers = _dbContext.Manufacturers
+                                            .Where(et => lowerCaseNames.Contains(et.Name.ToLower()))
+                                            .Select(et => et.Name)
+                                            .ToList();
+
+            if (existingManufacturers.Any())
+            {
+                return BadRequest(new { message = $"The following manufacturers already exist: {string.Join(", ", existingManufacturers)}" });
+            }
+
+            var newManufacturers = manufacturerNames.Select(name => new Manufacturer { Name = name }).ToList();
+            _dbContext.Manufacturers.AddRange(newManufacturers);
+            _dbContext.SaveChanges();
+
+            return Ok(new { message = $"{newManufacturers.Count} manufacturers added successfully." });
+        }
+
+        private string ToTitleCase(string input)
+        {
+            return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(input.ToLower());
         }
     }
 }

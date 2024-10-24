@@ -151,5 +151,49 @@ namespace LGMS.Controllers
                 });
             }
         }
+
+        [HttpPost("AddVendors")]
+        public IActionResult AddVendors([FromBody] List<string> names)
+        {
+            if (names == null || !names.Any())
+            {
+                return BadRequest(new { message = "No vendor names provided." });
+            }
+
+            var vendorNames = names.Select(name => ToTitleCase(name.Trim()))
+                                   .Where(name => !string.IsNullOrEmpty(name))
+                                   .Distinct(StringComparer.OrdinalIgnoreCase)
+                                   .ToList();
+
+            if (vendorNames.Count != names.Count)
+            {
+                return BadRequest(new { message = "Duplicate vendor names found in the input." });
+            }
+
+            var lowerCaseNames = vendorNames.Select(name => name.ToLower()).ToList();
+
+            var existingVendors = _dbContext.Vendors
+                                            .Where(et => lowerCaseNames.Contains(et.Name.ToLower()))
+                                            .Select(et => et.Name)
+                                            .ToList();
+
+            if (existingVendors.Any())
+            {
+                return BadRequest(new { message = $"The following vendors already exist: {string.Join(", ", existingVendors)}" });
+            }
+
+            var newVendors = vendorNames.Select(name => new Vendor { Name = name }).ToList();
+            _dbContext.Vendors.AddRange(newVendors);
+            _dbContext.SaveChanges();
+
+            return Ok(new { message = $"{newVendors.Count} vendors added successfully." });
+        }
+
+        private string ToTitleCase(string input)
+        {
+            return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(input.ToLower());
+        }
+
+
     }
 }

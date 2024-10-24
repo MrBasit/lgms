@@ -351,5 +351,27 @@ namespace LGMS.Controllers
 
             return Ok(equipmentTypesWithCount);
         }
+        [HttpGet("GetStatusesWithEquipmentCount")]
+        public ActionResult GetStatusesWithEquipmentCount()
+        {
+            var equipmentTypesWithCount = _dbContext.EquipmentStatus
+                .GroupJoin(
+                    _dbContext.Equipments,  
+                    status => status.Id,    
+                    equipment => equipment.Status.Id, 
+                    (status, equipmentGroup) => new
+                    {
+                        StatusName = status.Title,
+                        EquipmentCount = equipmentGroup.Count() 
+                    }
+                )
+                .OrderByDescending(t => t.EquipmentCount)  
+                .Select(t => $"{t.StatusName} - {t.EquipmentCount}")  
+                .ToList();
+
+            return Ok(equipmentTypesWithCount);
+        }
+
+
     }
 }

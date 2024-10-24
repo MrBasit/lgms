@@ -151,5 +151,48 @@ namespace LGMS.Controllers
                 });
             }
         }
+        [HttpPost("AddEquipmentTypes")]
+        public IActionResult AddEquipmentTypes([FromBody] List<string> titles)
+        {
+            if (titles == null || !titles.Any())
+            {
+                return BadRequest(new { message = "No equipment type titles provided." });
+            }
+
+            var typeNames = titles.Select(title => ToTitleCase(title.Trim()))
+                                   .Where(title => !string.IsNullOrEmpty(title))
+                                   .Distinct(StringComparer.OrdinalIgnoreCase)
+                                   .ToList();
+
+            if (typeNames.Count != titles.Count)
+            {
+                return BadRequest(new { message = "Duplicate equipment type titles found in the input." });
+            }
+
+            var lowerCaseTitles = typeNames.Select(title => title.ToLower()).ToList();
+
+            var existingEquipmentTypes = _dbContext.EquipmentTypes
+                                            .Where(et => lowerCaseTitles.Contains(et.Title.ToLower()))
+                                            .Select(et => et.Title)
+                                            .ToList();
+
+            if (existingEquipmentTypes.Any())
+            {
+                return BadRequest(new { message = $"The following equipment types already exist: {string.Join(", ", existingEquipmentTypes)}" });
+            }
+
+            var newEquipmentTypes = typeNames.Select(title => new EquipmentType { Title = title }).ToList();
+            _dbContext.EquipmentTypes.AddRange(newEquipmentTypes);
+            _dbContext.SaveChanges();
+
+            return Ok(new { message = $"{newEquipmentTypes.Count} equipment types added successfully." });
+        }
+
+        private string ToTitleCase(string input)
+        {
+            return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(input.ToLower());
+        }
+
+
     }
 }
