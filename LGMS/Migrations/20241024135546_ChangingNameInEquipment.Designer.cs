@@ -4,6 +4,7 @@ using LGMS.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LGMS.Migrations
 {
     [DbContext(typeof(LgmsDbContext))]
-    partial class LgmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241024135546_ChangingNameInEquipment")]
+    partial class ChangingNameInEquipment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -161,16 +164,11 @@ namespace LGMS.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("DepartmentId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DepartmentId");
 
                     b.HasIndex("Title")
                         .IsUnique();
@@ -674,17 +672,6 @@ namespace LGMS.Migrations
                     b.Navigation("AttendanceId");
 
                     b.Navigation("Status");
-                });
-
-            modelBuilder.Entity("LGMS.Data.Model.Designation", b =>
-                {
-                    b.HasOne("LGMS.Data.Model.Department", "Department")
-                        .WithMany()
-                        .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("LGMS.Data.Model.Employee", b =>

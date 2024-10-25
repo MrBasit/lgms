@@ -137,10 +137,11 @@ namespace LGMS.Controllers
             {
                 return NotFound(new { message = "Department not Found" });
             }
-            if (_dbContext.Employees.Any(e => e.Department.Id == existingDepartment.Id))
+            if (_dbContext.Employees.Any(e => e.Department.Id == existingDepartment.Id) || _dbContext.Designations.Any(d => d.Department.Id == existingDepartment.Id))
             {
                 return BadRequest(new { message = $"{existingDepartment.Name} is in use and it can't be delete." });
             }
+
 
             try
             {

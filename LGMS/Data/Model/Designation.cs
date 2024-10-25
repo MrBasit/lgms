@@ -7,5 +7,6 @@ namespace LGMS.Data.Model
     {
         public int Id { get; set; }
         public string Title { get; set; }
+        public Department Department { get; set; }
     }
 }

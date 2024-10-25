@@ -194,7 +194,7 @@ namespace LGMS.Controllers
                     Status = equipmentDetails.Status.Id == 0
                         ? equipmentDetails.Status
                         : _dbContext.EquipmentStatus.Single(s => s.Id == equipmentDetails.Status.Id),
-                    Comments = equipmentDetails.Comments,
+                    Description = equipmentDetails.Description,
                     Vendor = equipmentDetails.Vendor.Id == 0
                         ? equipmentDetails.Vendor
                         : _dbContext.Vendors.Single(m => m.Id == equipmentDetails.Vendor.Id),
@@ -282,7 +282,7 @@ namespace LGMS.Controllers
                 existingEquipment.Status = equipmentDetails.Status.Id == 0
                     ? equipmentDetails.Status
                     : _dbContext.EquipmentStatus.Single(s => s.Id == equipmentDetails.Status.Id);
-                existingEquipment.Comments = equipmentDetails.Comments;
+                existingEquipment.Description = equipmentDetails.Description;
                 existingEquipment.Vendor = equipmentDetails.Vendor.Id == 0
                     ? equipmentDetails.Vendor
                     : _dbContext.Vendors.Single(m => m.Id == equipmentDetails.Vendor.Id);

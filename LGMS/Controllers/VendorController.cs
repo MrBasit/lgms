@@ -160,21 +160,11 @@ namespace LGMS.Controllers
                 return BadRequest(new { message = "No vendor names provided." });
             }
 
-            var vendorNames = names.Select(name => ToTitleCase(name.Trim()))
-                                   .Where(name => !string.IsNullOrEmpty(name))
-                                   .Distinct(StringComparer.OrdinalIgnoreCase)
-                                   .ToList();
-
-            if (vendorNames.Count != names.Count)
-            {
-                return BadRequest(new { message = "Duplicate vendor names found in the input." });
-            }
-
-            var lowerCaseNames = vendorNames.Select(name => name.ToLower()).ToList();
+            var vendorNames = names.Select(name => name).ToList();
 
             var existingVendors = _dbContext.Vendors
-                                            .Where(et => lowerCaseNames.Contains(et.Name.ToLower()))
-                                            .Select(et => et.Name)
+                                            .Where(v => vendorNames.Select(n => n.ToLower()).Contains(v.Name.ToLower()))
+                                            .Select(v => v.Name)
                                             .ToList();
 
             if (existingVendors.Any())
@@ -188,12 +178,6 @@ namespace LGMS.Controllers
 
             return Ok(new { message = $"{newVendors.Count} vendors added successfully." });
         }
-
-        private string ToTitleCase(string input)
-        {
-            return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(input.ToLower());
-        }
-
 
     }
 }

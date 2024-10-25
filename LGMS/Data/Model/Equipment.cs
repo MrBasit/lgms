@@ -8,7 +8,7 @@
         public List<Employee>? Assignees { get; set; }
         public Equipment? ParentEquipment{ get; set; }
         public EquipmentStatus Status { get; set; }
-        public string Comments { get; set; }
+        public string? Description { get; set; }
         public Vendor Vendor { get; set; }
         public EquipmentType Type { get; set; }
         public DateTime WarrantyExpiryDate { get; set; }

@@ -181,7 +181,6 @@ namespace LGMS.Controllers
                 }
 
                 var extractedNumber = int.Parse(numberMatch.Value);
-
                 attendanceId = _dbContext.AttendanceIds.SingleOrDefault(a => a.MachineId == extractedNumber);
 
                 if (attendanceId != null && _dbContext.Employees.Any(e => e.AttendanceId.Id == attendanceId.Id))
@@ -193,36 +192,48 @@ namespace LGMS.Controllers
             try
             {
                 var lastEmployeeNumber = _dbContext.Employees
-                .OrderByDescending(e => e.EmployeeNumber)
-                .FirstOrDefault()?.EmployeeNumber;
+                    .OrderByDescending(e => e.EmployeeNumber)
+                    .FirstOrDefault()?.EmployeeNumber;
+                int newEmployeeNumber = lastEmployeeNumber != null && lastEmployeeNumber.StartsWith("LGEM")
+                    ? int.Parse(lastEmployeeNumber.Substring(4)) + 1
+                    : 1;
+                string employeeNumber = $"LGEM{newEmployeeNumber:D4}";
 
-                int newEmployeeNumber = 1;
+                var department = employeeDetails.Department.Id == 0
+                    ? employeeDetails.Department
+                    : _dbContext.Departments.Single(d => d.Id == employeeDetails.Department.Id);
 
-                if (lastEmployeeNumber != null && lastEmployeeNumber.StartsWith("LGEM"))
+                var designation = employeeDetails.Designation.Id == 0
+                    ? employeeDetails.Designation
+                    : _dbContext.Designations.Single(d => d.Id == employeeDetails.Designation.Id);
+                if (_dbContext.Designations.Any(d => d.Title.ToUpper() == designation.Title.ToUpper() && d.Department.Id != department.Id))
                 {
-                    var lastNumber = int.Parse(lastEmployeeNumber.Substring(4));
-                    newEmployeeNumber = lastNumber + 1;
+                    return BadRequest(new { message = $"This {designation.Title} already exists in another department." });
                 }
 
-                string employeeNumber = $"LGEM{newEmployeeNumber:D4}";
+                if (employeeDetails.Designation.Id == 0)
+                {
+                    designation.Department = department;
+                }
+                if (employeeDetails.Department.Id == 0)
+                {
+                    department = employeeDetails.Department;
+                }
+
                 Employee employee = new Employee()
                 {
                     AttendanceId = attendanceId,
                     Name = employeeDetails.EmployeeName,
                     EmployeeNumber = employeeNumber,
                     BirthDate = employeeDetails.BirthDate,
-                    Department = employeeDetails.Department.Id == 0 ?
-                                 employeeDetails.Department :
-                                 _dbContext.Departments.Single(d => d.Id == employeeDetails.Department.Id),
-                    Designation = employeeDetails.Designation.Id == 0 ?
-                                   employeeDetails.Designation :
-                                   _dbContext.Designations.Single(d => d.Id == employeeDetails.Designation.Id),
+                    Department = department,
+                    Designation = designation,
                     JoiningDate = employeeDetails.JoiningDate,
                     BasicSalary = employeeDetails.BasicSalary,
                     AgreementExpiration = employeeDetails.AgreementExpiration,
-                    Status = employeeDetails.Status.Id == 0 ?
-                             employeeDetails.Status :
-                             _dbContext.EmployeeStatus.Single(d => d.Id == employeeDetails.Status.Id)
+                    Status = employeeDetails.Status.Id == 0
+                        ? employeeDetails.Status
+                        : _dbContext.EmployeeStatus.Single(d => d.Id == employeeDetails.Status.Id)
                 };
 
                 _dbContext.Employees.Add(employee);
@@ -240,10 +251,14 @@ namespace LGMS.Controllers
         }
 
 
+
         [HttpPost("EditEmployee")]
         public ActionResult EditEmployee(EmployeeEditModel employeeDetails)
         {
-            var existingEmployee = _dbContext.Employees.Include(e => e.AttendanceId).Include(e => e.Equipments).FirstOrDefault(e => e.Id == employeeDetails.Id);
+            var existingEmployee = _dbContext.Employees
+                .Include(e => e.AttendanceId)
+                .Include(e => e.Equipments)
+                .FirstOrDefault(e => e.Id == employeeDetails.Id);
 
             if (existingEmployee == null)
             {
@@ -265,7 +280,6 @@ namespace LGMS.Controllers
                 }
 
                 var extractedNumber = int.Parse(numberMatch.Value);
-
                 var attendanceId = _dbContext.AttendanceIds.SingleOrDefault(a => a.MachineId == extractedNumber);
 
                 if (attendanceId != null && _dbContext.Employees.Any(e => e.AttendanceId.Id == attendanceId.Id && e.Id != employeeDetails.Id))
@@ -284,18 +298,37 @@ namespace LGMS.Controllers
             {
                 existingEmployee.Name = employeeDetails.EmployeeName;
                 existingEmployee.BirthDate = employeeDetails.BirthDate;
-                existingEmployee.Department = employeeDetails.Department.Id == 0 ?
-                                              employeeDetails.Department :
-                                              _dbContext.Departments.Single(d => d.Id == employeeDetails.Department.Id);
-                existingEmployee.Designation = employeeDetails.Designation.Id == 0 ?
-                                               employeeDetails.Designation :
-                                               _dbContext.Designations.Single(d => d.Id == employeeDetails.Designation.Id);
                 existingEmployee.JoiningDate = employeeDetails.JoiningDate;
                 existingEmployee.BasicSalary = employeeDetails.BasicSalary;
                 existingEmployee.AgreementExpiration = employeeDetails.AgreementExpiration;
-                existingEmployee.Status = employeeDetails.Status.Id == 0 ?
-                                          employeeDetails.Status :
-                                          _dbContext.EmployeeStatus.Single(d => d.Id == employeeDetails.Status.Id);
+
+                var department = employeeDetails.Department.Id == 0
+                    ? employeeDetails.Department
+                    : _dbContext.Departments.Single(d => d.Id == employeeDetails.Department.Id);
+
+                var designation = employeeDetails.Designation.Id == 0
+                    ? employeeDetails.Designation
+                    : _dbContext.Designations.Single(d => d.Id == employeeDetails.Designation.Id);
+                if (_dbContext.Designations.Any(d => d.Title.ToUpper() == designation.Title.ToUpper() && d.Department.Id != department.Id))
+                {
+                    return BadRequest(new { message = $"This {designation.Title} already exists in another department." });
+                }
+
+                if (employeeDetails.Designation.Id == 0)
+                {
+                    designation.Department = department;
+                }
+                if (employeeDetails.Department.Id == 0)
+                {
+                    department = employeeDetails.Department;
+                }
+
+                existingEmployee.Department = department;
+                existingEmployee.Designation = designation;
+
+                existingEmployee.Status = employeeDetails.Status.Id == 0
+                    ? employeeDetails.Status
+                    : _dbContext.EmployeeStatus.Single(d => d.Id == employeeDetails.Status.Id);
 
                 _dbContext.SaveChanges();
 
@@ -310,6 +343,7 @@ namespace LGMS.Controllers
                 });
             }
         }
+
 
 
         [HttpPost("DeleteEmployee")]

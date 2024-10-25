@@ -14,21 +14,22 @@ namespace LGMS.Services
             {
                 var worksheet = package.Workbook.Worksheets.Add("Equipment Data");
 
-                worksheet.Cells[1, 1].Value = "ID";
+                worksheet.Cells[1, 1].Value = "Id";
                 worksheet.Cells[1, 2].Value = "Equipment Number";
-                worksheet.Cells[1, 3].Value = "Equipment Type";
-                worksheet.Cells[1, 4].Value = "Manufacturer";
+                worksheet.Cells[1, 3].Value = "Parent Equipment No.";
+                worksheet.Cells[1, 4].Value = "Equipment Type";
                 worksheet.Cells[1, 5].Value = "Assignees";
                 worksheet.Cells[1, 6].Value = "Status";
-                worksheet.Cells[1, 7].Value = "Comments";
-                worksheet.Cells[1, 8].Value = "Vendor";
-                worksheet.Cells[1, 9].Value = "Warranty Duration";
-                worksheet.Cells[1, 10].Value = "Buying Date";
-                worksheet.Cells[1, 11].Value = "Unboxing Date";
-                worksheet.Cells[1, 12].Value = "Parent Equipment";
+                worksheet.Cells[1, 7].Value = "Purchasing Date";
+                worksheet.Cells[1, 8].Value = "Unboxing Date";
+                worksheet.Cells[1, 9].Value = "Warranty expiry date";
+                worksheet.Cells[1, 10].Value = "Manufacturer";
+                worksheet.Cells[1, 11].Value = "Vendor";
+                worksheet.Cells[1, 12].Value = "Description";
+                worksheet.Cells[1, 13].Value = "Remarks";
                
 
-                using (var headerRange = worksheet.Cells[1, 1, 1, 12])
+                using (var headerRange = worksheet.Cells[1, 1, 1, 13])
                 {
                     headerRange.Style.Font.Bold = true;
                     headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
@@ -40,16 +41,17 @@ namespace LGMS.Services
                 {
                     worksheet.Cells[i + 2, 1].Value = data[i].Id;
                     worksheet.Cells[i + 2, 2].Value = data[i].Number;
-                    worksheet.Cells[i + 2, 3].Value = data[i].Type.Title;
-                    worksheet.Cells[i + 2, 4].Value = data[i].Manufacturer.Name;
+                    worksheet.Cells[i + 2, 3].Value = data[i].ParentEquipment != null ? data[i].ParentEquipment.Number : "";
+                    worksheet.Cells[i + 2, 4].Value = data[i].Type.Title;
                     worksheet.Cells[i + 2, 5].Value = string.Join(", ", data[i].Assignees.Select(a => a.Name));
                     worksheet.Cells[i + 2, 6].Value = data[i].Status.Title;
-                    worksheet.Cells[i + 2, 7].Value = data[i].Comments;
-                    worksheet.Cells[i + 2, 8].Value = data[i].Vendor.Name;
+                    worksheet.Cells[i + 2, 7].Value = data[i].BuyingDate.ToString("yyyy-MM-dd");
+                    worksheet.Cells[i + 2, 8].Value = data[i].UnboxingDate.ToString("yyyy-MM-dd");
                     worksheet.Cells[i + 2, 9].Value = data[i].WarrantyExpiryDate.ToString("yyyy-MM-dd");
-                    worksheet.Cells[i + 2, 10].Value = data[i].BuyingDate.ToString("yyyy-MM-dd");
-                    worksheet.Cells[i + 2, 11].Value = data[i].UnboxingDate.ToString("yyyy-MM-dd");
-                    worksheet.Cells[i + 2, 12].Value = data[i].ParentEquipment != null ? data[i].ParentEquipment.Number: "";
+                    worksheet.Cells[i + 2, 10].Value = data[i].Manufacturer.Name;
+                    worksheet.Cells[i + 2, 11].Value = data[i].Vendor.Name;
+                    worksheet.Cells[i + 2, 12].Value = data[i].Description;
+                    worksheet.Cells[i + 2, 12].Style.WrapText = true;
                 }
 
                 using (var dataRange = worksheet.Cells[1, 1, data.Count + 1, 12])

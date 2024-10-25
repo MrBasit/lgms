@@ -159,20 +159,10 @@ namespace LGMS.Controllers
                 return BadRequest(new { message = "No equipment type titles provided." });
             }
 
-            var typeNames = titles.Select(title => ToTitleCase(title.Trim()))
-                                   .Where(title => !string.IsNullOrEmpty(title))
-                                   .Distinct(StringComparer.OrdinalIgnoreCase)
-                                   .ToList();
-
-            if (typeNames.Count != titles.Count)
-            {
-                return BadRequest(new { message = "Duplicate equipment type titles found in the input." });
-            }
-
-            var lowerCaseTitles = typeNames.Select(title => title.ToLower()).ToList();
+            var typeNames = titles.Select(title => title).ToList();
 
             var existingEquipmentTypes = _dbContext.EquipmentTypes
-                                            .Where(et => lowerCaseTitles.Contains(et.Title.ToLower()))
+                                            .Where(et => typeNames.Select(t => t.ToLower()).Contains(et.Title.ToLower()))
                                             .Select(et => et.Title)
                                             .ToList();
 
@@ -187,12 +177,6 @@ namespace LGMS.Controllers
 
             return Ok(new { message = $"{newEquipmentTypes.Count} equipment types added successfully." });
         }
-
-        private string ToTitleCase(string input)
-        {
-            return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(input.ToLower());
-        }
-
 
     }
 }

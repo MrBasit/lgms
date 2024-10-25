@@ -74,46 +74,35 @@ namespace LGMS.Services
                             throw new Exception($"Equipment with ID {id} not found in the database.");
                         }
 
-                        if (_dbContext.Equipments.Any(e => e.Number == equipmentNumber && e.Id != id))
+                        if (_dbContext.Equipments.Any(e => e.Number.ToUpper() == equipmentNumber.ToUpper() && e.Id != id))
                         {
                             throw new Exception($"Equipment number {equipmentNumber} already exists.");
                         }
+                        equipment.Number = equipmentNumber;
 
-                        string typeTitle = worksheet.Cells[row, 3].Text.ToLower();
+                        var parentEquipmentNo = worksheet.Cells[row, 3].Text;
+                        var parentEquipment = _dbContext.Equipments.Include(e => e.ParentEquipment).SingleOrDefault(e => e.Number.ToUpper() == parentEquipmentNo.ToUpper().Trim());
+                        if (parentEquipment == null && (parentEquipmentNo != null || !string.IsNullOrEmpty(parentEquipmentNo)))
+                        {
+                            throw new Exception($"No Equipment found with this number");
+                        }
+                        if (equipment.Number.ToUpper() == parentEquipmentNo.ToUpper().Trim())
+                        {
+                            throw new Exception($"Equipment cannot be its own parent.");
+                        }
+                        if (parentEquipment != null && parentEquipment.ParentEquipment == equipment)
+                        {
+                            throw new Exception("Cannot assign parent equipment as it is a child of the equipment being edited.");
+                        }
+                        equipment.ParentEquipment = parentEquipment;
+
+                        string typeTitle = worksheet.Cells[row, 4].Text.ToLower();
                         var type = _dbContext.EquipmentTypes.FirstOrDefault(t => t.Title.ToLower() == typeTitle);
                         if (type == null)
                         {
-                            type = new EquipmentType { Title = worksheet.Cells[row, 3].Text };
-                            _dbContext.EquipmentTypes.Add(type);
+                            throw new Exception($"Equipment Type not found.");
                         }
                         equipment.Type = type;
-
-                        string manufacturerName = worksheet.Cells[row, 4].Text.ToLower();
-                        var manufacturer = _dbContext.Manufacturers.FirstOrDefault(m => m.Name.ToLower() == manufacturerName);
-                        if (manufacturer == null)
-                        {
-                            manufacturer = new Manufacturer { Name = worksheet.Cells[row, 4].Text };
-                            _dbContext.Manufacturers.Add(manufacturer);
-                        }
-                        equipment.Manufacturer = manufacturer;
-
-                        string statusTitle = worksheet.Cells[row, 6].Text.ToLower();
-                        var status = _dbContext.EquipmentStatus.FirstOrDefault(s => s.Title.ToLower() == statusTitle);
-                        if (status == null)
-                        {
-                            status = new EquipmentStatus { Title = worksheet.Cells[row, 6].Text };
-                            _dbContext.EquipmentStatus.Add(status);
-                        }
-                        equipment.Status = status;
-
-                        string vendorName = worksheet.Cells[row, 8].Text.ToLower();
-                        var vendor = _dbContext.Vendors.FirstOrDefault(v => v.Name.ToLower() == vendorName);
-                        if (vendor == null)
-                        {
-                            vendor = new Vendor { Name = worksheet.Cells[row, 8].Text };
-                            _dbContext.Vendors.Add(vendor);
-                        }
-                        equipment.Vendor = vendor;
 
                         string assigneesNames = worksheet.Cells[row, 5].Text;
                         if (!string.IsNullOrEmpty(assigneesNames))
@@ -128,17 +117,59 @@ namespace LGMS.Services
                             equipment.Assignees = assigneesList;
                         }
 
-                        equipment.Number = equipmentNumber;
-                        equipment.Comments = worksheet.Cells[row, 7].Text;
+                        string statusTitle = worksheet.Cells[row, 6].Text.ToLower();
+                        var status = _dbContext.EquipmentStatus.FirstOrDefault(s => s.Title.ToLower() == statusTitle);
+                        if (status == null)
+                        {
+                            throw new Exception($"Status not found.");
+                        }
+                        equipment.Status = status;
 
-                        DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime warrantyExpiryDate);
-                        equipment.WarrantyExpiryDate = warrantyExpiryDate;
+                        if (DateTime.TryParse(worksheet.Cells[row, 7].Text, out DateTime buyingDate))
+                        {
+                            equipment.BuyingDate = buyingDate;
+                        }
+                        else
+                        {
+                            throw new Exception($"Invalid Buying Date.");
+                        }
 
-                        DateTime.TryParse(worksheet.Cells[row, 10].Text, out DateTime buyingDate);
-                        equipment.BuyingDate = buyingDate;
+                        if (DateTime.TryParse(worksheet.Cells[row, 8].Text, out DateTime unboxingDate))
+                        {
+                            equipment.UnboxingDate = unboxingDate;
+                        }
+                        else
+                        {
+                            throw new Exception($"Invalid Unboxing Date.");
+                        }
 
-                        DateTime.TryParse(worksheet.Cells[row, 11].Text, out DateTime unboxingDate);
-                        equipment.UnboxingDate = unboxingDate;
+                        if (DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime warrantyExpiryDate))
+                        {
+                            equipment.WarrantyExpiryDate = warrantyExpiryDate;
+                        }
+                        else
+                        {
+                            throw new Exception($"Invalid Warranty Expiry Date.");
+                        }
+
+                        string manufacturerName = worksheet.Cells[row, 10].Text.ToLower();
+                        var manufacturer = _dbContext.Manufacturers.FirstOrDefault(m => m.Name.ToLower() == manufacturerName);
+                        if (manufacturer == null)
+                        {
+                            throw new Exception($"Manufacturer not found.");
+                        }
+                        equipment.Manufacturer = manufacturer;
+
+
+                        string vendorName = worksheet.Cells[row, 11].Text.ToLower();
+                        var vendor = _dbContext.Vendors.FirstOrDefault(v => v.Name.ToLower() == vendorName);
+                        if (vendor == null)
+                        {
+                            throw new Exception($"Vendor not found.");
+                        }
+                        equipment.Vendor = vendor;
+
+                        equipment.Description = worksheet.Cells[row, 12].Text;
 
                         equipmentList.Add(equipment);
                     }

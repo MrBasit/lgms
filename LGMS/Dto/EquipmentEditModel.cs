@@ -11,7 +11,7 @@ namespace LGMS.Dto
         public List<EquipmentAssigneeModel>? Assignees { get; set; }
         public string? ParentEquipmentNumber { get; set; }
         public EquipmentStatus Status { get; set; }
-        public string Comments { get; set; }
+        public string? Description { get; set; }
         public Vendor Vendor { get; set; }
         public DateTime WarrantyExpiryDate { get; set; }
         public DateTime BuyingDate { get; set; }

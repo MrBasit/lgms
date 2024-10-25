@@ -4,6 +4,7 @@ using LGMS.Dto;
 using LGMS.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LGMS.Controllers
 {
@@ -21,10 +22,10 @@ namespace LGMS.Controllers
 
         }
 
-        [HttpGet("GetDesignations")]
-        public IActionResult GetDesignations()
+        [HttpPost("GetDesignations")]
+        public IActionResult GetDesignations([FromBody]int id)
         {
-            var designations = _dbContext.Designations.ToList();
+            var designations = _dbContext.Designations.Where(d => d.Department.Id == id).ToList();
             return Ok(designations);
         }
 
@@ -37,7 +38,7 @@ namespace LGMS.Controllers
 
             try
             {
-                designations = _dbContext.Designations
+                designations = _dbContext.Designations.Include(d => d.Department)
                                       .ToList();
             }
             catch (Exception ex)
