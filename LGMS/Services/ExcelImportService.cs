@@ -80,21 +80,35 @@ namespace LGMS.Services
                         }
                         equipment.Number = equipmentNumber;
 
+
+
                         var parentEquipmentNo = worksheet.Cells[row, 3].Text;
-                        var parentEquipment = _dbContext.Equipments.Include(e => e.ParentEquipment).SingleOrDefault(e => e.Number.ToUpper() == parentEquipmentNo.ToUpper().Trim());
-                        if (parentEquipment == null && (parentEquipmentNo != null || !string.IsNullOrEmpty(parentEquipmentNo)))
+
+                        if (string.IsNullOrEmpty(parentEquipmentNo))
                         {
-                            throw new Exception($"No Equipment found with this number");
+                            equipment.ParentEquipment = null;
                         }
-                        if (equipment.Number.ToUpper() == parentEquipmentNo.ToUpper().Trim())
+                        else
                         {
-                            throw new Exception($"Equipment cannot be its own parent.");
+                            var parentEquipment = _dbContext.Equipments
+                                .Include(e => e.ParentEquipment)
+                                .SingleOrDefault(e => e.Number.ToUpper() == parentEquipmentNo.ToUpper().Trim());
+
+                            if (parentEquipment == null)
+                            {
+                                throw new Exception("No Equipment found with this number");
+                            }
+                            if (equipment.Number.ToUpper() == parentEquipmentNo.ToUpper().Trim())
+                            {
+                                throw new Exception("Equipment cannot be its own parent.");
+                            }
+                            if (parentEquipment != null && parentEquipment.ParentEquipment == equipment)
+                            {
+                                throw new Exception("Cannot assign parent equipment as it is a child of the equipment being edited.");
+                            }
+
+                            equipment.ParentEquipment = parentEquipment;
                         }
-                        if (parentEquipment != null && parentEquipment.ParentEquipment == equipment)
-                        {
-                            throw new Exception("Cannot assign parent equipment as it is a child of the equipment being edited.");
-                        }
-                        equipment.ParentEquipment = parentEquipment;
 
                         string typeTitle = worksheet.Cells[row, 4].Text.ToLower();
                         var type = _dbContext.EquipmentTypes.FirstOrDefault(t => t.Title.ToLower() == typeTitle);
@@ -125,49 +139,88 @@ namespace LGMS.Services
                         }
                         equipment.Status = status;
 
-                        if (DateTime.TryParse(worksheet.Cells[row, 7].Text, out DateTime buyingDate))
+
+                        if (!string.IsNullOrEmpty(worksheet.Cells[row, 7].Text))
                         {
-                            equipment.BuyingDate = buyingDate;
+                            if (DateTime.TryParse(worksheet.Cells[row, 7].Text, out DateTime buyingDate))
+                            {
+                                equipment.BuyingDate = buyingDate;
+                            }
+                            else
+                            {
+                                throw new Exception($"Invalid Buying Date.");
+                            }
                         }
                         else
                         {
-                            throw new Exception($"Invalid Buying Date.");
+                            equipment.BuyingDate = null;
                         }
 
-                        if (DateTime.TryParse(worksheet.Cells[row, 8].Text, out DateTime unboxingDate))
+                        if (!string.IsNullOrEmpty(worksheet.Cells[row, 8].Text))
                         {
-                            equipment.UnboxingDate = unboxingDate;
+                            if (DateTime.TryParse(worksheet.Cells[row, 8].Text, out DateTime unboxingDate))
+                            {
+                                equipment.UnboxingDate = unboxingDate;
+                            }
+                            else
+                            {
+                                throw new Exception($"Invalid Unboxing Date.");
+                            }
                         }
                         else
                         {
-                            throw new Exception($"Invalid Unboxing Date.");
+                            equipment.UnboxingDate = null;
                         }
 
-                        if (DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime warrantyExpiryDate))
+                        if (!string.IsNullOrEmpty(worksheet.Cells[row, 9].Text))
                         {
-                            equipment.WarrantyExpiryDate = warrantyExpiryDate;
+                            if (DateTime.TryParse(worksheet.Cells[row, 9].Text, out DateTime warrantyExpiryDate))
+                            {
+                                equipment.WarrantyExpiryDate = warrantyExpiryDate;
+                            }
+                            else
+                            {
+                                throw new Exception($"Invalid Warranty Expiry Date.");
+                            }
                         }
                         else
                         {
-                            throw new Exception($"Invalid Warranty Expiry Date.");
+                            equipment.WarrantyExpiryDate = null;
                         }
+
 
                         string manufacturerName = worksheet.Cells[row, 10].Text.ToLower();
-                        var manufacturer = _dbContext.Manufacturers.FirstOrDefault(m => m.Name.ToLower() == manufacturerName);
-                        if (manufacturer == null)
+                        if (!string.IsNullOrEmpty(manufacturerName))
                         {
-                            throw new Exception($"Manufacturer not found.");
+                            var manufacturer = _dbContext.Manufacturers.FirstOrDefault(m => m.Name.ToLower() == manufacturerName);
+                            if (manufacturer == null)
+                            {
+                                throw new Exception($"Manufacturer not found.");
+                            }
+                            equipment.Manufacturer = manufacturer;
                         }
-                        equipment.Manufacturer = manufacturer;
+                        else
+                        {
+                            equipment.Manufacturer = null;
+                        }
+                        
 
 
                         string vendorName = worksheet.Cells[row, 11].Text.ToLower();
-                        var vendor = _dbContext.Vendors.FirstOrDefault(v => v.Name.ToLower() == vendorName);
-                        if (vendor == null)
+                        if (!string.IsNullOrEmpty(vendorName))
                         {
-                            throw new Exception($"Vendor not found.");
+                            var vendor = _dbContext.Vendors.FirstOrDefault(v => v.Name.ToLower() == vendorName);
+                            if (vendor == null)
+                            {
+                                throw new Exception($"Vendor not found.");
+                            }
+                             equipment.Vendor = vendor;
                         }
-                        equipment.Vendor = vendor;
+                        else
+                        {
+                            equipment.Vendor = null;
+                        }
+
 
                         equipment.Description = worksheet.Cells[row, 12].Text;
 
@@ -178,7 +231,6 @@ namespace LGMS.Services
                         throw new Exception($"Error in row {row}: {ex.Message}");
                     }
                 }
-
                 if (equipmentList.Count > 0)
                 {
                     _dbContext.SaveChanges();

@@ -45,18 +45,18 @@ namespace LGMS.Services
                     worksheet.Cells[i + 2, 4].Value = data[i].Type.Title;
                     worksheet.Cells[i + 2, 5].Value = string.Join(", ", data[i].Assignees.Select(a => a.Name));
                     worksheet.Cells[i + 2, 6].Value = data[i].Status.Title;
-                    worksheet.Cells[i + 2, 7].Value = data[i].BuyingDate.ToString("yyyy-MM-dd");
-                    worksheet.Cells[i + 2, 8].Value = data[i].UnboxingDate.ToString("yyyy-MM-dd");
-                    worksheet.Cells[i + 2, 9].Value = data[i].WarrantyExpiryDate.ToString("yyyy-MM-dd");
-                    worksheet.Cells[i + 2, 10].Value = data[i].Manufacturer.Name;
-                    worksheet.Cells[i + 2, 11].Value = data[i].Vendor.Name;
+                    worksheet.Cells[i + 2, 7].Value = data[i].BuyingDate != null ? data[i].BuyingDate.Value.ToString("yyyy-MM-dd"):"";
+                    worksheet.Cells[i + 2, 8].Value = data[i].UnboxingDate != null ? data[i].UnboxingDate.Value.ToString("yyyy-MM-dd") : "";
+                    worksheet.Cells[i + 2, 9].Value = data[i].WarrantyExpiryDate != null ? data[i].WarrantyExpiryDate.Value.ToString("yyyy-MM-dd") : "";
+                    worksheet.Cells[i + 2, 10].Value = data[i].Manufacturer != null? data[i].Manufacturer.Name : "";
+                    worksheet.Cells[i + 2, 11].Value = data[i].Vendor != null ? data[i].Vendor.Name : "";
                     worksheet.Cells[i + 2, 12].Value = data[i].Description;
-                    worksheet.Cells[i + 2, 12].Style.WrapText = true;
                 }
 
                 using (var dataRange = worksheet.Cells[1, 1, data.Count + 1, 12])
                 {
                     dataRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    dataRange.AutoFitColumns();
                 }
 
                 worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();

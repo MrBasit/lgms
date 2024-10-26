@@ -59,10 +59,10 @@ namespace LGMS.Controllers
 
                 equipments = equipments.Where(e =>
                     e.Type.Title.ToUpper().Contains(searchTerm) ||
-                    e.Number.ToUpper().Contains(searchTerm) ||
-                    e.Manufacturer.Name.ToUpper().Contains(searchTerm) ||
-                    e.Vendor.Name.ToUpper().Contains(searchTerm) ||
-                    e.Assignees.Any(a => a.Name.ToUpper().Contains(searchTerm))
+                    (e.Number != null && e.Number.ToUpper().Contains(searchTerm)) ||
+                    (e.Manufacturer?.Name?.ToUpper().Contains(searchTerm) ?? false) ||
+                    (e.Vendor?.Name?.ToUpper().Contains(searchTerm) ?? false) ||
+                    (e.Assignees?.Any(a => a.Name.ToUpper().Contains(searchTerm)) ?? false)
                 ).ToList();
             }
 
@@ -187,17 +187,17 @@ namespace LGMS.Controllers
                     Type = equipmentDetails.Type.Id == 0
                         ? equipmentDetails.Type
                         : _dbContext.EquipmentTypes.Single(m => m.Id == equipmentDetails.Type.Id),
-                    Manufacturer = equipmentDetails.Manufacturer.Id == 0
+                    Manufacturer = equipmentDetails.Manufacturer != null? equipmentDetails.Manufacturer.Id == 0
                         ? equipmentDetails.Manufacturer
-                        : _dbContext.Manufacturers.Single(m => m.Id == equipmentDetails.Manufacturer.Id),
+                        : _dbContext.Manufacturers.Single(m => m.Id == equipmentDetails.Manufacturer.Id):null,
                     Assignees = assignees,
                     Status = equipmentDetails.Status.Id == 0
                         ? equipmentDetails.Status
                         : _dbContext.EquipmentStatus.Single(s => s.Id == equipmentDetails.Status.Id),
                     Description = equipmentDetails.Description,
-                    Vendor = equipmentDetails.Vendor.Id == 0
+                    Vendor = equipmentDetails.Vendor != null? equipmentDetails.Vendor.Id == 0
                         ? equipmentDetails.Vendor
-                        : _dbContext.Vendors.Single(m => m.Id == equipmentDetails.Vendor.Id),
+                        : _dbContext.Vendors.Single(m => m.Id == equipmentDetails.Vendor.Id):null,
                     WarrantyExpiryDate = equipmentDetails.WarrantyExpiryDate,
                     BuyingDate = equipmentDetails.BuyingDate,
                     UnboxingDate = equipmentDetails.UnboxingDate,
@@ -217,6 +217,8 @@ namespace LGMS.Controllers
         public IActionResult EditEquipment(EquipmentEditModel equipmentDetails)
         {
             var existingEquipment = _dbContext.Equipments
+                .Include(e => e.Manufacturer)
+                .Include(e => e.Vendor)
                 .Include(e => e.ParentEquipment)
                 .ThenInclude(eq => eq.Type)
                 .Include(e => e.Assignees)
@@ -276,16 +278,16 @@ namespace LGMS.Controllers
                 existingEquipment.Type = equipmentDetails.Type.Id == 0
                     ? equipmentDetails.Type
                     : _dbContext.EquipmentTypes.Single(m => m.Id == equipmentDetails.Type.Id);
-                existingEquipment.Manufacturer = equipmentDetails.Manufacturer.Id == 0
-                    ? equipmentDetails.Manufacturer
-                    : _dbContext.Manufacturers.Single(m => m.Id == equipmentDetails.Manufacturer.Id);
+                existingEquipment.Manufacturer = equipmentDetails.Manufacturer != null ? equipmentDetails.Manufacturer.Id == 0
+                        ? equipmentDetails.Manufacturer
+                        : _dbContext.Manufacturers.Single(m => m.Id == equipmentDetails.Manufacturer.Id) : null;
                 existingEquipment.Status = equipmentDetails.Status.Id == 0
                     ? equipmentDetails.Status
                     : _dbContext.EquipmentStatus.Single(s => s.Id == equipmentDetails.Status.Id);
                 existingEquipment.Description = equipmentDetails.Description;
-                existingEquipment.Vendor = equipmentDetails.Vendor.Id == 0
-                    ? equipmentDetails.Vendor
-                    : _dbContext.Vendors.Single(m => m.Id == equipmentDetails.Vendor.Id);
+                existingEquipment.Vendor = equipmentDetails.Vendor != null ? equipmentDetails.Vendor.Id == 0
+                        ? equipmentDetails.Vendor
+                        : _dbContext.Vendors.Single(m => m.Id == equipmentDetails.Vendor.Id) : null;
                 existingEquipment.WarrantyExpiryDate = equipmentDetails.WarrantyExpiryDate;
                 existingEquipment.BuyingDate = equipmentDetails.BuyingDate;
                 existingEquipment.UnboxingDate = equipmentDetails.UnboxingDate;
@@ -329,7 +331,7 @@ namespace LGMS.Controllers
                 .Select(t => new
                 {
                     EquipmentName = t.Title,
-                    EqipmentCount = _dbContext.Equipments.Where(e => e.Status.Title == "Active").Count(e => e.Type.Id == t.Id)
+                    EqipmentCount = _dbContext.Equipments.Where(e => e.Status.Title != "Discard" && e.Status.Title != "Deleted").Count(e => e.Type.Id == t.Id)
                 })
                 .OrderByDescending(t => t.EqipmentCount) 
                 .Select(t => $"{t.EquipmentName} - {t.EqipmentCount}");
@@ -344,7 +346,7 @@ namespace LGMS.Controllers
                 .Select(t => new
                 {
                     AssigneeName = t.Name,
-                    EqipmentCount = t.Equipments.Count(e => e.Status.Title == "Active")
+                    EqipmentCount = t.Equipments.Count(e => e.Status.Title != "Discard" && e.Status.Title != "Deleted")
                 })
                 .OrderByDescending(t => t.EqipmentCount)
                 .Select(t => $"{t.AssigneeName} - {t.EqipmentCount}");
