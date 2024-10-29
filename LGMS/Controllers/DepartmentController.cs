@@ -45,7 +45,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            if (!departments.Any()) return NotFound(new { message = "departments Not Found" });
+            if (!departments.Any()) return NotFound(new { message = "No departments are there" });
 
             if (!string.IsNullOrEmpty(departmentSearchModel.SearchDetails.SearchTerm))
             {

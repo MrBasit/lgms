@@ -40,7 +40,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            if (!employees.Any()) return NotFound(new { message = "Employees Not Found" });
+            if (!employees.Any()) return NotFound(new { message = "No employees are there" });
 
 
             var employeesWithIncludedStatuses = new List<Employee>();

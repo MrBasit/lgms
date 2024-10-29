@@ -42,7 +42,7 @@ namespace LGMS.Controllers
                 return BadRequest(new { message = ex.Message });
             }
 
-            if (!vendors.Any()) return NotFound(new { message = "Vendors Not Found" });
+            if (!vendors.Any()) return NotFound(new { message = "No vendors are there" });
 
             if (!string.IsNullOrEmpty(vendorSearchModel.SearchDetails.SearchTerm))
             {

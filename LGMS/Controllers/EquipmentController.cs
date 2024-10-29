@@ -43,7 +43,7 @@ namespace LGMS.Controllers
                 return BadRequest(ex.Message);
             }
 
-            if (!equipments.Any()) return NotFound(new { message = "Equipments Not Found" });
+            if (!equipments.Any()) return NotFound(new { message = "No equipments are there" });
 
             var equipmentWithSelectedStatuses = new List<Equipment>();
             foreach (var status in equipmentSearchModel.Statuses)

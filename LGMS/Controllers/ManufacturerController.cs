@@ -42,7 +42,7 @@ namespace LGMS.Controllers
                 return BadRequest(new { message = ex.Message });
             }
 
-            if (!manufacturers.Any()) return NotFound(new { message = "Manufacturer Not Found" });
+            if (!manufacturers.Any()) return NotFound(new { message = "No manufacturers are there" });
 
             if (!string.IsNullOrEmpty(manufacturerSearchModel.SearchDetails.SearchTerm))
             {

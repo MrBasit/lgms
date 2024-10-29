@@ -42,7 +42,7 @@ namespace LGMS.Controllers
                 return BadRequest(new { message = ex.Message });
             }
 
-            if (!equipmentTypes.Any()) return NotFound(new { message = "EquipmentType Not Found" });
+            if (!equipmentTypes.Any()) return NotFound(new { message = "No equipment types are there" });
 
             if (!string.IsNullOrEmpty(equipmentTypesSearchModel.SearchDetails.SearchTerm))
             {

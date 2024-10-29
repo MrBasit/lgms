@@ -33,7 +33,7 @@ namespace LGMS.Controllers
                 return BadRequest(ex.Message);
             }
 
-            if (!attendanceIds.Any()) return NotFound(new{message="AttendanceIds Not Found"});
+            if (!attendanceIds.Any()) return NotFound(new{message="No attendance ids are there"});
             if (!string.IsNullOrEmpty(searchModel.SortDetails.SortColumn) &&
                searchModel.SortDetails.SortDirection != Enum.SortDirections.None)
             {

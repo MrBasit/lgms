@@ -45,7 +45,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            if (!designations.Any()) return NotFound(new { message = "Designation Not Found" });
+            if (!designations.Any()) return NotFound(new { message = "No designations are there" });
 
             if (!string.IsNullOrEmpty(designationsSearchModel.SearchDetails.SearchTerm))
             {
