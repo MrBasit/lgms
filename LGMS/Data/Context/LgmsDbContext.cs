@@ -26,6 +26,19 @@ namespace LGMS.Data.Context
         public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
         public DbSet<AttendanceRecordStatus> AttendanceRecordStatuses { get; set; }
         public DbSet<SalarySlip> SalarySlips { get; set; }
+        public DbSet<Client> Clients { get; set; }
+        public DbSet<BankAccount> BankAccounts { get; set; }
+        public DbSet<QuotationPackageInformation> QuotationPackagesInformation { get; set; }
+        public DbSet<Quotation> Quotations { get; set; }
+        public DbSet<ContractStatus> ContractStatuses { get; set; }
+        public DbSet<ContractType> ContractTypes { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<Expiration> Expiration { get; set; }
+        public DbSet<ContractPackageInformation> ContractPackagesInformation { get; set; }
+        public DbSet<Contract> Contracts { get; set; }
+
+
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

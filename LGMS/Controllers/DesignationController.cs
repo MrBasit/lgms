@@ -30,7 +30,7 @@ namespace LGMS.Controllers
         }
 
         [HttpPost("GetDesignationsWithFilters")]
-        public IActionResult GetDesignationsWithFilters(DesignationsSearchModel designationsSearchModel)
+        public IActionResult GetDesignationsWithFilters(BaseSearchModel designationsSearchModel)
         {
             if (designationsSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 

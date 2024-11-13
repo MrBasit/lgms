@@ -122,14 +122,21 @@ namespace LGMS.Services
                         if (!string.IsNullOrEmpty(assigneesNames))
                         {
                             var assigneesList = assigneesNames.Split(',')
-                                .Select(a => a.Trim().ToLower())
-                                .Select(assigneeName => _dbContext.Employees
-                                    .FirstOrDefault(e => e.Name.ToLower() == assigneeName))
-                                .Where(assignee => assignee != null)
-                                .ToList();
+                            .Select(a => a.Trim().ToLower())
+                            .Select(assigneeName =>
+                            {
+                                var assignee = _dbContext.Employees.FirstOrDefault(e => e.Name.ToLower() == assigneeName);
+                                if (assignee == null)
+                                {
+                                    throw new Exception($"Assignee '{assigneeName}' not found in the database.");
+                                }
+                                return assignee;
+                            })
+                            .ToList();
 
                             equipment.Assignees = assigneesList;
                         }
+
 
                         string statusTitle = worksheet.Cells[row, 6].Text.ToLower();
                         var status = _dbContext.EquipmentStatus.FirstOrDefault(s => s.Title.ToLower() == statusTitle);

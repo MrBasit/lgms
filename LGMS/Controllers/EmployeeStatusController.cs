@@ -29,7 +29,7 @@ namespace LGMS.Controllers
         }
 
         [HttpPost("GetEmployeeStatusesWithFilters")]
-        public IActionResult GetEmployeeStatusesWithFilters(EmployeeStatusesSearchModel employeeStatusesSearchModel)
+        public IActionResult GetEmployeeStatusesWithFilters(BaseSearchModel employeeStatusesSearchModel)
         {
             if (employeeStatusesSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 

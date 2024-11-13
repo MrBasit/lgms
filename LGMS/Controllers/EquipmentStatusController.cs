@@ -29,7 +29,7 @@ namespace LGMS.Controllers
         }
 
         [HttpPost("GetEquipmentStatusesWithFilters")]
-        public IActionResult GetEquipmentStatusesWithFilters(EquipmentStatusesSearchModel equipmentStatusesSearchModel)
+        public IActionResult GetEquipmentStatusesWithFilters(BaseSearchModel equipmentStatusesSearchModel)
         {
             if (equipmentStatusesSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
             var equipmentStatuses = new List<EquipmentStatus>();

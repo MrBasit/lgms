@@ -29,7 +29,7 @@ namespace LGMS.Controllers
         }
 
         [HttpPost("GetVendorsWithFilters")]
-        public IActionResult GetVendorsWithFilters(VendorsSearchModel vendorSearchModel)
+        public IActionResult GetVendorsWithFilters(BaseSearchModel vendorSearchModel)
         {
             if (vendorSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
             var vendors = new List<Vendor>();

@@ -124,7 +124,7 @@ namespace LGMS.Controllers
         }
 
         [HttpPost("DownloadAttendanceRecords")]
-        public IActionResult DownloadAttendanceRecords(AttendanceRecordExportSearchModel searchModel)
+        public IActionResult DownloadAttendanceRecords(AttendanceRecordSearchModel searchModel)
         {
             if (searchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 

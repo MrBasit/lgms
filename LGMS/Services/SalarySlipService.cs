@@ -35,9 +35,9 @@ namespace LGMS.Services
             var offs = report.DayOffs <= 2 ? 0 : report.DayOffs - 2;
             int deductions = (salary / 26) * offs;
 
-            if (report.UnderHours > 5)
+            if (report.UnderHours - report.OverHours > 5)
             {
-                var underHoursDeductions = (report.UnderHours - 5) * (salary / (13 * 9));
+                var underHoursDeductions = (report.UnderHours - report.OverHours ) * (salary / (26 * 9));
                 deductions += underHoursDeductions;
             }
             return deductions;

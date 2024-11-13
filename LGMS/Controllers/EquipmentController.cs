@@ -2,6 +2,7 @@
 using LGMS.Data.Model;
 using LGMS.Dto;
 using LGMS.Interface;
+using LGMS.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +15,12 @@ namespace LGMS.Controllers
     {
         private LgmsDbContext _dbContext;
         private PagedData<Equipment> _pagedData;
-
+        private readonly ImageService _imageService;
         public EquipmentController(LgmsDbContext dbContext)
         {
             _dbContext = dbContext;
             _pagedData = new PagedData<Equipment>();
+            _imageService = new ImageService();
         }
 
         [HttpPost("GetEquipmentsWithFilters")]
@@ -324,6 +326,7 @@ namespace LGMS.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        
         [HttpGet("GetEquipmentTypesWithCount")]
         public ActionResult GetEquipmentTypesWithCount()
         {
@@ -338,6 +341,7 @@ namespace LGMS.Controllers
 
             return Ok(equipmentTypesWithCount);
         }
+        
         [HttpGet("GetAssigneesWithEquipmentCount")]
         public ActionResult GetAssigneesWithEquipmentCount()
         {
@@ -353,6 +357,7 @@ namespace LGMS.Controllers
 
             return Ok(equipmentTypesWithCount);
         }
+        
         [HttpGet("GetStatusesWithEquipmentCount")]
         public ActionResult GetStatusesWithEquipmentCount()
         {
@@ -374,6 +379,44 @@ namespace LGMS.Controllers
             return Ok(equipmentTypesWithCount);
         }
 
+        [HttpPost("generate-image")]
+        public IActionResult GenerateImage([FromBody] List<int> equipmentIds) 
+        {
+            var equipments = _dbContext.Equipments
+                .Include(e => e.Type)
+                .Include(e => e.Assignees)
+                    .ThenInclude(a => a.Status)
+                .Include(e => e.Assignees)
+                    .ThenInclude(a => a.Department)
+                .Include(e => e.Assignees)
+                    .ThenInclude(a => a.Designation)
+                .Where(e => equipmentIds.Contains(e.Id))
+                .ToList();
+
+            var data = equipments.Select(equipment => (
+                Code: $"{equipment.Number}\n{equipment.Type.Title}",
+                Description: GetFormattedAssignees(equipment.Assignees)
+            )).ToList();
+
+            var imageBytes = _imageService.GenerateImage(data);
+            return File(imageBytes, "image/png", "generated-image.png");
+        }
+
+        private string GetFormattedAssignees(IEnumerable<Employee> assignees)
+        {
+            if (assignees == null || !assignees.Any())
+                return "-";
+
+            var assigneeNames = assignees.Select(a => a.Name).Take(3).ToList();
+            var formattedDescription = string.Join(Environment.NewLine, assigneeNames.Take(2)); 
+
+            if (assigneeNames.Count > 2)
+            {
+                formattedDescription += " .....";
+            }
+
+            return formattedDescription;
+        }
 
     }
 }

@@ -113,7 +113,7 @@ namespace LGMS.Controllers
         [HttpGet("GetEmployees")]
         public IActionResult GetEmployees()
         {
-            var employees = _dbContext.Employees.Include(e => e.AttendanceId).Where(e => e.AttendanceId != null && e.Status.Title == "Active").ToList();
+            var employees = _dbContext.Employees.Include(e => e.AttendanceId).Where(e => e.AttendanceId != null && e.Status.Title == "Active").OrderBy(e => e.Name).ToList();
             return Ok(employees);
         }
         

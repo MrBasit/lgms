@@ -2,9 +2,9 @@
 
 namespace LGMS.Dto
 {
-    public class DesignationsSearchModel
+    public class BaseSearchModel
     {
-        public DesignationsSearchModel()
+        public BaseSearchModel()
         {
             SortDetails = new SortRequestModel();
             PaginationDetails = new PagedDataRequestModel();

@@ -20,7 +20,7 @@ namespace LGMS.Controllers
             _pagedData = new PagedData<AttendanceId>();
         }
         [HttpPost("GetAttendanceIdsWithFilters")]
-        public IActionResult GetAttendanceIdsWithFilters(AttendanceIdsSearchModel searchModel)
+        public IActionResult GetAttendanceIdsWithFilters(BaseSearchModel searchModel)
         {
             if (searchModel == null) return BadRequest(new{message = "Invalid search criteria" });
             var attendanceIds = new List<AttendanceId>();
