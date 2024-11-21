@@ -14,5 +14,6 @@
         public ContractType Type { get; set; }
         public List<Payment>? Payments { get; set; }
         public List<Expiration>? Expirations { get; set; }
+        public List<DomainDetails>?  DomainDetails{ get; set; }
     }
 }

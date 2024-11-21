@@ -42,7 +42,10 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
             if (!employeeStatuses.Any()) return NotFound(new { message = "Employee status Not Found" });
 
@@ -122,8 +125,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new
                 {
-                    message = ex.Message,
-                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }
@@ -151,8 +153,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new
                 {
-                    message = ex.Message,
-                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }

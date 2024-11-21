@@ -6,6 +6,6 @@ namespace LGMS.Dto
     {
         public List<string> MachineNames { get; set; }
         public int Year { get; set; }
-        public int Month { get; set; }
+        public List<int> Months { get; set; }
     }
 }

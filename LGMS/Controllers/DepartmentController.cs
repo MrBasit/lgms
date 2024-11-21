@@ -43,7 +43,10 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
             if (!departments.Any()) return NotFound(new { message = "No departments are there" });
 
@@ -123,8 +126,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new
                 {
-                    message = ex.Message,
-                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }
@@ -153,8 +155,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new
                 {
-                    message = ex.Message,
-                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }

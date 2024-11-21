@@ -33,7 +33,10 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
             if (!clients.Any()) return NotFound(new { message = "No clients are there" });
 
@@ -42,6 +45,7 @@ namespace LGMS.Controllers
             {
                 clients = clients.Where(e =>
                     e.Name.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper()) ||
+                    e.Number.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper()) ||
                     e.Phone.Contains(searchModel.SearchDetails.SearchTerm)
                 ).ToList();
             }
@@ -51,6 +55,11 @@ namespace LGMS.Controllers
             {
                 switch (searchModel.SortDetails.SortColumn)
                 {
+                    case "number":
+                        clients = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
+                                    clients.OrderBy(e => e.Number).ToList() :
+                                    clients.OrderByDescending(e => e.Number).ToList();
+                        break;
                     case "name":
                         clients = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
                                     clients.OrderBy(e => e.Name).ToList() :
@@ -63,14 +72,14 @@ namespace LGMS.Controllers
                         break;
                     default:
                         clients = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
-                                    clients.OrderBy(e => e.Name).ToList() :
-                                    clients.OrderByDescending(e => e.Name).ToList();
+                                    clients.OrderBy(e => e.Number).ToList() :
+                                    clients.OrderByDescending(e => e.Number).ToList();
                         break;
                 }
             }
             else
             {
-                clients = clients.OrderBy(e => e.Name).ToList();
+                clients = clients.OrderBy(e => e.Number).ToList();
             }
 
             var pagedClientsResult = _pagedData.GetPagedData(
@@ -100,10 +109,6 @@ namespace LGMS.Controllers
         [HttpPost("AddClient")]
         public IActionResult AddClient(ClientsAddModel details)
         {
-            if (_dbContext.Clients.Any(e => e.Name.ToUpper() == details.Name.ToUpper()))
-            {
-                return BadRequest(new { message = "Client with this Name already exists." });
-            }
             if (_dbContext.Clients.Any(e => e.Phone == details.Phone))
             {
                 return BadRequest(new { message = "Client with this Phone number already exists." });
@@ -114,8 +119,10 @@ namespace LGMS.Controllers
             }
             try
             {
+                string clientNumber = GenerateClientNumber();
                 Client client = new Client()
                 {
+                    Number = clientNumber,
                     Name = details.Name,
                     Phone = details.Phone,
                     Email = details.Email,
@@ -131,8 +138,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new
                 {
-                    message = ex.Message,
-                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }
@@ -146,11 +152,6 @@ namespace LGMS.Controllers
             if (existingClient == null)
             {
                 return NotFound(new { message = "Client not found" });
-            }
-
-            if (_dbContext.Clients.Any(e => e.Name.ToUpper() == details.Name.ToUpper() && e.Id != details.Id))
-            {
-                return BadRequest(new { message = "Another client with this name already exists" });
             }
             if (details.Email != null && _dbContext.Clients.Any(e => e.Email.ToUpper() == details.Email.ToUpper() && e.Id != details.Id))
             {
@@ -177,11 +178,28 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new
                 {
-                    message = ex.Message,
-                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }
+
+        private string GenerateClientNumber()
+        {
+            var lastClient = _dbContext.Clients
+                .OrderByDescending(c => c.Number)
+                .FirstOrDefault();
+
+            if (lastClient == null)
+            {
+                return "CLN0001";
+            }
+
+            var lastClientNumber = lastClient.Number;
+            var numberPart = lastClientNumber.Substring(3);
+            var nextNumber = (int.Parse(numberPart) + 1).ToString();
+            return "CLN" + nextNumber.PadLeft(numberPart.Length, '0');
+        }
+
 
 
     }

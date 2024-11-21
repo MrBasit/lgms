@@ -33,9 +33,11 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
-            if (!quotations.Any()) return NotFound(new { message = "No quotations are there" });
 
 
             if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))
@@ -62,14 +64,14 @@ namespace LGMS.Controllers
                         break;
                     default:
                         quotations = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
-                                    quotations.OrderBy(e => e.Number).ToList() :
-                                    quotations.OrderByDescending(e => e.Number).ToList();
+                                    quotations.OrderBy(e => e.Date).ToList() :
+                                    quotations.OrderByDescending(e => e.Date).ToList();
                         break;
                 }
             }
             else
             {
-                quotations = quotations.OrderBy(e => e.Number).ToList();
+                quotations = quotations.OrderByDescending(e => e.Date).ToList();
             }
 
             var pagedQuotationsResult = _pagedData.GetPagedData(
@@ -96,10 +98,10 @@ namespace LGMS.Controllers
                 foreach (var package in details.PackageInformation)
                 {
                     if (_dbContext.Quotations
-                        .Any(q => q.Client.Id == details.ClientId &&
-                                  q.QuotationPackageInformations.Any(p => p.Title.ToUpper() == package.Title.ToUpper())))
+                            .Any(q => q.QuotationPackageInformations
+                            .Any(p => p.Title.ToUpper() == package.Title.ToUpper())))
                     {
-                        return BadRequest(new { message = $"A Package with the title '{package.Title}' already exists for this Client." });
+                        return BadRequest(new { message = $"A Package with the title '{package.Title}' already exists for this Quotation." });
                     }
                 }
             }
@@ -132,7 +134,7 @@ namespace LGMS.Controllers
                             Quantity = package.Quantity,
                             Discount = package.Discount,
                             Total = package.Total,
-                            Description = package.Description
+                            Description = package.Description != null? package.Description : null
                         });
                     }
                 }
@@ -146,8 +148,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new
                 {
-                    message = ex.Message,
-                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }
@@ -170,10 +171,9 @@ namespace LGMS.Controllers
                 foreach (var package in details.PackageInformation)
                 {
                     if (_dbContext.Quotations
-                        .Any(q => q.Client.Id == details.ClientId && q.Id != details.Id &&
-                                  q.QuotationPackageInformations.Any(p => p.Title.ToUpper() == package.Title.ToUpper() && p.Id != package.Id)))
+                        .Any(q => q.Id != details.Id && q.QuotationPackageInformations.Any(p => p.Title.ToUpper() == package.Title.ToUpper())))
                     {
-                        return BadRequest(new { message = $"A Package with the title '{package.Title}' already exists for this Client." });
+                        return BadRequest(new { message = $"A Package with the title '{package.Title}' already exists for this Quotation." });
                     }
                 }
             }
@@ -201,7 +201,7 @@ namespace LGMS.Controllers
                             Quantity = package.Quantity,
                             Discount = package.Discount,
                             Total = package.Total,
-                            Description = package.Description
+                            Description = package.Description != null ? package.Description : null
                         });
                     }
                 }
@@ -214,8 +214,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new
                 {
-                    message = ex.Message,
-                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }
@@ -234,8 +233,9 @@ namespace LGMS.Controllers
 
             var lastQuotationNumber = lastQuotation.Number;
             var numberPart = lastQuotationNumber.Substring(2);
-            var nextNumber = (int.Parse(numberPart) + 1).ToString("D2");
-            return "QN" + nextNumber;
+            var nextNumber = (int.Parse(numberPart) + 1).ToString();
+            return "QN" + nextNumber.PadLeft(numberPart.Length, '0');
         }
+
     }
 }

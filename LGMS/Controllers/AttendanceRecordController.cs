@@ -39,7 +39,10 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
 
             if (searchModel.Year > 0)
@@ -111,15 +114,16 @@ namespace LGMS.Controllers
                             attendanceRecords.OrderByDescending(e => e.UnderHours).ToList();
                         break;
                     default:
-                        attendanceRecords = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
-                            attendanceRecords.OrderBy(e => e.AttendanceId.MachineName).ToList() :
-                            attendanceRecords.OrderByDescending(e => e.AttendanceId.MachineName).ToList();
+                        attendanceRecords = attendanceRecords
+                            .OrderBy(e => e.AttendanceId.MachineName) 
+                            .ThenBy(e => e.Date)                  
+                            .ToList();
                         break;
                 }
             }
             else
             {
-                attendanceRecords = attendanceRecords.OrderBy(e => e.AttendanceId.MachineName).ToList();
+                attendanceRecords = attendanceRecords.OrderBy(e => e.AttendanceId.MachineName).ThenBy(e => e.Date).ToList();
             }
 
             var pagedAttendanceRecordResult = _pagedData.GetPagedData(
@@ -210,30 +214,45 @@ namespace LGMS.Controllers
         [HttpGet("GetDaysOffWithEmployees")]
         public ActionResult GetDaysOffWithEmployees()
         {
-            var currentDate = DateTime.Now;
-            var startOfYear = new DateTime(currentDate.Year, 1, 1);
-
-            var employeesWithDayOffs = _dbContext.AttendanceRecords
-                .Where(a => a.Date >= startOfYear && a.Date <= currentDate)
-                .GroupBy(a => a.AttendanceId)
-                .Select(group => new
-                {
-                    AttendanceId = group.Key,
-                    TotalDaysOff = group.Count(a => a.Status.Title == "Day Off")
-                })
-                .OrderByDescending(e => e.TotalDaysOff)
-                .ToList();
-
-            var result = employeesWithDayOffs.Select(e =>
+            try
             {
-                var employee = _dbContext.Employees
-                                 .FirstOrDefault(emp => emp.AttendanceId == e.AttendanceId);
-                var dayLabel = e.TotalDaysOff == 1 ? "day" : "days";
-                return $"{employee.Name} - {e.TotalDaysOff} {dayLabel}";
-            }).ToList();
+                var currentDate = DateTime.Now;
+                var startOfYear = new DateTime(currentDate.Year, 1, 1);
 
-            return Ok(result);
+                var employeesWithAttendance = _dbContext.Employees
+                    .Where(emp => emp.Status.Title == "Active" && emp.AttendanceId != null)
+                    .GroupJoin(
+                        _dbContext.AttendanceRecords
+                            .Where(a => a.Date >= startOfYear && a.Date <= currentDate),
+                        emp => emp.AttendanceId,
+                        att => att.AttendanceId,
+                        (employee, attendanceGroup) => new
+                        {
+                            Employee = employee,
+                            TotalDaysOff = attendanceGroup.Count(a => a.Status != null && a.Status.Title == "Day Off")
+                        }
+                    )
+                    .OrderByDescending(e => e.TotalDaysOff)
+                    .ToList();
+
+                var result = employeesWithAttendance.Select(e =>
+                {
+                    var dayLabel = e.TotalDaysOff == 1 ? "day" : "days";
+                    return $"{e.Employee.Name} - {e.TotalDaysOff} {dayLabel}";
+                }).ToList();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
+            }
         }
+
+
 
 
     }

@@ -4,6 +4,7 @@ using LGMS.Dto;
 using LGMS.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LGMS.Controllers
 {
@@ -30,19 +31,27 @@ namespace LGMS.Controllers
 
             try
             {
-                payments = _dbContext.Payments
+                payments = _dbContext.Payments.Include(p => p.BankAccount).Include(p => p.Contract).ThenInclude(c => c.Client)
                                       .ToList();
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
             if (!payments.Any()) return NotFound(new { message = "Payments Not Found" });
 
             if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))
             {
                 payments = payments.Where(e =>
-                    e.Title.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper())
+                    e.Title.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper()) ||
+                    e.BankAccount.AccountTitle.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper()) ||
+                    e.BankAccount.BankName.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper()) ||
+                    e.Contract.Client.Name.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper()) ||
+                    e.Contract.Client.Number.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper()) ||
+                    e.Contract.Number.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper())
                 ).ToList();
             }
             if (!string.IsNullOrEmpty(searchModel.SortDetails.SortColumn) &&
@@ -67,8 +76,13 @@ namespace LGMS.Controllers
                         break;
                     case "bankAccount":
                         payments = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
-                            payments.OrderBy(e => e.BankAccount).ToList() :
-                            payments.OrderByDescending(e => e.BankAccount).ToList();
+                            payments.OrderBy(e => e.BankAccount.AccountTitle).ToList() :
+                            payments.OrderByDescending(e => e.BankAccount.AccountTitle).ToList();
+                        break;
+                    case "contract":
+                        payments = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
+                            payments.OrderBy(e => e.Contract.Number).ToList() :
+                            payments.OrderByDescending(e => e.Contract.Number).ToList();
                         break;
                     default:
                         payments = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?

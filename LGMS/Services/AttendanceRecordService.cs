@@ -30,7 +30,7 @@ namespace LGMS.Services
             }
 
             if (requiredWork == "00:00:00")
-                return _statuses["Weekend"];
+                return _statuses["Holiday"];
 
             if (date.DayOfWeek == DayOfWeek.Sunday && actualWork == "00:00:00")
                 return _statuses["Weekend"];
@@ -71,10 +71,10 @@ namespace LGMS.Services
             var actualTotalMinutes = (int)actualTime.TotalMinutes;
             var totalMinutes = requiredTotalMinutes - actualTotalMinutes;
 
-            if (totalMinutes > 30)
+            if (totalMinutes > 45)
             {
                 int underTimeHours = (int)Math.Floor((double)totalMinutes / 60);
-                underTimeHours += (totalMinutes % 60 > 30 ? 1 : 0);
+                underTimeHours += (totalMinutes % 60 > 45 ? 1 : 0);
                 return underTimeHours;
             }
             return 0;

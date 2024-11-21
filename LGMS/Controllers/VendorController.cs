@@ -39,7 +39,10 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
 
             if (!vendors.Any()) return NotFound(new { message = "No vendors are there" });
@@ -117,8 +120,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new
                 {
-                    message = ex.Message,
-                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }
@@ -146,8 +148,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new
                 {
-                    message = ex.Message,
-                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }

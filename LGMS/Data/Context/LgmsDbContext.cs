@@ -36,6 +36,7 @@ namespace LGMS.Data.Context
         public DbSet<Expiration> Expiration { get; set; }
         public DbSet<ContractPackageInformation> ContractPackagesInformation { get; set; }
         public DbSet<Contract> Contracts { get; set; }
+        public DbSet<DomainDetails> DomainDetails { get; set; }
 
 
 

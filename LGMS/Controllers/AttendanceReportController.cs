@@ -47,14 +47,13 @@ namespace LGMS.Controllers
                     return BadRequest(new { message = "Year is required." });
                 }
 
-                if (searchModel.Month > 0)
+                if (searchModel.Months == null || !searchModel.Months.Any())
                 {
-                    query = query.Where(ar => ar.Date.Month == searchModel.Month);
+                    return BadRequest(new { message = "At least one month is required." });
                 }
-                else
-                {
-                    return BadRequest(new { message = "Month is required." });
-                }
+
+                query = query.Where(ar => ar.Date.Year == searchModel.Year
+                          && searchModel.Months.Contains(ar.Date.Month));
 
                 if (searchModel.MachineNames?.Any() == true)
                 {
@@ -144,7 +143,10 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
         }
 

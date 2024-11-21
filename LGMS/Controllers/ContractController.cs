@@ -38,6 +38,7 @@ namespace LGMS.Controllers
                                     .Include(c => c.Payments)
                                     .Include(c => c.Expirations)
                                     .Include(c => c.Client)
+                                    .Include(c => c.DomainDetails)
                                     .Where(q => q.Client.Id == searchModel.ClientId).ToList();
                 }
                 else
@@ -49,12 +50,16 @@ namespace LGMS.Controllers
                                     .Include(c => c.Payments)
                                     .Include(c => c.Expirations)
                                     .Include(c => c.Client)
+                                    .Include(c => c.DomainDetails)
                                     .ToList();
                 }
             } 
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
             if (!contracts.Any()) return NotFound(new { message = "No contracts are there" });
 
@@ -64,6 +69,7 @@ namespace LGMS.Controllers
                 contracts = contracts.Where(e =>
                     e.Number.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper()) ||
                     e.Client.Name.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper()) ||
+                    e.Client.Number.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper()) ||
                     e.Type.Title.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper()) ||
                     e.Status.Title.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper())
                 ).ToList();
@@ -83,11 +89,6 @@ namespace LGMS.Controllers
                         contracts = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
                                     contracts.OrderBy(e => e.StartDate).ToList() :
                                     contracts.OrderByDescending(e => e.StartDate).ToList();
-                        break;
-                    case "client":
-                        contracts = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
-                                    contracts.OrderBy(e => e.Client.Name).ToList() :
-                                    contracts.OrderByDescending(e => e.Client.Name).ToList();
                         break;
                     case "type":
                         contracts = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
@@ -131,6 +132,7 @@ namespace LGMS.Controllers
                     .Include(c => c.Payments).ThenInclude(p => p.BankAccount)
                     .Include(c => c.ContractPackageInformations)
                     .Include(c => c.Type)
+                    .Include(c => c.DomainDetails)
                     .Include(c => c.Status)
                     .Include(c => c.Expirations)
                     .Include(c => c.Client)
@@ -143,6 +145,16 @@ namespace LGMS.Controllers
         [HttpPost("AddContract")]
         public IActionResult AddContract(ContractAddModel details)
         {
+            var duplicatePackageTitles = details.ContractPackageInformations
+                                        .GroupBy(p => p.Title.ToUpper().Trim())
+                                        .Where(g => g.Count() > 1)
+                                        .Select(g => g.Key)
+                                        .ToList();
+
+            if (duplicatePackageTitles.Any())
+            {
+                return BadRequest(new { message = $"Duplicate package titles within the same contract: {string.Join(", ", duplicatePackageTitles)}" });
+            }
             var client = new Client();
             if (details.Client.Id == 0)
             {
@@ -198,7 +210,7 @@ namespace LGMS.Controllers
                             Quantity = package.Quantity,
                             Discount = package.Discount,
                             Total = package.Total,
-                            Description = package.Description
+                            Description = package.Description != null ? package.Description : null
                         });
                     }
                 }
@@ -242,8 +254,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new
                 {
-                    message = ex.Message,
-                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }
@@ -264,6 +275,18 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new { message = "Contract not found." });
             }
+
+            var duplicatePackageTitles = details.ContractPackageInformations
+                                        .GroupBy(p => p.Title.ToUpper().Trim())
+                                        .Where(g => g.Count() > 1)
+                                        .Select(g => g.Key)
+                                        .ToList();
+
+            if (duplicatePackageTitles.Any())
+            {
+                return BadRequest(new { message = $"Duplicate package titles within the same contract: {string.Join(", ", duplicatePackageTitles)}" });
+            }
+
             var client = new Client();
             if (details.Client.Id == 0)
             {
@@ -317,7 +340,7 @@ namespace LGMS.Controllers
                             Quantity = package.Quantity,
                             Discount = package.Discount,
                             Total = package.Total,
-                            Description = package.Description
+                            Description = package.Description != null ? package.Description : null
                         });
                     }
                 }
@@ -371,8 +394,7 @@ namespace LGMS.Controllers
             {
                 return BadRequest(new
                 {
-                    message = ex.Message,
-                    innerMessage = ex.InnerException != null ? ex.InnerException.Message : ""
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }
@@ -390,8 +412,8 @@ namespace LGMS.Controllers
 
             var lastContractNumber = lastContract.Number;
             var numberPart = lastContractNumber.Substring(2);
-            var nextNumber = (int.Parse(numberPart) + 1).ToString("D3");
-            return "CN" + nextNumber;
+            var nextNumber = (int.Parse(numberPart) + 1).ToString();
+            return "CN" + nextNumber.PadLeft(numberPart.Length, '0');
         }
 
     }

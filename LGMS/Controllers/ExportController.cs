@@ -39,7 +39,10 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
 
             if (!equipments.Any()) return NotFound(new { message = "Equipments Not Found" });
@@ -118,7 +121,10 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
             
         }
@@ -139,7 +145,10 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
 
             if (searchModel.Year > 0)
@@ -206,15 +215,16 @@ namespace LGMS.Controllers
                             attendanceRecords.OrderByDescending(e => e.UnderHours).ToList();
                         break;
                     default:
-                        attendanceRecords = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
-                            attendanceRecords.OrderBy(e => e.AttendanceId.MachineName).ToList() :
-                            attendanceRecords.OrderByDescending(e => e.AttendanceId.MachineName).ToList();
+                        attendanceRecords = attendanceRecords
+                            .OrderBy(e => e.AttendanceId.MachineName)
+                            .ThenBy(e => e.Date)
+                            .ToList();
                         break;
                 }
             }
             else
             {
-                attendanceRecords = attendanceRecords.OrderBy(e => e.AttendanceId.MachineName).ToList();
+                attendanceRecords = attendanceRecords.OrderBy(e => e.AttendanceId.MachineName).ThenBy(e => e.Date).ToList();
             }
 
             var excelFile = _DownloadService.GenerateAttendanceRecordExcelFile(attendanceRecords);
