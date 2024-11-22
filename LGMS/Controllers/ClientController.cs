@@ -191,16 +191,14 @@ namespace LGMS.Controllers
 
             if (lastClient == null)
             {
-                return "CLN0001";
+                return "CLN001";
             }
 
             var lastClientNumber = lastClient.Number;
             var numberPart = lastClientNumber.Substring(3);
             var nextNumber = (int.Parse(numberPart) + 1).ToString();
-            return "CLN" + nextNumber.PadLeft(numberPart.Length, '0');
+            return "CLN" + nextNumber.PadLeft(Math.Max(numberPart.Length, nextNumber.Length), '0');
         }
-
-
 
     }
 }

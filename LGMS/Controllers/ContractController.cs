@@ -158,9 +158,11 @@ namespace LGMS.Controllers
             var client = new Client();
             if (details.Client.Id == 0)
             {
+                string number = GenerateClientNumber();
                 client = new Client()
                 {
                     Name = details.Client.Name,
+                    Number = number,
                     Phone = details.Client.Phone,
                     Email = details.Client.Email != null? details.Client.Email :null,
                     Location = details.Client.Location != null ? details.Client.Location : null,
@@ -290,9 +292,11 @@ namespace LGMS.Controllers
             var client = new Client();
             if (details.Client.Id == 0)
             {
+                string number = GenerateClientNumber();
                 client = new Client()
                 {
                     Name = details.Client.Name,
+                    Number = number,
                     Phone = details.Client.Phone,
                     Email = details.Client.Email != null ? details.Client.Email : null,
                     Location = details.Client.Location != null ? details.Client.Location : null,
@@ -413,7 +417,24 @@ namespace LGMS.Controllers
             var lastContractNumber = lastContract.Number;
             var numberPart = lastContractNumber.Substring(2);
             var nextNumber = (int.Parse(numberPart) + 1).ToString();
-            return "CN" + nextNumber.PadLeft(numberPart.Length, '0');
+            return "CN" + nextNumber.PadLeft(Math.Max(numberPart.Length, nextNumber.Length), '0');
+        }
+
+        private string GenerateClientNumber()
+        {
+            var lastClient = _dbContext.Clients
+                .OrderByDescending(c => c.Number)
+                .FirstOrDefault();
+
+            if (lastClient == null)
+            {
+                return "CLN001";
+            }
+
+            var lastClientNumber = lastClient.Number;
+            var numberPart = lastClientNumber.Substring(3);
+            var nextNumber = (int.Parse(numberPart) + 1).ToString();
+            return "CLN" + nextNumber.PadLeft(Math.Max(numberPart.Length, nextNumber.Length), '0');
         }
 
     }

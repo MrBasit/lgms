@@ -6,6 +6,7 @@ using LGMS.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 
 namespace LGMS.Controllers
 {
@@ -144,18 +145,39 @@ namespace LGMS.Controllers
         [HttpGet("GetEquipmentById")]
         public IActionResult GetEquipmentById(int equipmentId)
         {
-            var equipment = _dbContext.Equipments
-                .Include(e => e.Type)
-                .Include(e => e.Assignees)
-                .Include(e => e.Status)
-                .Include(e => e.Manufacturer)
-                .Include(e => e.Vendor)
-                .Include(e => e.ParentEquipment)
-                .ThenInclude(eq => eq.Type)
-                .SingleOrDefault(e => e.Id == equipmentId);
-            if (equipment == null) return BadRequest(new { message = string.Format("Equipment with id {0} doesn't exist", equipmentId) });
-            return Ok(equipment);
+            try
+            {
+                var equipment = _dbContext.Equipments
+                    .Include(e => e.Type)
+                    .Include(e => e.Assignees)
+                    .Include(e => e.Status)
+                    .Include(e => e.Manufacturer)
+                    .Include(e => e.Vendor)
+                    .Include(e => e.ParentEquipment)
+                        .ThenInclude(eq => eq.Type)
+                    .SingleOrDefault(e => e.Id == equipmentId);
+
+                if (equipment == null)
+                    return NotFound(new { message = $"Equipment with ID {equipmentId} does not exist." });
+
+                var childEquipments = _dbContext.Equipments
+                    .Where(e => e.ParentEquipment != null && e.ParentEquipment.Id == equipmentId).Include(e => e.Type)
+                    .ToList();
+
+                var result = new
+                {
+                    Equipment = equipment,
+                    ChildEquipments = childEquipments
+                };
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "") });
+            }
         }
+
 
         [HttpPost("AddEquipment")]
         public IActionResult AddEquipment(EquipmentAddModel equipmentDetails)
@@ -184,11 +206,20 @@ namespace LGMS.Controllers
             var parentEquipment =
                 _dbContext.Equipments.SingleOrDefault(e => e.Number == parentEquipmentNumber);
 
+            string number;
+            if (string.IsNullOrEmpty(equipmentDetails.Number) || equipmentDetails.Number == null || (equipmentDetails.Number.StartsWith("EQ") && equipmentDetails.Number.Substring(2).All(char.IsDigit)))
+            {
+                number = GenerateEquipmentNumber();
+            }else
+            {
+                number = equipmentDetails.Number;
+            }
+
             try
             {
                 Equipment equipment = new Equipment()
                 {
-                    Number = equipmentDetails.Number,
+                    Number = number,
                     Type = equipmentDetails.Type.Id == 0
                         ? equipmentDetails.Type
                         : _dbContext.EquipmentTypes.Single(m => m.Id == equipmentDetails.Type.Id),
@@ -237,11 +268,6 @@ namespace LGMS.Controllers
                 return NotFound(new { message = "Equipment not found" });
             }
 
-            if (_dbContext.Equipments.Any(e => e.Number == equipmentDetails.Number && e.Id != equipmentDetails.Id))
-            {
-                return BadRequest(new { message = "Another equipment with this number already exists" });
-            }
-
             var newAssigneeIds = new HashSet<int>(equipmentDetails.Assignees.Select(a => a.Id));
             var existingAssigneeIds = new HashSet<int>(existingEquipment.Assignees.Select(a => a.Id));
 
@@ -282,7 +308,6 @@ namespace LGMS.Controllers
 
             try
             {
-                existingEquipment.Number = equipmentDetails.Number;
                 existingEquipment.Type = equipmentDetails.Type.Id == 0
                     ? equipmentDetails.Type
                     : _dbContext.EquipmentTypes.Single(m => m.Id == equipmentDetails.Type.Id);
@@ -428,6 +453,27 @@ namespace LGMS.Controllers
             }
 
             return formattedDescription;
+        }
+
+        private string GenerateEquipmentNumber()
+        {
+            var lastEquipment = _dbContext.Equipments
+                .Where(c => c.Number.StartsWith("EQ"))
+                .OrderByDescending(c => c.Number)
+                .ToList()
+                .FirstOrDefault(c => c.Number.Substring(2).All(char.IsDigit));
+
+
+            if (lastEquipment == null)
+            {
+                return "EQ0001";
+            }
+            
+
+            var lastEquipmentNumber = lastEquipment.Number;
+            var numberPart = lastEquipmentNumber.Substring(2);
+            var nextNumber = (int.Parse(numberPart) + 1).ToString();
+            return "EQ" + nextNumber.PadLeft(Math.Max(numberPart.Length, nextNumber.Length), '0');
         }
 
     }

@@ -134,6 +134,7 @@ namespace LGMS.Controllers
             return Ok(pagedAttendanceRecordResult);
 
         }
+
         [HttpGet("GetAttendanceYearsRange")]
         public ActionResult GetAttendanceYearsRange()
         {
@@ -156,6 +157,14 @@ namespace LGMS.Controllers
 
             return Ok(yearsRange);
         }
+
+        [HttpGet("Test")]
+        public IActionResult GetRecords()
+        {
+            var records = _dbContext.AttendanceRecords.OrderByDescending(a => a.Date).ToList();
+            return Ok(records);
+        }
+
         [HttpGet("GetUnderHoursWithEmployees")]
         public ActionResult GetUnderHoursWithEmployees()
         {

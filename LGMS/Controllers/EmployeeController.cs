@@ -194,13 +194,7 @@ namespace LGMS.Controllers
 
             try
             {
-                var lastEmployeeNumber = _dbContext.Employees
-                    .OrderByDescending(e => e.EmployeeNumber)
-                    .FirstOrDefault()?.EmployeeNumber;
-                int newEmployeeNumber = lastEmployeeNumber != null && lastEmployeeNumber.StartsWith("LGEM")
-                    ? int.Parse(lastEmployeeNumber.Substring(4)) + 1
-                    : 1;
-                string employeeNumber = $"LGEM{newEmployeeNumber:D4}";
+                string employeeNumber = GenerateEmployeeNumber();
 
                 var department = employeeDetails.Department.Id == 0
                     ? employeeDetails.Department
@@ -426,6 +420,24 @@ namespace LGMS.Controllers
                 .Select(d => $"{d.DepartmentName} - {d.EmployeeCount}"); 
 
             return Ok(departmentsWithCount);
+        }
+
+
+        private string GenerateEmployeeNumber()
+        {
+            var lastEmployee = _dbContext.Employees
+                .OrderByDescending(c => c.EmployeeNumber)
+                .FirstOrDefault();
+
+            if (lastEmployee == null)
+            {
+                return "LGEM0001";
+            }
+
+            var lastEmployeeNumber = lastEmployee.EmployeeNumber;
+            var numberPart = lastEmployeeNumber.Substring(4);
+            var nextNumber = (int.Parse(numberPart) + 1).ToString();
+            return "LGEM" + nextNumber.PadLeft(Math.Max(numberPart.Length, nextNumber.Length), '0');
         }
 
     }

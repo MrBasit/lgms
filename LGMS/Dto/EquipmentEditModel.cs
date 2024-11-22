@@ -5,7 +5,6 @@ namespace LGMS.Dto
     public class EquipmentEditModel
     {
         public int Id { get; set; }
-        public string? Number { get; set; }
         public EquipmentType Type { get; set; }
         public Manufacturer? Manufacturer { get; set; }
         public List<EquipmentAssigneeModel>? Assignees { get; set; }

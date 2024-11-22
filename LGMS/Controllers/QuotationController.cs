@@ -234,7 +234,7 @@ namespace LGMS.Controllers
             var lastQuotationNumber = lastQuotation.Number;
             var numberPart = lastQuotationNumber.Substring(2);
             var nextNumber = (int.Parse(numberPart) + 1).ToString();
-            return "QN" + nextNumber.PadLeft(numberPart.Length, '0');
+            return "QN" + nextNumber.PadLeft(Math.Max(numberPart.Length, nextNumber.Length), '0');
         }
 
     }
