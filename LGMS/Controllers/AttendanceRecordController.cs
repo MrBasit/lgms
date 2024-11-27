@@ -135,6 +135,51 @@ namespace LGMS.Controllers
 
         }
 
+        [HttpGet("GetAttendanceRecordById")]
+        public IActionResult GetAttendanceRecordById(int id)
+        {
+            var record = _dbContext.AttendanceRecords
+                .Include(a => a.AttendanceId)
+                .Include(a => a.Status)
+                .SingleOrDefault(a => a.Id == id);
+            if (record == null) return BadRequest(new { message = string.Format("Attendance Record with id {0} doesn't exist", id) });
+            return Ok(record);
+        }
+
+        [HttpPost("EditAttendanceRecordStatus")]
+        public IActionResult EditAttendanceRecordStatus(EditAttendanceRecord record)
+        {
+            var exisitingRecord = _dbContext.AttendanceRecords
+                .Include(a => a.Status)
+                .Include(a => a.AttendanceId)
+                .SingleOrDefault(a => a.Id == record.Id);
+
+            var status = _dbContext.AttendanceRecordStatuses.SingleOrDefault(s => s.Id == record.Status.Id);
+
+            if (status == null)
+            {
+                return NotFound("Status not Found");
+            }
+
+            if (exisitingRecord == null)
+            {
+                return NotFound("Attendance Record not Found");
+            }
+            try
+            {
+                exisitingRecord.Status = status;
+                _dbContext.SaveChanges();
+                return Ok(exisitingRecord);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
+            }
+        }
+
         [HttpGet("GetAttendanceYearsRange")]
         public ActionResult GetAttendanceYearsRange()
         {
@@ -156,13 +201,6 @@ namespace LGMS.Controllers
             var yearsRange = Enumerable.Range(firstAscendingYear, firstDescendingYear - firstAscendingYear + 1).ToArray();
 
             return Ok(yearsRange);
-        }
-
-        [HttpGet("Test")]
-        public IActionResult GetRecords()
-        {
-            var records = _dbContext.AttendanceRecords.OrderByDescending(a => a.Date).ToList();
-            return Ok(records);
         }
 
         [HttpGet("GetUnderHoursWithEmployees")]
@@ -193,6 +231,7 @@ namespace LGMS.Controllers
 
             return Ok(result);
         }
+
         [HttpGet("GetOverHoursWithEmployees")]
         public ActionResult GetOverHoursWithEmployees()
         {
@@ -220,6 +259,7 @@ namespace LGMS.Controllers
 
             return Ok(result);
         }
+
         [HttpGet("GetDaysOffWithEmployees")]
         public ActionResult GetDaysOffWithEmployees()
         {

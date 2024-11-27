@@ -164,7 +164,7 @@ namespace LGMS.Controllers
         }
 
         [HttpPost("ViewSalarySlips")]
-        public IActionResult ViewSalarySlips(SalarySlipSearchModel searchModel)
+        public IActionResult ViewSalarySlips(ViewSalarySlipSearchModel searchModel)
         {
             if (searchModel == null)
                 return BadRequest(new { message = "Invalid search criteria" });
@@ -194,7 +194,23 @@ namespace LGMS.Controllers
                     query = query.Where(ar => employeeNames.Contains(ar.Name.ToLower()));
                 }
 
-                var salarySlips = query.ToList();
+                var salarySlips = new List<SalarySlip>();
+
+                if (searchModel.Mode == "Paid Salaries")
+                {
+                    salarySlips = query.Where(s => s.Paid == true).ToList();
+                }
+                else if (searchModel.Mode == "Recent")
+                {
+                    salarySlips = query
+                        .GroupBy(s => s.Name)
+                        .Select(g => g.OrderByDescending(e => e.GenratedDate).FirstOrDefault()).ToList();
+                }
+                else if(searchModel.Mode == "History" || searchModel.Mode == null)
+                {
+                    salarySlips = query.ToList();
+                }
+
 
                 if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))
                 {
@@ -260,25 +276,41 @@ namespace LGMS.Controllers
 
             try
             {
-                var dbSlips = salarySlips.Select(slip => new SalarySlip()
+                var dbSlips = new List<SalarySlip>();
+
+                foreach (var slip in salarySlips)
                 {
-                    Name = slip.Name,
-                    Designation = slip.Designation,
-                    Department = slip.Department,
-                    GenratedDate = slip.GenratedDate,
-                    PayPeriod = slip.PayPeriod,
-                    Salary = slip.Salary,
-                    Deductions = slip.Deductions,
-                    OnTimeAllowance = slip.OnTimeAllowance,
-                    PerformanceAllowance = slip.PerformanceAllowance,
-                    AttendanceAllowance = slip.AttendanceAllowance,
-                    Overtime = slip.Overtime,
-                    SecurityDeposit = slip.SecurityDeposit,
-                    IncomeTax = slip.IncomeTax,
-                    Loan = slip.Loan,
-                    Comission = slip.Comission,
-                    Total = slip.Total
-                }).ToList();
+                    var existingSlips = _dbContext.SalarySlips
+                        .Where(s => s.Name == slip.Name && s.PayPeriod == slip.PayPeriod && s.Paid)
+                        .ToList();
+
+                    foreach (var existingSlip in existingSlips)
+                    {
+                        existingSlip.Paid = false;
+                    }
+
+                    dbSlips.Add(new SalarySlip()
+                    {
+                        Name = slip.Name,
+                        Designation = slip.Designation,
+                        Department = slip.Department,
+                        GenratedDate = slip.GenratedDate,
+                        PayPeriod = slip.PayPeriod,
+                        Salary = slip.Salary,
+                        Deductions = slip.Deductions,
+                        OnTimeAllowance = slip.OnTimeAllowance,
+                        PerformanceAllowance = slip.PerformanceAllowance,
+                        AttendanceAllowance = slip.AttendanceAllowance,
+                        Overtime = slip.Overtime,
+                        SecurityDeposit = slip.SecurityDeposit,
+                        IncomeTax = slip.IncomeTax,
+                        Loan = slip.Loan,
+                        Comission = slip.Comission,
+                        Total = slip.Total,
+                        Paid = true
+                    });
+                }
+                _dbContext.SalarySlips.UpdateRange(dbSlips);
 
                 _dbContext.SalarySlips.AddRange(dbSlips);
                 _dbContext.SaveChanges();
@@ -314,7 +346,6 @@ namespace LGMS.Controllers
             }
         }
 
-
         [HttpPost("SaveSalarySlips")]
         public IActionResult SaveSalarySlips([FromBody] List<SalarySlipDTO> salarySlips)
         {
@@ -325,25 +356,42 @@ namespace LGMS.Controllers
 
             try
             {
-                var dbSlips = salarySlips.Select(slip => new SalarySlip()
+                var dbSlips = new List<SalarySlip>();
+
+                foreach (var slip in salarySlips)
                 {
-                    Name = slip.Name,
-                    Designation = slip.Designation,
-                    Department = slip.Department,
-                    GenratedDate = slip.GenratedDate,
-                    PayPeriod = slip.PayPeriod,
-                    Salary = slip.Salary,
-                    Deductions = slip.Deductions,
-                    OnTimeAllowance = slip.OnTimeAllowance,
-                    PerformanceAllowance = slip.PerformanceAllowance,
-                    AttendanceAllowance = slip.AttendanceAllowance,
-                    Overtime = slip.Overtime,
-                    SecurityDeposit = slip.SecurityDeposit,
-                    IncomeTax = slip.IncomeTax,
-                    Loan = slip.Loan,
-                    Comission = slip.Comission,
-                    Total = slip.Total
-                }).ToList();
+                    var existingSlips = _dbContext.SalarySlips
+                        .Where(s => s.Name == slip.Name && s.PayPeriod == slip.PayPeriod && s.Paid)
+                        .ToList();
+
+                    foreach (var existingSlip in existingSlips)
+                    {
+                        existingSlip.Paid = false;
+                    }
+
+                    dbSlips.Add(new SalarySlip()
+                    {
+                        Name = slip.Name,
+                        Designation = slip.Designation,
+                        Department = slip.Department,
+                        GenratedDate = slip.GenratedDate,
+                        PayPeriod = slip.PayPeriod,
+                        Salary = slip.Salary,
+                        Deductions = slip.Deductions,
+                        OnTimeAllowance = slip.OnTimeAllowance,
+                        PerformanceAllowance = slip.PerformanceAllowance,
+                        AttendanceAllowance = slip.AttendanceAllowance,
+                        Overtime = slip.Overtime,
+                        SecurityDeposit = slip.SecurityDeposit,
+                        IncomeTax = slip.IncomeTax,
+                        Loan = slip.Loan,
+                        Comission = slip.Comission,
+                        Total = slip.Total,
+                        Paid = true
+                    });
+                }
+
+                _dbContext.SalarySlips.UpdateRange(dbSlips);
 
                 _dbContext.SalarySlips.AddRange(dbSlips);
                 _dbContext.SaveChanges();
@@ -384,6 +432,34 @@ namespace LGMS.Controllers
                     }
                 }
                 return File(zipStream.ToArray(), "application/zip", "SalarySlips.zip");
+            }
+        }
+
+        [HttpPost("EditSalarySlip")]
+        public IActionResult EditSalarySlip(SalarySlip slip)
+        {
+            var dbSlip = _dbContext.SalarySlips.SingleOrDefault(s => s.Id == slip.Id);
+            if (dbSlip == null)
+            {
+                return BadRequest(new { message = "Salary Slip not found." });
+            }
+            try
+            {
+                _dbContext.SalarySlips
+                    .Where(s => s.Name == slip.Name && s.PayPeriod == slip.PayPeriod && s.Id != slip.Id)
+                    .ToList()
+                    .ForEach(s => s.Paid = false);
+
+                dbSlip.Paid = slip.Paid;
+                _dbContext.SaveChanges();
+                return Ok();
+            }
+            catch (Exception ex) 
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
         }
 

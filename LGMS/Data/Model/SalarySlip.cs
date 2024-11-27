@@ -13,6 +13,7 @@
         public bool OnTimeAllowance { get; set; }
         public bool AttendanceAllowance { get; set; }
         public bool? PerformanceAllowance { get; set; }
+        public bool Paid { get; set; } = false;
         public int Overtime { get; set; }
         public int? SecurityDeposit { get; set; }
         public int? IncomeTax { get; set; }

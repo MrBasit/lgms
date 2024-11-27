@@ -13,7 +13,7 @@ namespace LGMS.Services
                 OnTimes = attendanceRecords.Count(a => a.Status.Title == "On Time"),
                 LateIns = attendanceRecords.Count(a => a.Status.Title == "Late In"),
                 DayOffs = attendanceRecords.Count(a => a.Status.Title == "Day Off"),
-                Weekends = attendanceRecords.Count(a => a.Status.Title == "Weekend") + attendanceRecords.Count(a => a.Status.Title == "Holiday"),
+                Weekends = attendanceRecords.Count(a => a.Status.Title == "Weekend") + attendanceRecords.Count(a => a.Status.Title == "Holiday") + attendanceRecords.Count(a => a.Status.Title == "On Leave"),
                 TotalDays = 0,
                 UnderHours = attendanceRecords.Where(a => a.IsRecordOk).Sum(a => a.UnderHours),
                 BadRecordUnderHours = attendanceRecords.Where(a => !a.IsRecordOk).Sum(a => a.UnderHours),

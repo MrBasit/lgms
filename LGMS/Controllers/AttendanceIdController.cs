@@ -2,6 +2,7 @@
 using LGMS.Data.Model;
 using LGMS.Dto;
 using LGMS.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -76,7 +77,7 @@ namespace LGMS.Controllers
         {
             var attendanceId = _dbContext.AttendanceIds
                 .SingleOrDefault(a => a.Id == id);
-            if (attendanceId == null) return BadRequest(new { message = string.Format("AttendanceId with id {0} doesn't exist", attendanceId) });
+            if (attendanceId == null) return BadRequest(new { message = string.Format("AttendanceId with id {0} doesn't exist", id) });
             return Ok(attendanceId);
         }
 
