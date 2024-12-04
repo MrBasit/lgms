@@ -6,6 +6,7 @@
         public string Number { get; set; }
         public int ContractAmount { get; set; }
         public DateTime ExpectedCompletion { get; set; }
+        public DateTime? CompletionDate { get; set; }
         public string Details { get; set; }
         public DateTime StartDate { get; set; }
         public Client Client { get; set; }

@@ -19,6 +19,7 @@ namespace LGMS.Services
                 OnTimeAllowance = CalculateOnTimeAllowance(report),
                 AttendanceAllowance = CalculateAttendanceAllowance(report),
                 PerformanceAllowance = false,
+                DeductionApplied = false,
                 Overtime = CalculateOvertime(report, configuration.Salary),
                 SecurityDeposit = 0,
                 IncomeTax = 0,
@@ -67,10 +68,16 @@ namespace LGMS.Services
 
         private int CalculateTotal(SalarySlipDTO slip)
         {
-            int total =  slip.Salary - slip.Deductions + slip.Overtime;
+            int total =  slip.Salary + slip.Overtime;
+
+            if(slip.DeductionApplied == true)
+            {
+                total = total - slip.Deductions;
+            }
+
             if (slip.OnTimeAllowance)
             {
-                total += (int)(slip.Salary * 0.10); 
+                total += (int)(slip.Salary * 0.10);
             }
 
             if (slip.AttendanceAllowance)

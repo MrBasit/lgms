@@ -10,7 +10,7 @@ namespace LGMS.Services
 {
     public class SalarySlipPDFService
     {
-        public IDocument CreateSalarySlipPdf(SalarySlipDTO slip, string logoPath)
+        public IDocument CreateSalarySlipPdf(SalarySlipDTO slip, string logoPath, string check, string uncheck)
         {
             decimal basicSalary = slip.Salary;
             decimal onTimeAllowance = slip.OnTimeAllowance ? CalculateAllowances(true, basicSalary) : 0;
@@ -151,6 +151,12 @@ namespace LGMS.Services
                             });
                         });
 
+                        col.Item().AlignRight().PaddingTop(20).Row(row =>
+                        {
+                            row.RelativeItem().AlignRight().Text($"Deduction Applied:").Bold().FontSize(12);
+                            row.RelativeItem().Height(12).Image(slip.DeductionApplied ? check : uncheck);
+                        });
+
                         col.Item().PaddingTop(20).Row(row =>
                         {
                             row.RelativeItem().AlignRight().Text($"Net Pay: {slip.Total.ToString("C", new CultureInfo("ur-PK"))}").Bold().FontSize(12);
@@ -172,7 +178,7 @@ namespace LGMS.Services
             });
         }
 
-        public IDocument DownloadSalarySlip(SalarySlip slip, string logoPath)
+        public IDocument DownloadSalarySlip(SalarySlip slip, string logoPath, string check, string uncheck)
         {
             decimal basicSalary = slip.Salary;
             decimal onTimeAllowance = slip.OnTimeAllowance ? CalculateAllowances(true, basicSalary) : 0;
@@ -312,6 +318,13 @@ namespace LGMS.Services
                                 deductionsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text(totalDeductions.ToString("C", new CultureInfo("ur-PK"))).Bold();
                             });
                         });
+
+                        col.Item().AlignRight().PaddingTop(20).Row(row =>
+                        {
+                            row.RelativeItem().AlignRight().Text($"Deduction Applied:").Bold().FontSize(12);
+                            row.RelativeItem().Height(12).Image(slip.DeductionApplied ? check : uncheck);
+                        });
+
 
                         col.Item().PaddingTop(20).Row(row =>
                         {

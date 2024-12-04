@@ -273,6 +273,8 @@ namespace LGMS.Controllers
             }
 
             string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "company-logo.png");
+            string check = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "checked.png");
+            string uncheck = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "uncheck.png");
 
             try
             {
@@ -301,6 +303,7 @@ namespace LGMS.Controllers
                         OnTimeAllowance = slip.OnTimeAllowance,
                         PerformanceAllowance = slip.PerformanceAllowance,
                         AttendanceAllowance = slip.AttendanceAllowance,
+                        DeductionApplied = slip.DeductionApplied,
                         Overtime = slip.Overtime,
                         SecurityDeposit = slip.SecurityDeposit,
                         IncomeTax = slip.IncomeTax,
@@ -322,7 +325,7 @@ namespace LGMS.Controllers
                         {
                             using (var memoryStream = new MemoryStream())
                             {
-                                var document = _pdfService.CreateSalarySlipPdf(slip, logoPath);
+                                var document = _pdfService.CreateSalarySlipPdf(slip, logoPath, check, uncheck);
                                 document.GeneratePdf(memoryStream);
 
                                 var zipEntry = archive.CreateEntry($"{slip.Name}_SalarySlip.pdf", CompressionLevel.Optimal);
@@ -381,6 +384,7 @@ namespace LGMS.Controllers
                         OnTimeAllowance = slip.OnTimeAllowance,
                         PerformanceAllowance = slip.PerformanceAllowance,
                         AttendanceAllowance = slip.AttendanceAllowance,
+                        DeductionApplied = slip.DeductionApplied,
                         Overtime = slip.Overtime,
                         SecurityDeposit = slip.SecurityDeposit,
                         IncomeTax = slip.IncomeTax,
@@ -411,6 +415,9 @@ namespace LGMS.Controllers
         public IActionResult DownloadSalarySlips([FromBody] List<SalarySlip> salarySlips)
         {
             string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "company-logo.png");
+            string check = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "checked.png");
+            string uncheck = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "uncheck.png");
+
             using (var zipStream = new MemoryStream())
             {
                 using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
@@ -419,7 +426,7 @@ namespace LGMS.Controllers
                     {
                         using (var memoryStream = new MemoryStream())
                         {
-                            var document = _pdfService.DownloadSalarySlip(slip, logoPath);
+                            var document = _pdfService.DownloadSalarySlip(slip, logoPath, check, uncheck);
                             document.GeneratePdf(memoryStream);
 
                             var zipEntry = archive.CreateEntry($"{slip.Name}_SalarySlip.pdf", CompressionLevel.Optimal);
