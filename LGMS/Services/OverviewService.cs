@@ -72,33 +72,31 @@ namespace LGMS.Services
             switch (range)
             {
                 case "1 Month":
-                    startPeriod = DateTime.Now.AddDays(-7 * (GetWeekNumber(label) - 1));
+                    var weekNumber = GetWeekNumber(label);
+                    var monthStart = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                    startPeriod = monthStart.AddDays((weekNumber - 1) * 7);
                     endPeriod = startPeriod.AddDays(7);
                     break;
                 case "3 Months":
-                    startPeriod = DateTime.Now.AddMonths(-3).AddMonths(GetMonthNumber(label) - 1);
-                    endPeriod = startPeriod.AddMonths(1);
-                    break;
                 case "6 Months":
-                    startPeriod = DateTime.Now.AddMonths(-6).AddMonths(GetMonthNumber(label) - 1);
-                    endPeriod = startPeriod.AddMonths(1);
-                    break;
                 case "1 Year":
                     int monthIndex = DateTime.ParseExact(label, "MMM", CultureInfo.InvariantCulture).Month;
-                    startPeriod = DateTime.Now.AddMonths(-(12 - monthIndex));
+                    startPeriod = new DateTime(DateTime.Now.Year, monthIndex, 1);
                     endPeriod = startPeriod.AddMonths(1);
                     break;
                 case "2 Years":
-                    startPeriod = DateTime.Now.AddYears(-2).AddYears(GetYearNumber(label) - 1);
+                    var yearNumber = GetYearNumber(label);
+                    startPeriod = new DateTime(DateTime.Now.Year - (2 - yearNumber), 1, 1);
                     endPeriod = startPeriod.AddYears(1);
                     break;
                 default:
-                    return 0;
+                    throw new ArgumentException("Invalid range");
             }
 
             count = typeGroup.Count(c => c.CompletionDate >= startPeriod && c.CompletionDate < endPeriod);
             return count;
         }
+
 
 
         public int GetWeekNumber(string weekLabel)

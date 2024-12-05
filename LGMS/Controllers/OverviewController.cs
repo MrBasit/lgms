@@ -66,32 +66,31 @@ namespace LGMS.Controllers
         [HttpGet("GetNewContracts")]
         public IActionResult GetNewContracts()
         {
-            var currentMonth = DateTime.Now.Month;
-            var lastMonth = currentMonth == 1 ? 12 : currentMonth - 1;
-            var currentYear = DateTime.Now.Year;
-            var lastMonthYear = currentMonth == 1 ? currentYear - 1 : currentYear;
+            var today = DateTime.Today;
+            var startDateForCurrentPeriod = today.AddDays(-30);
+            var startDateForPreviousPeriod = today.AddDays(-60);
 
-            var currentMonthContractsCount = _dbContext.Contracts
-                .Where(c => c.StartDate.Month == currentMonth && c.StartDate.Year == currentYear)
+            var currentPeriodContractsCount = _dbContext.Contracts
+                .Where(c => c.StartDate >= startDateForCurrentPeriod && c.StartDate < today)
                 .Count();
 
-            var lastMonthContractsCount = _dbContext.Contracts
-                .Where(c => c.StartDate.Month == lastMonth && c.StartDate.Year == lastMonthYear)
+            var previousPeriodContractsCount = _dbContext.Contracts
+                .Where(c => c.StartDate >= startDateForPreviousPeriod && c.StartDate < startDateForCurrentPeriod)
                 .Count();
 
-            double percentageChange = 0;
-            if (lastMonthContractsCount > 0)
+            int percentageChange = 0;
+            if (previousPeriodContractsCount > 0)
             {
-                percentageChange = ((double)(currentMonthContractsCount - lastMonthContractsCount) / lastMonthContractsCount) * 100;
+                percentageChange = (int)Math.Round(((double)(currentPeriodContractsCount - previousPeriodContractsCount) / previousPeriodContractsCount) * 100);
             }
-            else if (currentMonthContractsCount > 0)
+            else if (currentPeriodContractsCount > 0)
             {
                 percentageChange = 100;
             }
 
             return Ok(new
             {
-                CurrentMonthContracts = currentMonthContractsCount,
+                NewContractsCount = currentPeriodContractsCount,
                 PercentageChange = percentageChange
             });
         }
@@ -99,38 +98,37 @@ namespace LGMS.Controllers
         [HttpGet("GetRetainContracts")]
         public IActionResult GetRetainContracts()
         {
-            var currentMonth = DateTime.Now.Month;
-            var lastMonth = currentMonth == 1 ? 12 : currentMonth - 1;
-            var currentYear = DateTime.Now.Year;
-            var lastMonthYear = currentMonth == 1 ? currentYear - 1 : currentYear;
+            var today = DateTime.Today;
+            var startDateForCurrentPeriod = today.AddDays(-30);
+            var startDateForPreviousPeriod = today.AddDays(-60);
 
             var previousClients = _dbContext.Contracts
-                .Where(c => c.StartDate < new DateTime(currentYear, currentMonth, 1))
+                .Where(c => c.StartDate < startDateForCurrentPeriod)
                 .Select(c => c.Client.Id)
                 .Distinct()
                 .ToList();
 
-            var currentMonthRetainedContractsCount = _dbContext.Contracts
-                .Where(c => c.StartDate.Month == currentMonth && c.StartDate.Year == currentYear && previousClients.Contains(c.Client.Id))
+            var currentPeriodRetainedContractsCount = _dbContext.Contracts
+                .Where(c => c.StartDate >= startDateForCurrentPeriod && c.StartDate < today && previousClients.Contains(c.Client.Id))
                 .Count();
 
-            var lastMonthRetainedContractsCount = _dbContext.Contracts
-                .Where(c => c.StartDate.Month == lastMonth && c.StartDate.Year == lastMonthYear && previousClients.Contains(c.Client.Id))
+            var previousPeriodRetainedContractsCount = _dbContext.Contracts
+                .Where(c => c.StartDate >= startDateForPreviousPeriod && c.StartDate < startDateForCurrentPeriod && previousClients.Contains(c.Client.Id))
                 .Count();
 
-            double percentageChange = 0;
-            if (lastMonthRetainedContractsCount > 0)
+            int percentageChange = 0;
+            if (previousPeriodRetainedContractsCount > 0)
             {
-                percentageChange = ((double)(currentMonthRetainedContractsCount - lastMonthRetainedContractsCount) / lastMonthRetainedContractsCount) * 100;
+                percentageChange = (int)Math.Round(((double)(currentPeriodRetainedContractsCount - previousPeriodRetainedContractsCount) / previousPeriodRetainedContractsCount) * 100);
             }
-            else if (currentMonthRetainedContractsCount > 0)
+            else if (currentPeriodRetainedContractsCount > 0)
             {
                 percentageChange = 100;
             }
 
             return Ok(new
             {
-                RetainedContractsCount = currentMonthRetainedContractsCount,
+                RetainContractsCount = currentPeriodRetainedContractsCount,
                 PercentageChange = percentageChange
             });
         }
@@ -144,83 +142,80 @@ namespace LGMS.Controllers
 
             return Ok(new
             {
-                CurrentMonthContracts = currentMonthContractsCount
+                ActiveContractsCount = currentMonthContractsCount
             });
         }
 
         [HttpGet("GetFulfilledContracts")]
         public IActionResult GetFulfilledContracts()
         {
-            var currentMonth = DateTime.Now.Month;
-            var lastMonth = currentMonth == 1 ? 12 : currentMonth - 1;
-            var currentYear = DateTime.Now.Year;
-            var lastMonthYear = currentMonth == 1 ? currentYear - 1 : currentYear;
+            var today = DateTime.Today;
+            var startDateForCurrentPeriod = today.AddDays(-30);
+            var startDateForPreviousPeriod = today.AddDays(-60);
 
-            var currentMonthContractsCount = _dbContext.Contracts
-               .Where(c => c.CompletionDate != null &&
-                    c.CompletionDate.Value.Month == currentMonth &&
-                    c.CompletionDate.Value.Year == currentYear && c.Status.Title == "Completed")
-               .Count();
-
-            var lastMonthContractsCount = _dbContext.Contracts
+            var currentPeriodContractsCount = _dbContext.Contracts
                 .Where(c => c.CompletionDate != null &&
-                        c.CompletionDate.Value.Month == lastMonth &&
-                        c.CompletionDate.Value.Year == lastMonthYear && c.Status.Title == "Completed")
-                   .Count();
+                            c.CompletionDate.Value >= startDateForCurrentPeriod &&
+                            c.CompletionDate.Value < today &&
+                            c.Status.Title == "Completed")
+                .Count();
 
-            double percentageChange = 0;
-            if (lastMonthContractsCount > 0)
+            var previousPeriodContractsCount = _dbContext.Contracts
+                .Where(c => c.CompletionDate != null &&
+                            c.CompletionDate.Value >= startDateForPreviousPeriod &&
+                            c.CompletionDate.Value < startDateForCurrentPeriod &&
+                            c.Status.Title == "Completed")
+                .Count();
+
+            int percentageChange = 0;
+            if (previousPeriodContractsCount > 0)
             {
-                percentageChange = ((double)(currentMonthContractsCount - lastMonthContractsCount) / lastMonthContractsCount) * 100;
+                percentageChange = (int)Math.Round(((double)(currentPeriodContractsCount - previousPeriodContractsCount) / previousPeriodContractsCount) * 100);
             }
-            else if (currentMonthContractsCount > 0)
+            else if (currentPeriodContractsCount > 0)
             {
                 percentageChange = 100;
             }
 
             return Ok(new
             {
-                CurrentMonthContracts = currentMonthContractsCount,
+                CompletedContractsCount = currentPeriodContractsCount,
                 PercentageChange = percentageChange
             });
         }
+
 
         [HttpGet("GetPayments")]
         public IActionResult GetPayments()
         {
-            var currentMonth = DateTime.Now.Month;
-            var lastMonth = currentMonth == 1 ? 12 : currentMonth - 1;
-            var currentYear = DateTime.Now.Year;
-            var lastMonthYear = currentMonth == 1 ? currentYear - 1 : currentYear;
+            var today = DateTime.Today;
+            var startDateForCurrentPeriod = today.AddDays(-30);
+            var startDateForPreviousPeriod = today.AddDays(-60);
 
-            var currentMonthPayments = _dbContext.Payments
-               .Where(c => c.Date.Month == currentMonth &&
-                    c.Date.Year == currentYear)
-               .Sum(c => c.Amount);
-
-            var lastMonthPayments = _dbContext.Payments
-                .Where(c => c.Date.Month == lastMonth &&
-                        c.Date.Year == lastMonthYear)
+            var currentPeriodPayments = _dbContext.Payments
+                .Where(c => c.Date >= startDateForCurrentPeriod && c.Date < today)
                 .Sum(c => c.Amount);
 
-            double percentageChange = 0;
-            if (lastMonthPayments > 0)
+            var previousPeriodPayments = _dbContext.Payments
+                .Where(c => c.Date >= startDateForPreviousPeriod && c.Date < startDateForCurrentPeriod)
+                .Sum(c => c.Amount);
+
+            int percentageChange = 0;
+            if (previousPeriodPayments > 0)
             {
-                percentageChange = ((double)(currentMonthPayments - lastMonthPayments) / lastMonthPayments) * 100;
+                percentageChange = (int)Math.Round(((double)(currentPeriodPayments - previousPeriodPayments) / previousPeriodPayments) * 100);
             }
-            else if (currentMonthPayments > 0)
+            else if (currentPeriodPayments > 0)
             {
                 percentageChange = 100;
             }
 
             return Ok(new
             {
-                CurrentMonthContracts = currentMonthPayments,
+                PaymentsCount = currentPeriodPayments,
                 PercentageChange = percentageChange
             });
         }
-
-
 
     }
 }
