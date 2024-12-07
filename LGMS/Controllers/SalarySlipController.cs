@@ -445,30 +445,44 @@ namespace LGMS.Controllers
         [HttpPost("EditSalarySlip")]
         public IActionResult EditSalarySlip(SalarySlip slip)
         {
-            var dbSlip = _dbContext.SalarySlips.SingleOrDefault(s => s.Id == slip.Id);
-            if (dbSlip == null)
-            {
-                return BadRequest(new { message = "Salary Slip not found." });
-            }
+            using var transaction = _dbContext.Database.BeginTransaction();
+
             try
             {
-                _dbContext.SalarySlips
+                var dbSlip = _dbContext.SalarySlips.SingleOrDefault(s => s.Id == slip.Id);
+                if (dbSlip == null)
+                {
+                    return BadRequest(new { message = "Salary Slip not found." });
+                }
+
+                var conflictingSlips = _dbContext.SalarySlips
                     .Where(s => s.Name == slip.Name && s.PayPeriod == slip.PayPeriod && s.Id != slip.Id)
-                    .ToList()
-                    .ForEach(s => s.Paid = false);
+                    .ToList();
+
+                foreach (var conflictingSlip in conflictingSlips)
+                {
+                    conflictingSlip.Paid = false;
+                }
 
                 dbSlip.Paid = slip.Paid;
+
                 _dbContext.SaveChanges();
-                return Ok();
+
+                transaction.Commit();
+
+                return Ok(new { message = "Salary Slip updated successfully." });
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
+                transaction.Rollback();
+
                 return BadRequest(new
                 {
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }
+
 
     }
 }

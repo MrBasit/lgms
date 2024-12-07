@@ -217,5 +217,20 @@ namespace LGMS.Controllers
             });
         }
 
+        [HttpGet("GetWeeklyExpirations")]
+        public IActionResult GetWeeklyExpirations()
+        {
+            var today = DateTime.Today;
+            var sevenDaysLater = today.AddDays(7);
+            var expirations = _dbContext.Expiration.
+                OrderBy(e => e.Date);
+            var expirationCount = _dbContext.Expiration
+                    .Where(e => e.Date >= today && e.Date <= sevenDaysLater)
+                    .Count();
+
+            return Ok(new { Count = expirationCount });
+
+        }
+
     }
 }
