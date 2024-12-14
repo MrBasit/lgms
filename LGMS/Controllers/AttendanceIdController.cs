@@ -38,6 +38,23 @@ namespace LGMS.Controllers
             }
 
             if (!attendanceIds.Any()) return NotFound(new{message="No attendance ids are there"});
+            if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))
+            {
+                if (int.TryParse(searchModel.SearchDetails.SearchTerm, out int searchTermAsInt))
+                {
+                    attendanceIds = attendanceIds.Where(e =>
+                        e.MachineName.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper()) ||
+                        e.MachineId == searchTermAsInt
+                    ).ToList();
+                }
+                else
+                {
+                    attendanceIds = attendanceIds.Where(e =>
+                        e.MachineName.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper())
+                    ).ToList();
+                }
+            }
+
             if (!string.IsNullOrEmpty(searchModel.SortDetails.SortColumn) &&
                searchModel.SortDetails.SortDirection != Enum.SortDirections.None)
             {
