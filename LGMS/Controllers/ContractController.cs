@@ -5,6 +5,7 @@ using LGMS.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+//using System.Diagnostics.Contracts;
 
 namespace LGMS.Controllers
 {
@@ -193,6 +194,7 @@ namespace LGMS.Controllers
                     Status = details.Status.Id == 0
                                 ? details.Status
                                 : _dbContext.ContractStatuses.Single(s => s.Id == details.Status.Id),
+                    CompletionDate = details.Status?.Title?.Equals("Completed", StringComparison.OrdinalIgnoreCase) == true ? DateTime.Now : null,
                     Type = details.Type.Id == 0
                             ? details.Type
                             : _dbContext.ContractTypes.Single(s => s.Id == details.Type.Id),
@@ -322,6 +324,15 @@ namespace LGMS.Controllers
                 contract.Status = details.Status.Id == 0
                                 ? details.Status
                                 : _dbContext.ContractStatuses.Single(s => s.Id == details.Status.Id);
+                if (details.Status.Title.Equals("Completed", StringComparison.OrdinalIgnoreCase))
+                {
+                    contract.CompletionDate = DateTime.Now;
+                }
+                else
+                {
+                    contract.CompletionDate = null;
+                }
+
                 contract.Type = details.Type.Id == 0
                                 ? details.Type
                                 : _dbContext.ContractTypes.Single(t => t.Id == details.Type.Id);

@@ -23,7 +23,7 @@ namespace LGMS.Controllers
         }
 
         [HttpPost("GetExpirationsWithFilters")]
-        public IActionResult GetExpirationsWithFilters(BaseSearchModel searchModel)
+        public IActionResult GetExpirationsWithFilters(ExpirationSearchModel searchModel)
         {
             if (searchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 
@@ -42,6 +42,34 @@ namespace LGMS.Controllers
                 });
             }
             if (!expirations.Any()) return NotFound(new { message = "Expirations Not Found" });
+
+            if (searchModel.RecordType == "7 days")
+            {
+                var today = DateTime.Today;
+                var sevenDaysLater = today.AddDays(7);
+                expirations = expirations.
+                    OrderBy(e => e.Date).ToList();
+                expirations = expirations.Where(e => e.Date >= today && e.Date <= sevenDaysLater).ToList();
+            }
+            if (searchModel.RecordType == "30 days")
+            {
+                var today = DateTime.Today;
+                var sevenDaysLater = today.AddDays(30);
+                expirations = expirations.
+                    OrderBy(e => e.Date).ToList();
+                expirations = expirations.Where(e => e.Date >= today && e.Date <= sevenDaysLater).ToList();
+            }
+            if (searchModel.RecordType == "Passed")
+            {
+                var today = DateTime.Today;
+                var thirtyDaysAgo = today.AddDays(-30);
+                expirations = expirations
+                    .OrderBy(e => e.Date)
+                    .ToList();
+                expirations = expirations
+                    .Where(e => e.Date < today && e.Date >= thirtyDaysAgo)
+                    .ToList();
+            }
 
             if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))
             {

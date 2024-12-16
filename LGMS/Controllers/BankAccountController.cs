@@ -102,7 +102,7 @@ namespace LGMS.Controllers
         [HttpPost("AddBankAccount")]
         public IActionResult AddBankAccount(BankAccountAddModel details)
         {
-            if (_dbContext.BankAccounts.Any(e => e.IBAN.ToUpper() == details.IBAN.ToUpper()))
+            if (details.IBAN != null && (_dbContext.BankAccounts.Any(e => e.IBAN.ToUpper() == details.IBAN.ToUpper())))
             {
                 return BadRequest(new { message = "Another bank account with this IBAN number already exists" });
             }
@@ -143,7 +143,7 @@ namespace LGMS.Controllers
             {
                 return NotFound(new { message = "Bank account not found" });
             }
-            if (_dbContext.BankAccounts.Any(e => e.IBAN.ToUpper() == details.IBAN.ToUpper() && e.Id != details.Id))
+            if (details.IBAN != null && (_dbContext.BankAccounts.Any(e => e.IBAN.ToUpper() == details.IBAN.ToUpper() && e.Id != details.Id)))
             {
                 return BadRequest(new { message = "Another bank account with this IBAN number already exists" });
             }
