@@ -1,0 +1,13 @@
+
+use [lgcd_lgms_dev01];
+select * from __EFMigrationsHistory;
+
+SELECT TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG='lgcd_lgms_dev01'
+order by Table_Name asc;
+
+SELECT COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = N'__EFMigrationsHistory' ;
+
