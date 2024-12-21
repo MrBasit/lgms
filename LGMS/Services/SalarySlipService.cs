@@ -1,26 +1,25 @@
-﻿using LGMS.Dto;
+﻿using LGMS.Data.Model;
+using LGMS.Dto;
 
 namespace LGMS.Services
 {
     public class SalarySlipService
     {
-        public SalarySlipDTO GenerateSalarySlip(AttendanceReportDTO report, ConfigurationDTO configuration, int year, int month)
+        public SalarySlipDTO GenerateSalarySlip(AttendanceReportDTO report, int year, int month, Employee employee)
         {
             var salarySlipDate = new DateTime(year, month, 1);
             var salarySlip = new SalarySlipDTO
             {
-                Name = configuration.Name,
-                Designation = configuration.Designation,
-                Department = configuration.Department,
+                Employee = employee,
                 GenratedDate = DateTime.Now,
                 PayPeriod = salarySlipDate,
-                Salary = configuration.Salary,
-                Deductions = CalculateDeductions(report, configuration.Salary),
+                Salary = employee.BasicSalary,
+                Deductions = CalculateDeductions(report, employee.BasicSalary),
                 OnTimeAllowance = CalculateOnTimeAllowance(report),
                 AttendanceAllowance = CalculateAttendanceAllowance(report),
                 PerformanceAllowance = false,
                 DeductionApplied = false,
-                Overtime = CalculateOvertime(report, configuration.Salary),
+                Overtime = CalculateOvertime(report, employee.BasicSalary),
                 SecurityDeposit = 0,
                 IncomeTax = 0,
                 Loan = 0,

@@ -4,6 +4,7 @@ using LGMS.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LGMS.Migrations
 {
     [DbContext(typeof(LgmsDbContext))]
-    partial class LgmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241221073709_AddingEmployeeInSalarySlip")]
+    partial class AddingEmployeeInSalarySlip
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -800,7 +803,13 @@ namespace LGMS.Migrations
                     b.Property<int>("Deductions")
                         .HasColumnType("int");
 
-                    b.Property<int>("EmployeeId")
+                    b.Property<string>("Department")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Designation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EmployeeId")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("GenratedDate")
@@ -811,6 +820,10 @@ namespace LGMS.Migrations
 
                     b.Property<int?>("Loan")
                         .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("OnTimeAllowance")
                         .HasColumnType("bit");
@@ -1325,9 +1338,7 @@ namespace LGMS.Migrations
                 {
                     b.HasOne("LGMS.Data.Model.Employee", "Employee")
                         .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("EmployeeId");
 
                     b.Navigation("Employee");
                 });
