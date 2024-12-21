@@ -128,6 +128,8 @@ namespace LGMS.Controllers
                             .Include(_ => _.Designation)
                             .Include(_ => _.Status)
                             .Include(e => e.AttendanceId)
+                            .Include(e => e.SecurityDeposits)
+                            .Include(e => e.Loans)
                             .Include(e => e.Equipments).ThenInclude(eq => eq.Type)
                             .SingleOrDefault(e => e.Id == employeeId);
             if (employee == null) return BadRequest(new { message = string.Format("Employee with id {0} doesn't exist", employeeId) });

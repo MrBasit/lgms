@@ -20,6 +20,8 @@ namespace LGMS.Data.Model
         public DateTime AgreementExpiration { get; set; }
         public EmployeeStatus Status { get; set; }
         public List<Equipment> Equipments { get; set; }
+        public List<SecurityDeposit>? SecurityDeposits { get; set; }
+        public List<Loan>? Loans { get; set; }
 
     }
 

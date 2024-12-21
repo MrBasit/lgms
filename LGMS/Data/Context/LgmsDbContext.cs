@@ -37,6 +37,8 @@ namespace LGMS.Data.Context
         public DbSet<ContractPackageInformation> ContractPackagesInformation { get; set; }
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<DomainDetails> DomainDetails { get; set; }
+        public DbSet<SecurityDeposit> SecurityDeposits { get; set; }
+        public DbSet<Loan> Loans { get; set; }
 
 
 
