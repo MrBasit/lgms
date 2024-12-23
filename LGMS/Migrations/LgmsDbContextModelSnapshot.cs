@@ -132,9 +132,15 @@ namespace LGMS.Migrations
                     b.Property<int>("DesignationId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("EmployeeNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IdentityUserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("JoiningDate")
                         .HasColumnType("datetime2");
@@ -153,6 +159,8 @@ namespace LGMS.Migrations
                     b.HasIndex("DepartmentId");
 
                     b.HasIndex("DesignationId");
+
+                    b.HasIndex("IdentityUserId");
 
                     b.HasIndex("StatusId");
 
@@ -331,6 +339,43 @@ namespace LGMS.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "276d6687-17d1-4b4a-a39e-8f10849aa91a",
+                            ConcurrencyStamp = "1",
+                            Name = "Admin",
+                            NormalizedName = "Admin"
+                        },
+                        new
+                        {
+                            Id = "66d74431-7382-4dac-829d-e297e676b4eb",
+                            ConcurrencyStamp = "2",
+                            Name = "HR",
+                            NormalizedName = "HR"
+                        },
+                        new
+                        {
+                            Id = "0576556f-5296-4c55-ab0c-8a7fec10c15f",
+                            ConcurrencyStamp = "3",
+                            Name = "Sales",
+                            NormalizedName = "Sales"
+                        },
+                        new
+                        {
+                            Id = "4b646391-eea4-4b7a-80e0-586ab175d406",
+                            ConcurrencyStamp = "4",
+                            Name = "Stores",
+                            NormalizedName = "Stores"
+                        },
+                        new
+                        {
+                            Id = "a499cc23-9194-460d-80e1-9db90c6788c6",
+                            ConcurrencyStamp = "5",
+                            Name = "Employee",
+                            NormalizedName = "Employee"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -539,6 +584,10 @@ namespace LGMS.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "IdentityUser")
+                        .WithMany()
+                        .HasForeignKey("IdentityUserId");
+
                     b.HasOne("LGMS.Data.Model.EmployeeStatus", "Status")
                         .WithMany()
                         .HasForeignKey("StatusId")
@@ -550,6 +599,8 @@ namespace LGMS.Migrations
                     b.Navigation("Department");
 
                     b.Navigation("Designation");
+
+                    b.Navigation("IdentityUser");
 
                     b.Navigation("Status");
                 });

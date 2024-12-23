@@ -23,4 +23,8 @@
     <Folder Include="Data\Model\Authentication\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MailSender\MailSender.csproj" />
+  </ItemGroup>
+
 </Project>
