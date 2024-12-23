@@ -3,9 +3,7 @@
     public class SalarySlip
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string? Designation { get; set; }
-        public string? Department { get; set; }
+        public Employee Employee { get; set; }
         public DateTime? GenratedDate { get; set; }
         public DateTime? PayPeriod { get; set; }
         public int Salary { get; set; }

@@ -57,7 +57,8 @@ namespace LGMS.Controllers
                .SingleOrDefault(e => e.EmployeeNumber.ToLower() == number.ToLower());
             int allowancesCount = 0;
             var slips = _dbContext.SalarySlips
-                .Where(s => s.Name == employee.Name && 
+                .Include(s => s.Employee)
+                .Where(s => s.Employee.Name == employee.Name && 
                        s.PayPeriod.Value >= startDate && s.PayPeriod.Value <= endDate &&
                        s.Paid == true)
                 .ToList();
@@ -109,7 +110,9 @@ namespace LGMS.Controllers
                 .Include(a => a.Status)
                 .Where(e => e.AttendanceId == attendanceId && e.Date.Month == month && e.Date.Year == year)
                 .ToList();
-            var slip = _dbContext.SalarySlips.SingleOrDefault(s => s.Name == employee.Name && s.PayPeriod.Value.Month == month && s.PayPeriod.Value.Year == year && s.Paid == true);
+            var slip = _dbContext.SalarySlips
+                .Include(s => s.Employee)
+                .SingleOrDefault(s => s.Employee.Name == employee.Name && s.PayPeriod.Value.Month == month && s.PayPeriod.Value.Year == year && s.Paid == true);
             AttendanceReportDTO? report;
             if (attendanceRecords == null || attendanceRecords.Count == 0)
             {

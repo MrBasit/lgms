@@ -22,7 +22,7 @@ namespace LGMS.Data.Model
         public int BasicSalary { get; set; }
         public DateTime AgreementExpiration { get; set; }
         public EmployeeStatus Status { get; set; }
-        public List<Equipment> Equipments { get; set; }
+        public List<Equipment>? Equipments { get; set; }
         public List<SecurityDeposit>? SecurityDeposits { get; set; }
         public List<Loan>? Loans { get; set; }
         public IdentityUser IdentityUser { get; set; }
