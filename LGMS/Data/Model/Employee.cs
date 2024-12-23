@@ -11,8 +11,7 @@ namespace LGMS.Data.Model
     public class Employee
     {
         public int Id { get; set; }
-        public int AttendanceId { get; set; }
-        public AttandanceId? AttandanceId { get; set; }
+        public AttendanceId? AttendanceId { get; set; }
         public string Name { get; set; }
         public string EmployeeNumber { get; set; }
         public string? Email { get; set; }

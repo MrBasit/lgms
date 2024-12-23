@@ -2,9 +2,9 @@
 
 namespace LGMS.Dto
 {
-    public class EmployeeStatusesSearchModel
+    public class BaseSearchModel
     {
-        public EmployeeStatusesSearchModel()
+        public BaseSearchModel()
         {
             SortDetails = new SortRequestModel();
             PaginationDetails = new PagedDataRequestModel();

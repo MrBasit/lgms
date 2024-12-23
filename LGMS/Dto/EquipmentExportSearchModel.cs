@@ -1,17 +1,17 @@
-﻿using LGMS.Interface;
+﻿using LGMS.Data.Model;
+using LGMS.Interface;
 
 namespace LGMS.Dto
 {
-    public class DepartmentsSearchModel
+    public class EquipmentExportSearchModel
     {
-        public DepartmentsSearchModel()
+        public EquipmentExportSearchModel()
         {
             SortDetails = new SortRequestModel();
-            PaginationDetails = new PagedDataRequestModel();
             SearchDetails = new SearchRequestModel();
         }
         public ISortRequestModel SortDetails { get; set; }
-        public IPagedDataRequestModel PaginationDetails { get; set; }
         public ISearchRequestModel SearchDetails { get; set; }
+        public List<EquipmentStatus> Statuses { get; set; }
     }
 }

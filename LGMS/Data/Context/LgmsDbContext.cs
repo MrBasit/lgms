@@ -77,7 +77,7 @@ namespace LGMS.Data.Context
                 entity.HasIndex(e => e.Title).IsUnique();
             });
 
-            builder.Entity<AttandanceId>(entity =>
+            builder.Entity<AttendanceId>(entity =>
             {
                 entity.HasIndex(e => e.MachineId).IsUnique();
                 entity.HasIndex(e => e.MachineName).IsUnique();

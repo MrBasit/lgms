@@ -30,9 +30,9 @@ namespace LGMS.Controllers
         }
 
         [HttpPost("GetDepartmentsWithFilters")]
-        public IActionResult GetDepartmentsWithFilters(DepartmentsSearchModel departmentSearchModel)
+        public IActionResult GetDepartmentsWithFilters(BaseSearchModel departmentSearchModel)
         {
-            if (departmentSearchModel == null) return BadRequest("Invalid search criteria");
+            if (departmentSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 
             var departments = new List<Department>();
 
@@ -43,9 +43,12 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
-            if (!departments.Any()) return NotFound("departments Not Found");
+            if (!departments.Any()) return NotFound(new { message = "No departments are there" });
 
             if (!string.IsNullOrEmpty(departmentSearchModel.SearchDetails.SearchTerm))
             {
@@ -86,6 +89,75 @@ namespace LGMS.Controllers
             );
 
             return Ok(pagedDepartmentsResult);
+        }
+        [HttpGet("GetDepartmentById")]
+        public IActionResult GetDepartmentById(int id)
+        {
+            var department = _dbContext.Departments
+                .SingleOrDefault(d => d.Id == id);
+            if (department == null) return BadRequest(new { message = string.Format("Department with id {0} doesn't exist", id) });
+            return Ok(department);
+        }
+
+        [HttpPost("EditDepartment")]
+        public IActionResult EditDepartment(DepartmentEditModel departmentDetails)
+        {
+            var existingDepartment = _dbContext.Departments.FirstOrDefault(d => d.Id == departmentDetails.Id);
+
+            if (existingDepartment == null)
+            {
+                return NotFound(new { message = "Department not Found" });
+            }
+
+            if (_dbContext.Departments.Any(d => d.Name.ToUpper() == departmentDetails.Name.ToUpper() && d.Id != departmentDetails.Id))
+            {
+                return BadRequest(new
+                {
+                    message = "Department with this Name already Exist"
+                });
+            }
+            try
+            {
+                existingDepartment.Name = departmentDetails.Name;
+                _dbContext.SaveChanges();
+                return Ok(existingDepartment);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
+            }
+        }
+        [HttpPost("DeleteDepartment")]
+        public IActionResult DeleteDepartment([FromBody] int id)
+        {
+            var existingDepartment = _dbContext.Departments.FirstOrDefault(d => d.Id == id);
+
+            if (existingDepartment == null)
+            {
+                return NotFound(new { message = "Department not Found" });
+            }
+            if (_dbContext.Employees.Any(e => e.Department.Id == existingDepartment.Id) || _dbContext.Designations.Any(d => d.Department.Id == existingDepartment.Id))
+            {
+                return BadRequest(new { message = $"{existingDepartment.Name} is in use and it can't be delete." });
+            }
+
+
+            try
+            {
+                _dbContext.Departments.Remove(existingDepartment);
+                _dbContext.SaveChanges();
+                return Ok(new {message = $"{existingDepartment.Name} has been deleted."});
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
+            }
         }
     }
 }

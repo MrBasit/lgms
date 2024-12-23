@@ -3,13 +3,17 @@ using LGMS.Data.Model;
 using LGMS.Data.Models.Authentication;
 using MailSender.Model;
 using MailSender.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using LGMS.Data.Model;
 using Microsoft.IdentityModel.Tokens;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 
@@ -44,7 +48,7 @@ namespace LGMS.Controllers
         }
 
         [HttpPost("RegisterUser")]
-        public async Task<IActionResult> RegisterUser(RegisterUser registerUser)
+        public async Task<IActionResult> RegisterUser([FromBody] RegisterUser registerUser)
         {
             var employee = new Employee();
             if (string.IsNullOrEmpty(registerUser.Email) || string.IsNullOrEmpty(registerUser.Username)) {
@@ -134,7 +138,7 @@ namespace LGMS.Controllers
                         if (emprole != null)
                         {
                             var a = await _userManager.AddToRoleAsync(user, emprole.Name);
-                        }
+                }
 
                         //add User to employee
                         employee.IdentityUser = user;
@@ -147,20 +151,20 @@ namespace LGMS.Controllers
                         _emailService.SendEmail(message);
                     }
                     catch (Exception ex)
-                    {
+                {
                         return StatusCode(StatusCodes.Status201Created, new Response
                         {
                             Status = "PartialSucceeded",
                             Message = "User created successfully but not attached with Employee"
-                        });
+                });
 
-                    }
-                    
+            }
+
                     return StatusCode(StatusCodes.Status201Created, new Response
-                    {
+                {
                         Status = "Succeeded",
                         Message = "User created successfully and attached with Employee."
-                    });
+                });
                 }
 
                 return StatusCode(StatusCodes.Status500InternalServerError, new Response
@@ -200,10 +204,10 @@ namespace LGMS.Controllers
 
 
                 var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, userLogin.Username),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                };
+        {
+            new Claim(ClaimTypes.Name, userLogin.Username),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
 
                 var userRoles = await _userManager.GetRolesAsync(user);
                 foreach (var userRole in userRoles)

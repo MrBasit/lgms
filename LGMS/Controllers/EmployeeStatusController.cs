@@ -29,9 +29,9 @@ namespace LGMS.Controllers
         }
 
         [HttpPost("GetEmployeeStatusesWithFilters")]
-        public IActionResult GetEmployeeStatusesWithFilters(EmployeeStatusesSearchModel employeeStatusesSearchModel)
+        public IActionResult GetEmployeeStatusesWithFilters(BaseSearchModel employeeStatusesSearchModel)
         {
-            if (employeeStatusesSearchModel == null) return BadRequest("Invalid search criteria");
+            if (employeeStatusesSearchModel == null) return BadRequest(new { message = "Invalid search criteria" });
 
             var employeeStatuses = new List<EmployeeStatus>();
 
@@ -42,9 +42,12 @@ namespace LGMS.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
             }
-            if (!employeeStatuses.Any()) return NotFound("Employee status Not Found");
+            if (!employeeStatuses.Any()) return NotFound(new { message = "Employee status Not Found" });
 
             if (!string.IsNullOrEmpty(employeeStatusesSearchModel.SearchDetails.SearchTerm))
             {
@@ -85,6 +88,74 @@ namespace LGMS.Controllers
             );
 
             return Ok(pagedEmployeeStatusesResult);
+        }
+        [HttpGet("GetEmployeeStatusById")]
+        public IActionResult GetEmployeeStatusById(int id)
+        {
+            var employeeStatus = _dbContext.EmployeeStatus
+                .SingleOrDefault(d => d.Id == id);
+            if (employeeStatus == null) return BadRequest(new { message = string.Format("EmployeeStatus with id {0} doesn't exist", id) });
+            return Ok(employeeStatus);
+        }
+
+        [HttpPost("EditEmployeeStatus")]
+        public IActionResult EditEmployeeStatus(EmployeeStatusEditModel statusDetails)
+        {
+            var existingStatus = _dbContext.EmployeeStatus.FirstOrDefault(d => d.Id == statusDetails.Id);
+
+            if (existingStatus == null)
+            {
+                return NotFound(new { message = "EmployeeStatus not Found" });
+            }
+
+            if (_dbContext.EmployeeStatus.Any(d => d.Title.ToUpper() == statusDetails.Title.ToUpper() && d.Id != statusDetails.Id))
+            {
+                return BadRequest(new
+                {
+                    message = "EmployeeStatus with this Title already Exist"
+                });
+            }
+            try
+            {
+                existingStatus.Title = statusDetails.Title;
+                _dbContext.SaveChanges();
+                return Ok(existingStatus);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
+            }
+        }
+        [HttpPost("DeleteEmployeeStatus")]
+        public IActionResult DeleteEmployeeStatus([FromBody] int id)
+        {
+            var existingStatus = _dbContext.EmployeeStatus.FirstOrDefault(d => d.Id == id);
+
+            if (existingStatus == null)
+            {
+                return NotFound(new { message = "EmployeeStatus not Found" });
+            }
+            if(_dbContext.Employees.Any(e => e.Status.Id == existingStatus.Id))
+            {
+                return BadRequest(new { message = $"{existingStatus.Title} is in use and it can't be delete." });
+            }
+
+            try
+            {
+                _dbContext.EmployeeStatus.Remove(existingStatus);
+                _dbContext.SaveChanges();
+                return Ok(new { message = $"{existingStatus.Title} has been deleted." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
+                });
+            }
         }
     }
 }

@@ -22,6 +22,21 @@ namespace LGMS.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("BankAccountQuotation", b =>
+                {
+                    b.Property<int>("BankAccountsId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuotationsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BankAccountsId", "QuotationsId");
+
+                    b.HasIndex("QuotationsId");
+
+                    b.ToTable("BankAccountQuotation");
+                });
+
             modelBuilder.Entity("EmployeeEquipment", b =>
                 {
                     b.Property<int>("AssigneesId")
@@ -37,7 +52,7 @@ namespace LGMS.Migrations
                     b.ToTable("EmployeeEquipment");
                 });
 
-            modelBuilder.Entity("LGMS.Data.Model.AttandanceId", b =>
+            modelBuilder.Entity("LGMS.Data.Model.AttendanceId", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -60,7 +75,259 @@ namespace LGMS.Migrations
                     b.HasIndex("MachineName")
                         .IsUnique();
 
-                    b.ToTable("AttandanceIds");
+                    b.ToTable("AttendanceIds");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.AttendanceRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<TimeSpan>("ActualTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("AttendanceIdId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CheckIns")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CheckOuts")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRecordOk")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeSpan>("LateIn")
+                        .HasColumnType("time");
+
+                    b.Property<int>("OverHours")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("RequiredTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TimeTable")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UnderHours")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttendanceIdId");
+
+                    b.HasIndex("StatusId");
+
+                    b.ToTable("AttendanceRecords");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.AttendanceRecordStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AttendanceRecordStatuses");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.BankAccount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccountNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AccountTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BankName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IBAN")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BankAccounts");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Client", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Business")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Clients");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Contract", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ContractAmount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ExpectedCompletion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("TypeId");
+
+                    b.ToTable("Contracts");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.ContractPackageInformation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ContractId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Discount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Price")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Total")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId");
+
+                    b.ToTable("ContractPackagesInformation");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.ContractStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ContractStatuses");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.ContractType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ContractTypes");
                 });
 
             modelBuilder.Entity("LGMS.Data.Model.Department", b =>
@@ -91,16 +358,94 @@ namespace LGMS.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DepartmentId");
+
                     b.HasIndex("Title")
                         .IsUnique();
 
                     b.ToTable("Designations");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.DomainDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("City")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CompanyName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ContractId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DomainName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ExpirationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FirstName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsExistingDomain")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("IsOwned")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Platform")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PlatformAccountName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PostalCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Province")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RegistrationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("TransferredDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TransferredTo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId");
+
+                    b.ToTable("DomainDetails");
                 });
 
             modelBuilder.Entity("LGMS.Data.Model.Employee", b =>
@@ -114,10 +459,7 @@ namespace LGMS.Migrations
                     b.Property<DateTime>("AgreementExpiration")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("AttandanceIdId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AttendanceId")
+                    b.Property<int?>("AttendanceIdId")
                         .HasColumnType("int");
 
                     b.Property<int>("BasicSalary")
@@ -154,7 +496,7 @@ namespace LGMS.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AttandanceIdId");
+                    b.HasIndex("AttendanceIdId");
 
                     b.HasIndex("DepartmentId");
 
@@ -195,19 +537,21 @@ namespace LGMS.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("BuyingDate")
+                    b.Property<DateTime?>("BuyingDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Comments")
-                        .IsRequired()
+                    b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ManufacturerId")
+                    b.Property<int?>("ManufacturerId")
                         .HasColumnType("int");
 
                     b.Property<string>("Number")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ParentEquipmentId")
+                        .HasColumnType("int");
 
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
@@ -215,18 +559,20 @@ namespace LGMS.Migrations
                     b.Property<int>("TypeId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("UnboxingDate")
+                    b.Property<DateTime?>("UnboxingDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("VendorId")
+                    b.Property<int?>("VendorId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("WarrantyExpiryDate")
+                    b.Property<DateTime?>("WarrantyExpiryDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ManufacturerId");
+
+                    b.HasIndex("ParentEquipmentId");
 
                     b.HasIndex("StatusId");
 
@@ -271,7 +617,60 @@ namespace LGMS.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EquipmentType");
+                    b.ToTable("EquipmentTypes");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Expiration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ContractId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId");
+
+                    b.ToTable("Expiration");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Loan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("Loans");
                 });
 
             modelBuilder.Entity("LGMS.Data.Model.Manufacturer", b =>
@@ -292,6 +691,197 @@ namespace LGMS.Migrations
                         .IsUnique();
 
                     b.ToTable("Manufacturers");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BankAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ContractId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BankAccountId");
+
+                    b.HasIndex("ContractId");
+
+                    b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Quotation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.ToTable("Quotations");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.QuotationPackageInformation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Discount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Price")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("QuotationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Total")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuotationId");
+
+                    b.ToTable("QuotationPackagesInformation");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.SalarySlip", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AttendanceAllowance")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("Comission")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("DeductionApplied")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Deductions")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Department")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Designation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("GenratedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("IncomeTax")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Loan")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("OnTimeAllowance")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Overtime")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Paid")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("PayPeriod")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool?>("PerformanceAllowance")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Salary")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SecurityDeposit")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Total")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SalarySlips");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.SecurityDeposit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("SecurityDeposits");
                 });
 
             modelBuilder.Entity("LGMS.Data.Model.Vendor", b =>
@@ -549,6 +1139,21 @@ namespace LGMS.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("BankAccountQuotation", b =>
+                {
+                    b.HasOne("LGMS.Data.Model.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LGMS.Data.Model.Quotation", null)
+                        .WithMany()
+                        .HasForeignKey("QuotationsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("EmployeeEquipment", b =>
                 {
                     b.HasOne("LGMS.Data.Model.Employee", null)
@@ -564,13 +1169,86 @@ namespace LGMS.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("LGMS.Data.Model.Employee", b =>
+            modelBuilder.Entity("LGMS.Data.Model.AttendanceRecord", b =>
                 {
-                    b.HasOne("LGMS.Data.Model.AttandanceId", "AttandanceId")
+                    b.HasOne("LGMS.Data.Model.AttendanceId", "AttendanceId")
                         .WithMany()
-                        .HasForeignKey("AttandanceIdId")
+                        .HasForeignKey("AttendanceIdId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("LGMS.Data.Model.AttendanceRecordStatus", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AttendanceId");
+
+                    b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Contract", b =>
+                {
+                    b.HasOne("LGMS.Data.Model.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LGMS.Data.Model.ContractStatus", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LGMS.Data.Model.ContractType", "Type")
+                        .WithMany()
+                        .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Status");
+
+                    b.Navigation("Type");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.ContractPackageInformation", b =>
+                {
+                    b.HasOne("LGMS.Data.Model.Contract", "Contract")
+                        .WithMany("ContractPackageInformations")
+                        .HasForeignKey("ContractId");
+
+                    b.Navigation("Contract");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Designation", b =>
+                {
+                    b.HasOne("LGMS.Data.Model.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.DomainDetails", b =>
+                {
+                    b.HasOne("LGMS.Data.Model.Contract", "Contract")
+                        .WithMany("DomainDetails")
+                        .HasForeignKey("ContractId");
+
+                    b.Navigation("Contract");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Employee", b =>
+                {
+                    b.HasOne("LGMS.Data.Model.AttendanceId", "AttendanceId")
+                        .WithMany()
+                        .HasForeignKey("AttendanceIdId");
 
                     b.HasOne("LGMS.Data.Model.Department", "Department")
                         .WithMany()
@@ -594,7 +1272,7 @@ namespace LGMS.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AttandanceId");
+                    b.Navigation("AttendanceId");
 
                     b.Navigation("Department");
 
@@ -609,9 +1287,11 @@ namespace LGMS.Migrations
                 {
                     b.HasOne("LGMS.Data.Model.Manufacturer", "Manufacturer")
                         .WithMany()
-                        .HasForeignKey("ManufacturerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ManufacturerId");
+
+                    b.HasOne("LGMS.Data.Model.Equipment", "ParentEquipment")
+                        .WithMany()
+                        .HasForeignKey("ParentEquipmentId");
 
                     b.HasOne("LGMS.Data.Model.EquipmentStatus", "Status")
                         .WithMany()
@@ -627,17 +1307,85 @@ namespace LGMS.Migrations
 
                     b.HasOne("LGMS.Data.Model.Vendor", "Vendor")
                         .WithMany()
-                        .HasForeignKey("VendorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("VendorId");
 
                     b.Navigation("Manufacturer");
+
+                    b.Navigation("ParentEquipment");
 
                     b.Navigation("Status");
 
                     b.Navigation("Type");
 
                     b.Navigation("Vendor");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Expiration", b =>
+                {
+                    b.HasOne("LGMS.Data.Model.Contract", "Contract")
+                        .WithMany("Expirations")
+                        .HasForeignKey("ContractId");
+
+                    b.Navigation("Contract");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Loan", b =>
+                {
+                    b.HasOne("LGMS.Data.Model.Employee", "Employee")
+                        .WithMany("Loans")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Payment", b =>
+                {
+                    b.HasOne("LGMS.Data.Model.BankAccount", "BankAccount")
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LGMS.Data.Model.Contract", "Contract")
+                        .WithMany("Payments")
+                        .HasForeignKey("ContractId");
+
+                    b.Navigation("BankAccount");
+
+                    b.Navigation("Contract");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Quotation", b =>
+                {
+                    b.HasOne("LGMS.Data.Model.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.QuotationPackageInformation", b =>
+                {
+                    b.HasOne("LGMS.Data.Model.Quotation", "Quotation")
+                        .WithMany("QuotationPackageInformations")
+                        .HasForeignKey("QuotationId");
+
+                    b.Navigation("Quotation");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.SecurityDeposit", b =>
+                {
+                    b.HasOne("LGMS.Data.Model.Employee", "Employee")
+                        .WithMany("SecurityDeposits")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -689,6 +1437,29 @@ namespace LGMS.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Contract", b =>
+                {
+                    b.Navigation("ContractPackageInformations");
+
+                    b.Navigation("DomainDetails");
+
+                    b.Navigation("Expirations");
+
+                    b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Employee", b =>
+                {
+                    b.Navigation("Loans");
+
+                    b.Navigation("SecurityDeposits");
+                });
+
+            modelBuilder.Entity("LGMS.Data.Model.Quotation", b =>
+                {
+                    b.Navigation("QuotationPackageInformations");
                 });
 #pragma warning restore 612, 618
         }
