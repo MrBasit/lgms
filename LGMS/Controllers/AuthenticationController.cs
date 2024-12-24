@@ -4,11 +4,12 @@ using LGMS.Data.Models.Authentication;
 using LGMS.Dto;
 using MailSender.Model;
 using MailSender.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using LGMS.Data.Model;
 using Microsoft.IdentityModel.Tokens;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
@@ -137,7 +138,7 @@ namespace LGMS.Controllers
                         if (emprole != null)
                         {
                             var a = await _userManager.AddToRoleAsync(user, emprole.Name);
-                        }
+                }
 
                         //add User to employee
                         employee.IdentityUser = user;
@@ -150,20 +151,20 @@ namespace LGMS.Controllers
                         _emailService.SendEmail(message);
                     }
                     catch (Exception ex)
-                    {
+                {
                         return StatusCode(StatusCodes.Status201Created, new Response
                         {
                             Status = "PartialSucceeded",
                             Message = "User created successfully but not attached with Employee"
-                        });
+                });
 
-                    }
-                    
+            }
+
                     return StatusCode(StatusCodes.Status201Created, new Response
-                    {
+                {
                         Status = "Succeeded",
                         Message = "User created successfully and attached with Employee."
-                    });
+                });
                 }
 
                 return StatusCode(StatusCodes.Status500InternalServerError, new Response
