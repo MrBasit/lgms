@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using LGMS.Data.Model;
+using System.ComponentModel.DataAnnotations;
 namespace LGMS.Data.Models.Authentication
 {
     public class RegisterUser
@@ -11,5 +12,9 @@ namespace LGMS.Data.Models.Authentication
 
         [Required(ErrorMessage = "Field is required")]
         public string? Password { get; set; }
+
+        public int EmployeeId { get; set; }
+
+        public Employee? Employee { get; set; }
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace LGMS.Controllers
 {
@@ -119,7 +120,14 @@ namespace LGMS.Controllers
             var employees = _dbContext.Employees.Include(e => e.AttendanceId).Where(e => e.AttendanceId != null && e.Status.Title == "Active").OrderBy(e => e.Name).ToList();
             return Ok(employees);
         }
-        
+
+        [HttpGet("GetUserEmployees")]
+        public IActionResult GetUserEmployees()
+        {
+            var employees = _dbContext.Employees.Include(e => e.IdentityUser).Where(e => e.IdentityUser != null).OrderBy(e => e.Name).ToList();
+            return Ok(employees);
+        }
+
         [HttpGet("GetEmployeeById")]
         public IActionResult GetEmployeeById(int employeeId)
         {
@@ -131,6 +139,7 @@ namespace LGMS.Controllers
                             .Include(e => e.SecurityDeposits)
                             .Include(e => e.Loans)
                             .Include(e => e.Equipments).ThenInclude(eq => eq.Type)
+                            .Include(e => e.IdentityUser)
                             .SingleOrDefault(e => e.Id == employeeId);
             if (employee == null) return BadRequest(new { message = string.Format("Employee with id {0} doesn't exist", employeeId) });
             return Ok(employee);
@@ -223,6 +232,9 @@ namespace LGMS.Controllers
                 {
                     AttendanceId = attendanceId,
                     Name = employeeDetails.EmployeeName,
+                    Email = employeeDetails.Email,
+                    PhoneNumber = employeeDetails.PhoneNumber,
+                    NIC = employeeDetails.NIC,
                     EmployeeNumber = employeeNumber,
                     BirthDate = employeeDetails.BirthDate,
                     Department = department,
@@ -295,6 +307,9 @@ namespace LGMS.Controllers
             try
             {
                 existingEmployee.Name = employeeDetails.EmployeeName;
+                existingEmployee.Email = employeeDetails.Email;
+                existingEmployee.PhoneNumber = employeeDetails.PhoneNumber;
+                existingEmployee.NIC = employeeDetails.NIC;
                 existingEmployee.BirthDate = employeeDetails.BirthDate;
                 existingEmployee.JoiningDate = employeeDetails.JoiningDate;
                 existingEmployee.BasicSalary = employeeDetails.BasicSalary;

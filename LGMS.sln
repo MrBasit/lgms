@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LGMS", "LGMS\LGMS.csproj", "{0DF909BB-E245-4086-B6FE-A0FA20DC2335}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LGMS", "LGMS\LGMS.csproj", "{0DF909BB-E245-4086-B6FE-A0FA20DC2335}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MailSender", "MailSender\MailSender.csproj", "{679CD3C6-F1A3-441E-A96D-CDD58FE183BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,8 +15,12 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0DF909BB-E245-4086-B6FE-A0FA20DC2335}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0DF909BB-E245-4086-B6FE-A0FA20DC2335}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0DF909BB-E245-4086-B6FE-A0FA20DC2335}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0DF909BB-E245-4086-B6FE-A0FA20DC2335}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DF909BB-E245-4086-B6FE-A0FA20DC2335}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DF909BB-E245-4086-B6FE-A0FA20DC2335}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{679CD3C6-F1A3-441E-A96D-CDD58FE183BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{679CD3C6-F1A3-441E-A96D-CDD58FE183BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{679CD3C6-F1A3-441E-A96D-CDD58FE183BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{679CD3C6-F1A3-441E-A96D-CDD58FE183BB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

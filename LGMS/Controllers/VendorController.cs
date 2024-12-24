@@ -84,6 +84,7 @@ namespace LGMS.Controllers
 
             return Ok(pagedVendorsResult);
         }
+
         [HttpGet("GetVendorById")]
         public IActionResult GetVendorById(int id)
         {
@@ -103,7 +104,7 @@ namespace LGMS.Controllers
                 return NotFound(new { message = "Vendor not Found" });
             }
 
-            if (_dbContext.Vendors.Any(d => d.Name.ToUpper() == vendorDetails.Name.ToUpper() && d.Id != vendorDetails.Id))
+            if (vendorDetails.Location != null && _dbContext.Vendors.Any(d => d.Name.ToUpper() == vendorDetails.Name.ToUpper() && d.Location.ToUpper() == vendorDetails.Location.ToUpper() && d.Id != vendorDetails.Id))
             {
                 return BadRequest(new
                 {
@@ -113,6 +114,7 @@ namespace LGMS.Controllers
             try
             {
                 existingVendor.Name = vendorDetails.Name;
+                existingVendor.Location = vendorDetails.Location;   
                 _dbContext.SaveChanges();
                 return Ok(existingVendor);
             }
@@ -124,6 +126,7 @@ namespace LGMS.Controllers
                 });
             }
         }
+
         [HttpPost("DeleteVendor")]
         public IActionResult DeleteVendor([FromBody] int id)
         {
@@ -154,15 +157,19 @@ namespace LGMS.Controllers
         }
 
         [HttpPost("AddVendors")]
-        public IActionResult AddVendors([FromBody] List<string> names)
-        {
-            if (names == null || !names.Any())
-            {
-                return BadRequest(new { message = "No vendor names provided." });
-            }
+        public IActionResult AddVendors([FromBody] List<string> vendorsWithLocation)
+        { 
+            var vendorData = vendorsWithLocation
+                                .Select(vendor => vendor.Split('|'))
+                                .Where(parts => parts.Length == 1 || parts.Length == 2)
+                                .Select(parts => new
+                                {
+                                    Name = parts[0].Trim(),
+                                    Location = parts.Length == 2 ? parts[1].Trim() : null
+                                })
+                                .ToList();
 
-            var vendorNames = names.Select(name => name).ToList();
-
+            var vendorNames = vendorData.Select(v => v.Name).ToList();
             var existingVendors = _dbContext.Vendors
                                             .Where(v => vendorNames.Select(n => n.ToLower()).Contains(v.Name.ToLower()))
                                             .Select(v => v.Name)
@@ -173,12 +180,13 @@ namespace LGMS.Controllers
                 return BadRequest(new { message = $"The following vendors already exist: {string.Join(", ", existingVendors)}" });
             }
 
-            var newVendors = vendorNames.Select(name => new Vendor { Name = name }).ToList();
+            var newVendors = vendorData.Select(v => new Vendor { Name = v.Name, Location = v.Location }).ToList();
             _dbContext.Vendors.AddRange(newVendors);
             _dbContext.SaveChanges();
 
             return Ok(new { message = $"{newVendors.Count} vendors added successfully." });
         }
+
 
     }
 }

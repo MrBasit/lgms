@@ -4,6 +4,7 @@ using LGMS.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LGMS.Migrations
 {
     [DbContext(typeof(LgmsDbContext))]
-    partial class LgmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241221125345_addedEmailandUserId")]
+    partial class addedEmailandUserId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -487,14 +490,8 @@ namespace LGMS.Migrations
                     b.Property<DateTime>("JoiningDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("NIC")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("StatusId")
@@ -814,8 +811,11 @@ namespace LGMS.Migrations
                     b.Property<int>("Deductions")
                         .HasColumnType("int");
 
-                    b.Property<int>("EmployeeId")
-                        .HasColumnType("int");
+                    b.Property<string>("Department")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Designation")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("GenratedDate")
                         .HasColumnType("datetime2");
@@ -825,6 +825,10 @@ namespace LGMS.Migrations
 
                     b.Property<int?>("Loan")
                         .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("OnTimeAllowance")
                         .HasColumnType("bit");
@@ -851,8 +855,6 @@ namespace LGMS.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("EmployeeId");
 
                     b.ToTable("SalarySlips");
                 });
@@ -893,9 +895,6 @@ namespace LGMS.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -933,43 +932,6 @@ namespace LGMS.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "e001602a-3a66-4c95-9921-162daff54f23",
-                            ConcurrencyStamp = "1",
-                            Name = "Admin",
-                            NormalizedName = "Admin"
-                        },
-                        new
-                        {
-                            Id = "811ade0d-b1b1-4f27-b4c6-9ad7adfd2fd7",
-                            ConcurrencyStamp = "2",
-                            Name = "HR",
-                            NormalizedName = "HR"
-                        },
-                        new
-                        {
-                            Id = "f75b41fd-36f8-41c5-b6bf-558a888d6a11",
-                            ConcurrencyStamp = "3",
-                            Name = "Sales",
-                            NormalizedName = "Sales"
-                        },
-                        new
-                        {
-                            Id = "eea61168-43ee-4ede-9484-6eeb3ac99cf4",
-                            ConcurrencyStamp = "4",
-                            Name = "Stores",
-                            NormalizedName = "Stores"
-                        },
-                        new
-                        {
-                            Id = "b3bd8dfa-9542-415c-9ff1-5a389ccc0bbf",
-                            ConcurrencyStamp = "5",
-                            Name = "Employee",
-                            NormalizedName = "Employee"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1379,17 +1341,6 @@ namespace LGMS.Migrations
                         .HasForeignKey("QuotationId");
 
                     b.Navigation("Quotation");
-                });
-
-            modelBuilder.Entity("LGMS.Data.Model.SalarySlip", b =>
-                {
-                    b.HasOne("LGMS.Data.Model.Employee", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("LGMS.Data.Model.SecurityDeposit", b =>
