@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace LGMS.Data.Context
 {
@@ -21,7 +22,6 @@ namespace LGMS.Data.Context
         public DbSet<Vendor> Vendors { get; set; }
         public DbSet<Equipment> Equipments { get; set; }
         public DbSet<EquipmentType> EquipmentTypes { get; set; }
-
         public DbSet<AttendanceId> AttendanceIds { get; set; }
         public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
         public DbSet<AttendanceRecordStatus> AttendanceRecordStatuses { get; set; }
@@ -37,6 +37,8 @@ namespace LGMS.Data.Context
         public DbSet<ContractPackageInformation> ContractPackagesInformation { get; set; }
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<DomainDetails> DomainDetails { get; set; }
+        public DbSet<SecurityDeposit> SecurityDeposits { get; set; }
+        public DbSet<Loan> Loans { get; set; }
 
 
 
@@ -44,6 +46,7 @@ namespace LGMS.Data.Context
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+            SeedRoles(builder);
             builder.Entity<Department>(entity =>
             {
                 entity.HasIndex(e => e.Name).IsUnique();
@@ -79,6 +82,24 @@ namespace LGMS.Data.Context
                 entity.HasIndex(e => e.MachineId).IsUnique();
                 entity.HasIndex(e => e.MachineName).IsUnique();
             });
+
+            //builder.Entity<Employee>(entity =>
+            //{
+            //    entity.HasIndex(e => e.IdentityUser).IsUnique();
+            //});
+        }
+
+        private void SeedRoles(ModelBuilder builder)
+        {
+            builder.Entity<IdentityRole>().HasData(
+                new IdentityRole() { Name = "Admin", ConcurrencyStamp = "1", NormalizedName = "Admin" },
+                new IdentityRole() { Name = "HR", ConcurrencyStamp = "2", NormalizedName = "HR" },
+                new IdentityRole() { Name = "Sales", ConcurrencyStamp = "3", NormalizedName = "Sales" },
+                new IdentityRole() { Name = "Stores", ConcurrencyStamp = "4", NormalizedName = "Stores" },
+                new IdentityRole() { Name = "Employee", ConcurrencyStamp = "5", NormalizedName = "Employee" },
+                new IdentityRole() { Name = "Access", ConcurrencyStamp = "6", NormalizedName = "Access" },
+                new IdentityRole() { Name = "BD", ConcurrencyStamp = "7", NormalizedName = "BD" }
+                );
         }
     }
 }

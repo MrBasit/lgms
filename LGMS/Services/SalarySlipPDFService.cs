@@ -10,14 +10,14 @@ namespace LGMS.Services
 {
     public class SalarySlipPDFService
     {
-        public IDocument CreateSalarySlipPdf(SalarySlipDTO slip, string logoPath)
+        public IDocument CreateSalarySlipPdf(SalarySlipDTO slip, string logoPath, string check, string uncheck)
         {
-            decimal basicSalary = slip.Salary;
+            decimal basicSalary = slip.Employee.BasicSalary;
             decimal onTimeAllowance = slip.OnTimeAllowance ? CalculateAllowances(true, basicSalary) : 0;
             decimal attendanceAllowance = slip.AttendanceAllowance ? CalculateAllowances(slip.AttendanceAllowance, basicSalary) : 0;
             decimal performanceAllowance = slip.PerformanceAllowance.HasValue && slip.PerformanceAllowance.Value ? CalculateAllowances(true, basicSalary) : 0;
             decimal grossTotal = basicSalary + onTimeAllowance + attendanceAllowance + performanceAllowance + slip.Overtime + (slip.Comission ?? 0);
-            decimal totalDeductions = slip.Deductions;
+            decimal totalDeductions = slip.DeductionApplied? slip.Deductions: 0;
             if (slip.Loan.HasValue)
             {
                 totalDeductions += slip.Loan.Value;
@@ -62,17 +62,17 @@ namespace LGMS.Services
                             table.Cell().Padding(3).Text("Genrated Date:").Bold();
                             table.Cell().Padding(3).Text(DateTime.Now.ToString("yyyy-MM-dd"));
                             table.Cell().Padding(3).Text("Employee Name:").Bold();
-                            table.Cell().Padding(3).Text(slip.Name);
+                            table.Cell().Padding(3).Text(slip.Employee.Name);
 
                             table.Cell().Padding(3).Text("Pay Period:").Bold();
                             table.Cell().Padding(3).Text(slip.PayPeriod.Value.ToString("MMM yyyy"));
                             table.Cell().Padding(3).Text("Designation:").Bold();
-                            table.Cell().Padding(3).Text(slip.Designation);
+                            table.Cell().Padding(3).Text(slip.Employee.Designation.Title);
 
                             table.Cell().Padding(3).Text("Currency:").Bold();
                             table.Cell().Padding(3).Text("PKR");
                             table.Cell().Padding(3).Text("Department:").Bold();
-                            table.Cell().Padding(3).Text(slip.Department);
+                            table.Cell().Padding(3).Text(slip.Employee.Department.Name);
                         });
 
 
@@ -96,25 +96,25 @@ namespace LGMS.Services
                                 earningsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text("Amount").Bold();
 
                                 earningsTable.Cell().BorderLeft(1).Padding(3).Text("Basic Pay").Bold();
-                                earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Salary.ToString("C", new CultureInfo("ur-PK")));
+                                earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Employee.BasicSalary.ToString("N0", new CultureInfo("ur-PK")));
 
                                 earningsTable.Cell().BorderLeft(1).Padding(3).Text("OnTime Allowance").Bold();
-                                earningsTable.Cell().BorderRight(1).Padding(3).Text(onTimeAllowance.ToString("C", new CultureInfo("ur-PK")));
+                                earningsTable.Cell().BorderRight(1).Padding(3).Text(onTimeAllowance.ToString("N0", new CultureInfo("ur-PK")));
 
                                 earningsTable.Cell().BorderLeft(1).Padding(3).Text("Attendance Allowance").Bold();
-                                earningsTable.Cell().BorderRight(1).Padding(3).Text(attendanceAllowance.ToString("C", new CultureInfo("ur-PK")));
+                                earningsTable.Cell().BorderRight(1).Padding(3).Text(attendanceAllowance.ToString("N0", new CultureInfo("ur-PK")));
 
                                 earningsTable.Cell().BorderLeft(1).Padding(3).Text("Performance Allowance").Bold();
-                                earningsTable.Cell().BorderRight(1).Padding(3).Text(performanceAllowance.ToString("C", new CultureInfo("ur-PK")));
+                                earningsTable.Cell().BorderRight(1).Padding(3).Text(performanceAllowance.ToString("N0", new CultureInfo("ur-PK")));
 
                                 earningsTable.Cell().BorderLeft(1).Padding(3).Text("Overtime").Bold();
-                                earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Overtime.ToString("C", new CultureInfo("ur-PK")));
+                                earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Overtime.ToString("N0", new CultureInfo("ur-PK")));
 
                                 earningsTable.Cell().BorderLeft(1).Padding(3).Text("Commission").Bold();
-                                earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Comission.HasValue ? slip.Comission.Value.ToString("C", new CultureInfo("ur-PK")) : "N/A");
+                                earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Comission.HasValue ? slip.Comission.Value.ToString("N0", new CultureInfo("ur-PK")) : "N/A");
 
                                 earningsTable.Cell().Border(1).BorderRight(0).Padding(3).Text("Gross Total").Bold();
-                                earningsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text(grossTotal.ToString("C", new CultureInfo("ur-PK"))).Bold();
+                                earningsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text(grossTotal.ToString("N0", new CultureInfo("ur-PK"))).Bold();
                             });
 
                             table.Cell().Padding(0).Table(deductionsTable =>
@@ -129,36 +129,51 @@ namespace LGMS.Services
                                 deductionsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text("Amount").Bold();
 
                                 deductionsTable.Cell().Padding(3).Text("Off/Late deduction").Bold();
-                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.Deductions.ToString("C", new CultureInfo("ur-PK")));
+                                deductionsTable.Cell().BorderRight(1).Padding(3).Text("(" + slip.Deductions.ToString("N0", new CultureInfo("ur-PK")) + ")");
 
-                                deductionsTable.Cell().Padding(3).Text("Loan").Bold();
-                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.Loan.HasValue ? slip.Loan.Value.ToString("C", new CultureInfo("ur-PK")) : "N/A");
+                                if(slip.DeductionApplied == false)
+                                {
+                                    deductionsTable.Cell().Padding(3).Text("Deduction Adjustment").Bold();
+                                    deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.Deductions.ToString("N0", new CultureInfo("ur-PK")));
+                                }
+
+                                deductionsTable.Cell().Padding(3).Text("Loan Payment").Bold();
+                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.Loan.HasValue ? "(" + slip.Loan.Value.ToString("N0", new CultureInfo("ur-PK")) + ")": "N/A");
 
                                 deductionsTable.Cell().Padding(3).Text("Security Deposit").Bold();
-                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.SecurityDeposit.HasValue ? slip.SecurityDeposit.Value.ToString("C", new CultureInfo("ur-PK")) : "N/A");
+                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.SecurityDeposit.HasValue ? "(" + slip.SecurityDeposit.Value.ToString("N0", new CultureInfo("ur-PK")) + ")" : "N/A");
 
                                 deductionsTable.Cell().Padding(3).Text("Income Tax").Bold();
-                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.IncomeTax.HasValue ? slip.IncomeTax.Value.ToString("C", new CultureInfo("ur-PK")) : "N/A");
+                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.IncomeTax.HasValue ? "(" +slip.IncomeTax.Value.ToString("N0", new CultureInfo("ur-PK")) + ")" : "N/A");
 
-                                deductionsTable.Cell().Padding(3).Text("").Bold();
-                                deductionsTable.Cell().BorderRight(1).Padding(3).Text("");
+                                if(slip.DeductionApplied == true)
+                                {
+                                    deductionsTable.Cell().Padding(3).Text("").Bold();
+                                    deductionsTable.Cell().BorderRight(1).Padding(3).Text("");
+                                }
 
                                 deductionsTable.Cell().Padding(3).Text("").Bold();
                                 deductionsTable.Cell().BorderRight(1).Padding(3).Text("");
 
                                 deductionsTable.Cell().Border(1).BorderLeft(0).BorderRight(0).Padding(3).Text("Total Deductions").Bold();
-                                deductionsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text(totalDeductions.ToString("C", new CultureInfo("ur-PK"))).Bold();
+                                deductionsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text("(" +  totalDeductions.ToString("N0", new CultureInfo("ur-PK")) + ")" ).Bold();
                             });
                         });
 
+                        //col.Item().AlignRight().PaddingTop(20).Row(row =>
+                        //{
+                        //    row.RelativeItem().AlignRight().Text($"Deduction Applied:").Bold().FontSize(12);
+                        //    row.RelativeItem().Height(12).Image(slip.DeductionApplied ? check : uncheck);
+                        //});
+
                         col.Item().PaddingTop(20).Row(row =>
                         {
-                            row.RelativeItem().AlignRight().Text($"Net Pay: {slip.Total.ToString("C", new CultureInfo("ur-PK"))}").Bold().FontSize(12);
+                            row.RelativeItem().AlignRight().Text($"Net Pay: {slip.Total.ToString("N0", new CultureInfo("ur-PK"))}").Bold().FontSize(12);
                         });
 
                         col.Item().PaddingTop(100).Row(row =>
                         {
-                            row.RelativeItem().AlignRight().Text("DIRECTOR ________________________");
+                            row.RelativeItem().AlignRight().Text("MANAGING DIRECTOR ________________________");
                         });
                     });
 
@@ -172,14 +187,14 @@ namespace LGMS.Services
             });
         }
 
-        public IDocument DownloadSalarySlip(SalarySlip slip, string logoPath)
+        public IDocument DownloadSalarySlip(SalarySlip slip, string logoPath, string check, string uncheck)
         {
-            decimal basicSalary = slip.Salary;
+            decimal basicSalary = slip.Employee.BasicSalary;
             decimal onTimeAllowance = slip.OnTimeAllowance ? CalculateAllowances(true, basicSalary) : 0;
             decimal attendanceAllowance = slip.AttendanceAllowance ? CalculateAllowances(slip.AttendanceAllowance, basicSalary) : 0;
             decimal performanceAllowance = slip.PerformanceAllowance.HasValue && slip.PerformanceAllowance.Value ? CalculateAllowances(true, basicSalary) : 0;
             decimal grossTotal = basicSalary + onTimeAllowance + attendanceAllowance + performanceAllowance + slip.Overtime + (slip.Comission ?? 0);
-            decimal totalDeductions = slip.Deductions;
+            decimal totalDeductions = slip.DeductionApplied ? slip.Deductions : 0;
             if (slip.Loan.HasValue)
             {
                 totalDeductions += slip.Loan.Value;
@@ -224,17 +239,17 @@ namespace LGMS.Services
                             table.Cell().Padding(3).Text("Genrated Date:").Bold();
                             table.Cell().Padding(3).Text(slip.GenratedDate.Value.ToString("yyyy-MM-dd"));
                             table.Cell().Padding(3).Text("Employee Name:").Bold();
-                            table.Cell().Padding(3).Text(slip.Name);
+                            table.Cell().Padding(3).Text(slip.Employee.Name);
 
                             table.Cell().Padding(3).Text("Pay Period:").Bold();
                             table.Cell().Padding(3).Text(slip.PayPeriod.Value.ToString("MMM yyyy"));
                             table.Cell().Padding(3).Text("Designation:").Bold();
-                            table.Cell().Padding(3).Text(slip.Designation);
+                            table.Cell().Padding(3).Text(slip.Employee.Designation.Title);
 
                             table.Cell().Padding(3).Text("Currency:").Bold();
                             table.Cell().Padding(3).Text("PKR");
                             table.Cell().Padding(3).Text("Department:").Bold();
-                            table.Cell().Padding(3).Text(slip.Department);
+                            table.Cell().Padding(3).Text(slip.Employee.Department.Name);
                         });
 
 
@@ -258,25 +273,25 @@ namespace LGMS.Services
                                 earningsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text("Amount").Bold();
 
                                 earningsTable.Cell().BorderLeft(1).Padding(3).Text("Basic Pay").Bold();
-                                earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Salary.ToString("C", new CultureInfo("ur-PK")));
+                                earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Employee.BasicSalary.ToString("N0", new CultureInfo("ur-PK")));
 
                                 earningsTable.Cell().BorderLeft(1).Padding(3).Text("OnTime Allowance").Bold();
-                                earningsTable.Cell().BorderRight(1).Padding(3).Text(onTimeAllowance.ToString("C", new CultureInfo("ur-PK")));
+                                earningsTable.Cell().BorderRight(1).Padding(3).Text(onTimeAllowance.ToString("N0", new CultureInfo("ur-PK")));
 
                                 earningsTable.Cell().BorderLeft(1).Padding(3).Text("Attendance Allowance").Bold();
-                                earningsTable.Cell().BorderRight(1).Padding(3).Text(attendanceAllowance.ToString("C", new CultureInfo("ur-PK")));
+                                earningsTable.Cell().BorderRight(1).Padding(3).Text(attendanceAllowance.ToString("N0", new CultureInfo("ur-PK")));
 
                                 earningsTable.Cell().BorderLeft(1).Padding(3).Text("Performance Allowance").Bold();
-                                earningsTable.Cell().BorderRight(1).Padding(3).Text(performanceAllowance.ToString("C", new CultureInfo("ur-PK")));
+                                earningsTable.Cell().BorderRight(1).Padding(3).Text(performanceAllowance.ToString("N0", new CultureInfo("ur-PK")));
 
                                 earningsTable.Cell().BorderLeft(1).Padding(3).Text("Overtime").Bold();
-                                earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Overtime.ToString("C", new CultureInfo("ur-PK")));
+                                earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Overtime.ToString("N0", new CultureInfo("ur-PK")));
 
                                 earningsTable.Cell().BorderLeft(1).Padding(3).Text("Commission").Bold();
-                                earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Comission.HasValue ? slip.Comission.Value.ToString("C", new CultureInfo("ur-PK")) : "N/A");
+                                earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Comission.HasValue ? slip.Comission.Value.ToString("N0", new CultureInfo("ur-PK")) : "N/A");
 
                                 earningsTable.Cell().Border(1).BorderRight(0).Padding(3).Text("Gross Total").Bold();
-                                earningsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text(grossTotal.ToString("C", new CultureInfo("ur-PK"))).Bold();
+                                earningsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text(grossTotal.ToString("N0", new CultureInfo("ur-PK"))).Bold();
                             });
 
                             table.Cell().Padding(0).Table(deductionsTable =>
@@ -291,36 +306,52 @@ namespace LGMS.Services
                                 deductionsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text("Amount").Bold();
 
                                 deductionsTable.Cell().Padding(3).Text("Off/Late deduction").Bold();
-                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.Deductions.ToString("C", new CultureInfo("ur-PK")));
+                                deductionsTable.Cell().BorderRight(1).Padding(3).Text("(" + slip.Deductions.ToString("N0", new CultureInfo("ur-PK")) + ")");
 
-                                deductionsTable.Cell().Padding(3).Text("Loan").Bold();
-                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.Loan.HasValue ? slip.Loan.Value.ToString("C", new CultureInfo("ur-PK")) : "N/A");
+                                if (slip.DeductionApplied == false)
+                                {
+                                    deductionsTable.Cell().Padding(3).Text("Deduction Adjustment").Bold();
+                                    deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.Deductions.ToString("N0", new CultureInfo("ur-PK")));
+                                }
+
+                                deductionsTable.Cell().Padding(3).Text("Loan Payment").Bold();
+                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.Loan.HasValue ? "(" + slip.Loan.Value.ToString("N0", new CultureInfo("ur-PK")) + ")" : "N/A");
 
                                 deductionsTable.Cell().Padding(3).Text("Security Deposit").Bold();
-                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.SecurityDeposit.HasValue ? slip.SecurityDeposit.Value.ToString("C", new CultureInfo("ur-PK")) : "N/A");
+                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.SecurityDeposit.HasValue ? "(" + slip.SecurityDeposit.Value.ToString("N0", new CultureInfo("ur-PK")) + ")" : "N/A");
 
                                 deductionsTable.Cell().Padding(3).Text("Income Tax").Bold();
-                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.IncomeTax.HasValue ? slip.IncomeTax.Value.ToString("C", new CultureInfo("ur-PK")) : "N/A");
+                                deductionsTable.Cell().BorderRight(1).Padding(3).Text(slip.IncomeTax.HasValue ? "(" + slip.IncomeTax.Value.ToString("N0", new CultureInfo("ur-PK")) + ")" : "N/A");
 
-                                deductionsTable.Cell().Padding(3).Text("").Bold();
-                                deductionsTable.Cell().BorderRight(1).Padding(3).Text("");
+                                if (slip.DeductionApplied == true)
+                                {
+                                    deductionsTable.Cell().Padding(3).Text("").Bold();
+                                    deductionsTable.Cell().BorderRight(1).Padding(3).Text("");
+                                }
 
                                 deductionsTable.Cell().Padding(3).Text("").Bold();
                                 deductionsTable.Cell().BorderRight(1).Padding(3).Text("");
 
                                 deductionsTable.Cell().Border(1).BorderLeft(0).BorderRight(0).Padding(3).Text("Total Deductions").Bold();
-                                deductionsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text(totalDeductions.ToString("C", new CultureInfo("ur-PK"))).Bold();
+                                deductionsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text("(" + totalDeductions.ToString("N0", new CultureInfo("ur-PK")) + ")").Bold();
                             });
                         });
 
+                        //col.Item().AlignRight().PaddingTop(20).Row(row =>
+                        //{
+                        //    row.RelativeItem().AlignRight().Text($"Deduction Applied:").Bold().FontSize(12);
+                        //    row.RelativeItem().Height(12).Image(slip.DeductionApplied ? check : uncheck);
+                        //});
+
+
                         col.Item().PaddingTop(20).Row(row =>
                         {
-                            row.RelativeItem().AlignRight().Text($"Net Pay: {slip.Total.ToString("C", new CultureInfo("ur-PK"))}").Bold().FontSize(12);
+                            row.RelativeItem().AlignRight().Text($"Net Pay: {slip.Total.ToString("N0", new CultureInfo("ur-PK"))}").Bold().FontSize(12);
                         });
 
                         col.Item().PaddingTop(100).Row(row =>
                         {
-                            row.RelativeItem().AlignRight().Text("DIRECTOR ________________________");
+                            row.RelativeItem().AlignRight().Text("MANAGING DIRECTOR ________________________");
                         });
                     });
 

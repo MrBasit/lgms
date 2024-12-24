@@ -1,25 +1,25 @@
-﻿using LGMS.Dto;
+﻿using LGMS.Data.Model;
+using LGMS.Dto;
 
 namespace LGMS.Services
 {
     public class SalarySlipService
     {
-        public SalarySlipDTO GenerateSalarySlip(AttendanceReportDTO report, ConfigurationDTO configuration, int year, int month)
+        public SalarySlipDTO GenerateSalarySlip(AttendanceReportDTO report, int year, int month, Employee employee)
         {
             var salarySlipDate = new DateTime(year, month, 1);
             var salarySlip = new SalarySlipDTO
             {
-                Name = configuration.Name,
-                Designation = configuration.Designation,
-                Department = configuration.Department,
+                Employee = employee,
                 GenratedDate = DateTime.Now,
                 PayPeriod = salarySlipDate,
-                Salary = configuration.Salary,
-                Deductions = CalculateDeductions(report, configuration.Salary),
+                Salary = employee.BasicSalary,
+                Deductions = CalculateDeductions(report, employee.BasicSalary),
                 OnTimeAllowance = CalculateOnTimeAllowance(report),
                 AttendanceAllowance = CalculateAttendanceAllowance(report),
                 PerformanceAllowance = false,
-                Overtime = CalculateOvertime(report, configuration.Salary),
+                DeductionApplied = false,
+                Overtime = CalculateOvertime(report, employee.BasicSalary),
                 SecurityDeposit = 0,
                 IncomeTax = 0,
                 Loan = 0,
@@ -67,10 +67,16 @@ namespace LGMS.Services
 
         private int CalculateTotal(SalarySlipDTO slip)
         {
-            int total =  slip.Salary - slip.Deductions + slip.Overtime;
+            int total =  slip.Salary + slip.Overtime;
+
+            if(slip.DeductionApplied == true)
+            {
+                total = total - slip.Deductions;
+            }
+
             if (slip.OnTimeAllowance)
             {
-                total += (int)(slip.Salary * 0.10); 
+                total += (int)(slip.Salary * 0.10);
             }
 
             if (slip.AttendanceAllowance)

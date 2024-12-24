@@ -33,4 +33,8 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MailSender\MailSender.csproj" />
+  </ItemGroup>
+
 </Project>

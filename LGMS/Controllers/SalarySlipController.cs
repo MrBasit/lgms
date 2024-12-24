@@ -93,28 +93,22 @@ namespace LGMS.Controllers
 
                 foreach (var report in attendanceReports)
                 {
-                    var configuration = _dbContext.Employees
+                    var employee = _dbContext.Employees
                         .Include(e => e.AttendanceId)
                         .Include(e => e.Designation)
                         .Include(e => e.Department)
-                        .Where(e => e.AttendanceId.MachineName.ToUpper() == report.Name)
-                        .Select(e => new ConfigurationDTO()
-                        {
-                            Name = e.Name,
-                            Salary = e.BasicSalary,
-                            Designation = e.Designation.Title,
-                            Department = e.Department.Name
-                        })
+                        .Include(e => e.Status)
+                        .Where(e => e.AttendanceId.MachineName.ToUpper() == report.Name.ToUpper())
                         .FirstOrDefault();
 
-                    var salarySlip = salarySlipService.GenerateSalarySlip(report, configuration, searchModel.Year, searchModel.Month);
+                    var salarySlip = salarySlipService.GenerateSalarySlip(report, searchModel.Year, searchModel.Month, employee);
                     salarySlips.Add(salarySlip);
                 }
 
                 if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))
                 {
                     salarySlips = salarySlips.Where(e =>
-                        e.Name.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper())).ToList();
+                        e.Employee.Name.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper())).ToList();
                 }
 
                 if (!string.IsNullOrEmpty(searchModel.SortDetails.SortColumn) &&
@@ -124,8 +118,8 @@ namespace LGMS.Controllers
                     {
                         case "name":
                             salarySlips = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
-                                salarySlips.OrderBy(e => e.Name).ToList() :
-                                salarySlips.OrderByDescending(e => e.Name).ToList();
+                                salarySlips.OrderBy(e => e.Employee.Name).ToList() :
+                                salarySlips.OrderByDescending(e => e.Employee.Name).ToList();
                             break;
                         case "deductions":
                             salarySlips = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
@@ -138,13 +132,13 @@ namespace LGMS.Controllers
                                 salarySlips.OrderByDescending(e => e.Overtime).ToList();
                             break;
                         default:
-                            salarySlips = salarySlips.OrderBy(e => e.Name).ToList();
+                            salarySlips = salarySlips.OrderBy(e => e.Employee.Name).ToList();
                             break;
                     }
                 }
                 else
                 {
-                    salarySlips = salarySlips.OrderBy(e => e.Name).ToList();
+                    salarySlips = salarySlips.OrderBy(e => e.Employee.Name).ToList();
                 }
 
                 var pagedSalarySlipResult = _dtoData.GetPagedData(
@@ -172,6 +166,12 @@ namespace LGMS.Controllers
             try
             {
                 var query = _dbContext.SalarySlips
+                    .Include(s => s.Employee)
+                    .ThenInclude(e => e.Department)
+                    .Include(s => s.Employee)
+                    .ThenInclude(e => e.Designation)
+                    .Include(s => s.Employee)
+                    .ThenInclude(e => e.Status)
                     .AsQueryable();
 
                 if (searchModel.Year <= 0)
@@ -191,7 +191,7 @@ namespace LGMS.Controllers
                         .Select(e => e.Name.ToLower())
                         .ToList();
 
-                    query = query.Where(ar => employeeNames.Contains(ar.Name.ToLower()));
+                    query = query.Where(ar => employeeNames.Contains(ar.Employee.Name.ToLower()));
                 }
 
                 var salarySlips = new List<SalarySlip>();
@@ -203,7 +203,7 @@ namespace LGMS.Controllers
                 else if (searchModel.Mode == "Recent")
                 {
                     salarySlips = query
-                        .GroupBy(s => s.Name)
+                        .GroupBy(s => s.Employee)
                         .Select(g => g.OrderByDescending(e => e.GenratedDate).FirstOrDefault()).ToList();
                 }
                 else if(searchModel.Mode == "History" || searchModel.Mode == null)
@@ -215,7 +215,7 @@ namespace LGMS.Controllers
                 if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))
                 {
                     salarySlips = salarySlips.Where(e =>
-                        e.Name.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper())).ToList();
+                        e.Employee.Name.ToUpper().Contains(searchModel.SearchDetails.SearchTerm.ToUpper())).ToList();
                 }
 
                 if (!string.IsNullOrEmpty(searchModel.SortDetails.SortColumn) &&
@@ -225,8 +225,8 @@ namespace LGMS.Controllers
                     {
                         case "name":
                             salarySlips = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
-                                salarySlips.OrderBy(e => e.Name).ToList() :
-                                salarySlips.OrderByDescending(e => e.Name).ToList();
+                                salarySlips.OrderBy(e => e.Employee.Name).ToList() :
+                                salarySlips.OrderByDescending(e => e.Employee.Name).ToList();
                             break;
                         case "deductions":
                             salarySlips = searchModel.SortDetails.SortDirection == Enum.SortDirections.Ascending ?
@@ -239,13 +239,13 @@ namespace LGMS.Controllers
                                 salarySlips.OrderByDescending(e => e.Overtime).ToList();
                             break;
                         default:
-                            salarySlips = salarySlips.OrderBy(e => e.Name).ToList();
+                            salarySlips = salarySlips.OrderBy(e => e.Employee.Name).ToList();
                             break;
                     }
                 }
                 else
                 {
-                    salarySlips = salarySlips.OrderBy(e => e.Name).ToList();
+                    salarySlips = salarySlips.OrderBy(e => e.Employee.Name).ToList();
                 }
 
                 var pagedSalarySlipResult = _salaryData.GetPagedData(
@@ -273,6 +273,8 @@ namespace LGMS.Controllers
             }
 
             string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "company-logo.png");
+            string check = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "checked.png");
+            string uncheck = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "uncheck.png");
 
             try
             {
@@ -281,8 +283,15 @@ namespace LGMS.Controllers
                 foreach (var slip in salarySlips)
                 {
                     var existingSlips = _dbContext.SalarySlips
-                        .Where(s => s.Name == slip.Name && s.PayPeriod == slip.PayPeriod && s.Paid)
+                        .Include(s => s.Employee)
+                        .Where(s => s.Employee.Id == slip.Employee.Id && s.PayPeriod == slip.PayPeriod && s.Paid)
                         .ToList();
+                    var employee = _dbContext.Employees
+                        .Include(e => e.AttendanceId)
+                        .Include(e => e.Department)
+                        .Include(e => e.Designation)
+                        .Include(e => e.Status)
+                        .SingleOrDefault(e => e.Id == slip.Employee.Id);
 
                     foreach (var existingSlip in existingSlips)
                     {
@@ -291,9 +300,7 @@ namespace LGMS.Controllers
 
                     dbSlips.Add(new SalarySlip()
                     {
-                        Name = slip.Name,
-                        Designation = slip.Designation,
-                        Department = slip.Department,
+                        Employee = employee,
                         GenratedDate = slip.GenratedDate,
                         PayPeriod = slip.PayPeriod,
                         Salary = slip.Salary,
@@ -301,6 +308,7 @@ namespace LGMS.Controllers
                         OnTimeAllowance = slip.OnTimeAllowance,
                         PerformanceAllowance = slip.PerformanceAllowance,
                         AttendanceAllowance = slip.AttendanceAllowance,
+                        DeductionApplied = slip.DeductionApplied,
                         Overtime = slip.Overtime,
                         SecurityDeposit = slip.SecurityDeposit,
                         IncomeTax = slip.IncomeTax,
@@ -322,10 +330,10 @@ namespace LGMS.Controllers
                         {
                             using (var memoryStream = new MemoryStream())
                             {
-                                var document = _pdfService.CreateSalarySlipPdf(slip, logoPath);
+                                var document = _pdfService.CreateSalarySlipPdf(slip, logoPath, check, uncheck);
                                 document.GeneratePdf(memoryStream);
 
-                                var zipEntry = archive.CreateEntry($"{slip.Name}_SalarySlip.pdf", CompressionLevel.Optimal);
+                                var zipEntry = archive.CreateEntry($"{slip.Employee.Name}_SalarySlip.pdf", CompressionLevel.Optimal);
                                 using (var entryStream = zipEntry.Open())
                                 {
                                     memoryStream.Seek(0, SeekOrigin.Begin);
@@ -360,20 +368,25 @@ namespace LGMS.Controllers
 
                 foreach (var slip in salarySlips)
                 {
-                    var existingSlips = _dbContext.SalarySlips
-                        .Where(s => s.Name == slip.Name && s.PayPeriod == slip.PayPeriod && s.Paid)
+
+                    var existingSlips = _dbContext.SalarySlips.Include(s => s.Employee)
+                        .Where(s => s.Employee.Id == slip.Employee.Id && s.PayPeriod == slip.PayPeriod && s.Paid)
                         .ToList();
 
                     foreach (var existingSlip in existingSlips)
                     {
                         existingSlip.Paid = false;
                     }
+                    var employee = _dbContext.Employees
+                        .Include(e => e.AttendanceId)
+                        .Include(e => e.Department)
+                        .Include(e => e.Designation)
+                        .Include(e => e.Status)
+                        .SingleOrDefault(e => e.Id == slip.Employee.Id);
 
                     dbSlips.Add(new SalarySlip()
                     {
-                        Name = slip.Name,
-                        Designation = slip.Designation,
-                        Department = slip.Department,
+                        Employee = employee,
                         GenratedDate = slip.GenratedDate,
                         PayPeriod = slip.PayPeriod,
                         Salary = slip.Salary,
@@ -381,6 +394,7 @@ namespace LGMS.Controllers
                         OnTimeAllowance = slip.OnTimeAllowance,
                         PerformanceAllowance = slip.PerformanceAllowance,
                         AttendanceAllowance = slip.AttendanceAllowance,
+                        DeductionApplied = slip.DeductionApplied,
                         Overtime = slip.Overtime,
                         SecurityDeposit = slip.SecurityDeposit,
                         IncomeTax = slip.IncomeTax,
@@ -411,6 +425,9 @@ namespace LGMS.Controllers
         public IActionResult DownloadSalarySlips([FromBody] List<SalarySlip> salarySlips)
         {
             string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "company-logo.png");
+            string check = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "checked.png");
+            string uncheck = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "uncheck.png");
+
             using (var zipStream = new MemoryStream())
             {
                 using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
@@ -419,10 +436,10 @@ namespace LGMS.Controllers
                     {
                         using (var memoryStream = new MemoryStream())
                         {
-                            var document = _pdfService.DownloadSalarySlip(slip, logoPath);
+                            var document = _pdfService.DownloadSalarySlip(slip, logoPath, check, uncheck);
                             document.GeneratePdf(memoryStream);
 
-                            var zipEntry = archive.CreateEntry($"{slip.Name}_SalarySlip.pdf", CompressionLevel.Optimal);
+                            var zipEntry = archive.CreateEntry($"{slip.Employee.Name}_SalarySlip.pdf", CompressionLevel.Optimal);
                             using (var entryStream = zipEntry.Open())
                             {
                                 memoryStream.Seek(0, SeekOrigin.Begin);
@@ -438,30 +455,47 @@ namespace LGMS.Controllers
         [HttpPost("EditSalarySlip")]
         public IActionResult EditSalarySlip(SalarySlip slip)
         {
-            var dbSlip = _dbContext.SalarySlips.SingleOrDefault(s => s.Id == slip.Id);
-            if (dbSlip == null)
-            {
-                return BadRequest(new { message = "Salary Slip not found." });
-            }
+            using var transaction = _dbContext.Database.BeginTransaction();
+
             try
             {
-                _dbContext.SalarySlips
-                    .Where(s => s.Name == slip.Name && s.PayPeriod == slip.PayPeriod && s.Id != slip.Id)
-                    .ToList()
-                    .ForEach(s => s.Paid = false);
+                var dbSlip = _dbContext.SalarySlips
+                    .Include(s => s.Employee)
+                    .SingleOrDefault(s => s.Id == slip.Id);
+                if (dbSlip == null)
+                {
+                    return BadRequest(new { message = "Salary Slip not found." });
+                }
+
+                var conflictingSlips = _dbContext.SalarySlips
+                    .Include(s => s.Employee)
+                    .Where(s => s.Employee.Id == slip.Employee.Id && s.PayPeriod == slip.PayPeriod && s.Id != slip.Id)
+                    .ToList();
+
+                foreach (var conflictingSlip in conflictingSlips)
+                {
+                    conflictingSlip.Paid = false;
+                }
 
                 dbSlip.Paid = slip.Paid;
+
                 _dbContext.SaveChanges();
-                return Ok();
+
+                transaction.Commit();
+
+                return Ok(new { message = "Salary Slip updated successfully." });
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
+                transaction.Rollback();
+
                 return BadRequest(new
                 {
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
         }
+
 
     }
 }
