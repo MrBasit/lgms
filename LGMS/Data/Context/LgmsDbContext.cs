@@ -80,22 +80,18 @@ namespace LGMS.Data.Context
                 entity.HasIndex(e => e.MachineName).IsUnique();
             });
 
-            //builder.Entity<Employee>(entity =>
-            //{
-            //    entity.HasIndex(e => e.IdentityUser).IsUnique();
-            //});
         }
 
         private void SeedRoles(ModelBuilder builder)
         {
             builder.Entity<IdentityRole>().HasData(
-                new IdentityRole() { Name = "Admin", ConcurrencyStamp = "1", NormalizedName = "Admin" },
-                new IdentityRole() { Name = "HR", ConcurrencyStamp = "2", NormalizedName = "HR" },
-                new IdentityRole() { Name = "Sales", ConcurrencyStamp = "3", NormalizedName = "Sales" },
-                new IdentityRole() { Name = "Stores", ConcurrencyStamp = "4", NormalizedName = "Stores" },
-                new IdentityRole() { Name = "Employee", ConcurrencyStamp = "5", NormalizedName = "Employee" },
-                new IdentityRole() { Name = "Access", ConcurrencyStamp = "6", NormalizedName = "Access" },
-                new IdentityRole() { Name = "BD", ConcurrencyStamp = "7", NormalizedName = "BD" }
+                //new IdentityRole() { Name = "Admin", ConcurrencyStamp = "1", NormalizedName = "Admin" },
+                //new IdentityRole() { Name = "HR", ConcurrencyStamp = "2", NormalizedName = "HR" },
+                //new IdentityRole() { Name = "Sales", ConcurrencyStamp = "3", NormalizedName = "Sales" },
+                //new IdentityRole() { Name = "Stores", ConcurrencyStamp = "4", NormalizedName = "Stores" },
+                //new IdentityRole() { Name = "Employee", ConcurrencyStamp = "5", NormalizedName = "Employee" },
+                //new IdentityRole() { Name = "Access", ConcurrencyStamp = "6", NormalizedName = "Access" },
+                //new IdentityRole() { Name = "BD", ConcurrencyStamp = "7", NormalizedName = "BD" }
                 );
         }
     }

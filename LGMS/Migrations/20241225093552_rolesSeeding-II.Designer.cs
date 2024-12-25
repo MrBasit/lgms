@@ -4,6 +4,7 @@ using LGMS.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LGMS.Migrations
 {
     [DbContext(typeof(LgmsDbContext))]
-    partial class LgmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241225093552_rolesSeeding-II")]
+    partial class rolesSeedingII
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -933,6 +936,57 @@ namespace LGMS.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "ec99cad0-acdf-4dfb-a715-8a9632610423",
+                            ConcurrencyStamp = "1",
+                            Name = "Admin",
+                            NormalizedName = "Admin"
+                        },
+                        new
+                        {
+                            Id = "5c408a1e-7f20-47a2-a450-e9be89fa1513",
+                            ConcurrencyStamp = "2",
+                            Name = "HR",
+                            NormalizedName = "HR"
+                        },
+                        new
+                        {
+                            Id = "ddf44980-5a84-49e6-b91b-150683934d44",
+                            ConcurrencyStamp = "3",
+                            Name = "Sales",
+                            NormalizedName = "Sales"
+                        },
+                        new
+                        {
+                            Id = "7629a37f-eb5a-4ac9-9b18-c7d0555857ed",
+                            ConcurrencyStamp = "4",
+                            Name = "Stores",
+                            NormalizedName = "Stores"
+                        },
+                        new
+                        {
+                            Id = "51875afb-56b0-4545-adcb-9de6a7770c85",
+                            ConcurrencyStamp = "5",
+                            Name = "Employee",
+                            NormalizedName = "Employee"
+                        },
+                        new
+                        {
+                            Id = "36211113-2c97-4a54-9de0-2c6beb7bcc43",
+                            ConcurrencyStamp = "6",
+                            Name = "Access",
+                            NormalizedName = "Access"
+                        },
+                        new
+                        {
+                            Id = "0f653b58-2315-43ed-9d55-fc4c73dc75f1",
+                            ConcurrencyStamp = "7",
+                            Name = "BD",
+                            NormalizedName = "BD"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
