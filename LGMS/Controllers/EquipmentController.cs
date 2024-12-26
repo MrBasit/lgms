@@ -3,6 +3,7 @@ using LGMS.Data.Model;
 using LGMS.Dto;
 using LGMS.Interface;
 using LGMS.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 
 namespace LGMS.Controllers
 {
+    [Authorize("Stores")]
     [Route("api/[controller]")]
     [ApiController]
     public class EquipmentController : ControllerBase

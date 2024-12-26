@@ -6,19 +6,18 @@ using MailSender.Model;
 using MailSender.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using LGMS.Data.Model;
 using Microsoft.IdentityModel.Tokens;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LGMS.Controllers
 {
+    [Authorize(Roles = "Access")]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthenticationController : ControllerBase
@@ -47,6 +46,7 @@ namespace LGMS.Controllers
             _emailService = emailService;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("RegisterUser")]
         public async Task<IActionResult> RegisterUser(RegisterUser registerUser)
         {
@@ -138,7 +138,7 @@ namespace LGMS.Controllers
                         if (emprole != null)
                         {
                             var a = await _userManager.AddToRoleAsync(user, emprole.Name);
-                }
+                        }
 
                         //add User to employee
                         employee.IdentityUser = user;
@@ -181,8 +181,37 @@ namespace LGMS.Controllers
             });
         }
 
+        [HttpGet("GetPermissions")]
+        public async Task<IActionResult> GetPermissions()
+        {
+            var rolestore = new RoleStore<IdentityRole>(_context);
+            var roles = rolestore.Roles.Select(r=>r.NormalizedName).ToList();
+            return Ok(roles);
+        }
 
+        [HttpPost("GrantPermission")]
+        public async Task<IActionResult> GrantPermission([FromBody] GrantPermissionModel permissionModel)
+        {
+            var rolestore = new RoleStore<IdentityRole>(_context);
+            var user = _userManager.FindByNameAsync(permissionModel.Username);
+            if ((await user) == null) return BadRequest("User Not Found");
 
+            var roles = rolestore.Roles.Where(r => permissionModel.Roles.Contains(r.NormalizedName)).ToList();
+            
+            if(roles.Count != permissionModel.Roles.Length)
+            {
+                var rolesNotFound = permissionModel.Roles.Where(r => !roles.Select(rr=>rr.NormalizedName).Contains(r)).ToList();
+                if (rolesNotFound.Count > 0) { 
+                    return BadRequest(string.Format("Role(s) with name [{0}] not found", string.Join(", ", rolesNotFound))); 
+                }
+            }
+
+            await _userManager.AddToRolesAsync(await user, roles.Select(r => r.Name).ToList());
+
+            return Ok();
+        }
+
+        [AllowAnonymous]
         [HttpPost("UserLogin")]
         public async Task<IActionResult> UserLogin([FromBody] UserLogin userLogin)
         {
@@ -227,6 +256,7 @@ namespace LGMS.Controllers
             return Unauthorized();
         }
 
+        [AllowAnonymous]
         [HttpPost("UserLogin2FA")]
         public async Task<IActionResult> UserLogin2FA(string Username, string OTP, bool rememberMe)
         {
@@ -247,11 +277,11 @@ namespace LGMS.Controllers
                     authClaims.Add(new Claim(ClaimTypes.Role, userRole));
                 }
 
-                var loggedInUserEmployee = _context.Employees.Include(e => e.IdentityUser).SingleOrDefault(e => e.IdentityUser.Id == user.Id);
-                authClaims.Add(new Claim(type: "EmployeeId", value: loggedInUserEmployee != null ? loggedInUserEmployee.Id.ToString() : ""));
-                authClaims.Add(new Claim(type: "EmployeeNumber", value: loggedInUserEmployee != null ? loggedInUserEmployee.EmployeeNumber : ""));
+                var loggedInUserEmployee = _context.Employees.Include(e => e.IdentityUser).SingleOrDefault(e=>e.IdentityUser.Id == user.Id);
+                authClaims.Add(new Claim(type:"EmployeeId",value:loggedInUserEmployee != null ? loggedInUserEmployee.Id.ToString() : ""));
                 authClaims.Add(new Claim(type: "EmployeeName", value: loggedInUserEmployee != null ? loggedInUserEmployee.Name.ToString() : ""));
-                authClaims.Add(new Claim(type: "UserEmail", value: loggedInUserEmployee != null ? loggedInUserEmployee.IdentityUser.Email : ""));
+                authClaims.Add(new Claim(type:"EmployeeNumber",value:loggedInUserEmployee != null ? loggedInUserEmployee.EmployeeNumber : ""));
+                authClaims.Add(new Claim(type: "Email", value: loggedInUserEmployee.IdentityUser != null ? loggedInUserEmployee.IdentityUser.Email : ""));
                 authClaims.Add(new Claim(type: "Username", value: loggedInUserEmployee != null ? loggedInUserEmployee.IdentityUser.UserName : ""));
                 //generate the token
                 var token = GetJwtToken(authClaims, rememberMe);
@@ -264,6 +294,7 @@ namespace LGMS.Controllers
             return Unauthorized();
         }
 
+        [AllowAnonymous]
         [HttpPost("ChangePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
@@ -324,30 +355,6 @@ namespace LGMS.Controllers
                 Message = "Password changed successfully"
             });
         }
-
-        private IdentityUser GetUserFromToken(string token)
-        {
-            try
-            {
-                var handler = new JwtSecurityTokenHandler();
-                var jwtToken = handler.ReadJwtToken(token);
-
-                var userId = jwtToken?.Claims?.FirstOrDefault(c => c.Type == "Username")?.Value;
-
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return null;
-                }
-
-                var user = _userManager.FindByNameAsync(userId).Result;
-                return user;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
 
         //[HttpPost("ResendOTP")]
         //public async Task<IActionResult> ResendOTP([FromBody] ResendOtpRequest request)
@@ -428,19 +435,43 @@ namespace LGMS.Controllers
         //    return StatusCode(StatusCodes.Status200OK, new Response { Status = "Success", Message = "Email Sent Succesfully" });
         //}
 
+        private IdentityUser GetUserFromToken(string token)
+        {
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+
+                var userId = jwtToken?.Claims?.FirstOrDefault(c => c.Type == "Username")?.Value;
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return null;
+                }
+
+                var user = _userManager.FindByNameAsync(userId).Result;
+                return user;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
 
         private JwtSecurityToken GetJwtToken(List<Claim> claims, bool rememberMe=false)
         {
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
             var token = new JwtSecurityToken(
-               expires: rememberMe ? DateTime.Now.AddDays(7) : DateTime.Now.AddHours(9),
+                issuer: _configuration["JWT:ValidIssuer"],
+                audience: _configuration["JWT:ValidAudience"],
+                expires: rememberMe ? DateTime.Now.AddDays(7) : DateTime.Now.AddHours(9),
                 claims: claims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );
             return token;
         }
 
-        public static string GeneratePassword()
+        private static string GeneratePassword()
         {
             const string uppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             const string lowercaseLetters = "abcdefghijklmnopqrstuvwxyz";
