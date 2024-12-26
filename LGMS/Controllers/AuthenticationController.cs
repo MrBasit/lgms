@@ -247,13 +247,12 @@ namespace LGMS.Controllers
                     authClaims.Add(new Claim(ClaimTypes.Role, userRole));
                 }
 
-                var loggedInUserEmployee = _context.Employees.Include(e => e.IdentityUser).SingleOrDefault(e=>e.IdentityUser.Id == user.Id);
-                authClaims.Add(new Claim(type:"EmployeeId",value:loggedInUserEmployee != null ? loggedInUserEmployee.Id.ToString() : ""));
+                var loggedInUserEmployee = _context.Employees.Include(e => e.IdentityUser).SingleOrDefault(e => e.IdentityUser.Id == user.Id);
+                authClaims.Add(new Claim(type: "EmployeeId", value: loggedInUserEmployee != null ? loggedInUserEmployee.Id.ToString() : ""));
+                authClaims.Add(new Claim(type: "EmployeeNumber", value: loggedInUserEmployee != null ? loggedInUserEmployee.EmployeeNumber : ""));
                 authClaims.Add(new Claim(type: "EmployeeName", value: loggedInUserEmployee != null ? loggedInUserEmployee.Name.ToString() : ""));
-                authClaims.Add(new Claim(type:"EmployeeNumber",value:loggedInUserEmployee != null ? loggedInUserEmployee.EmployeeNumber : ""));
-                authClaims.Add(new Claim(type: "Email", value: loggedInUserEmployee.IdentityUser != null ? loggedInUserEmployee.IdentityUser.Email : ""));
+                authClaims.Add(new Claim(type: "UserEmail", value: loggedInUserEmployee != null ? loggedInUserEmployee.IdentityUser.Email : ""));
                 authClaims.Add(new Claim(type: "Username", value: loggedInUserEmployee != null ? loggedInUserEmployee.IdentityUser.UserName : ""));
-
                 //generate the token
                 var token = GetJwtToken(authClaims, rememberMe);
 
