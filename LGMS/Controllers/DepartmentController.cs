@@ -90,6 +90,7 @@ namespace LGMS.Controllers
 
             return Ok(pagedDepartmentsResult);
         }
+        
         [HttpGet("GetDepartmentById")]
         public IActionResult GetDepartmentById(int id)
         {
@@ -130,6 +131,7 @@ namespace LGMS.Controllers
                 });
             }
         }
+        
         [HttpPost("DeleteDepartment")]
         public IActionResult DeleteDepartment([FromBody] int id)
         {

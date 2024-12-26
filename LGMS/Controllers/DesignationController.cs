@@ -90,6 +90,7 @@ namespace LGMS.Controllers
 
             return Ok(pagedDesignationsResult);
         }
+        
         [HttpGet("GetDesignationById")]
         public IActionResult GetDesignationById(int id)
         {
@@ -130,6 +131,7 @@ namespace LGMS.Controllers
                 });
             }
         }
+        
         [HttpPost("DeleteDesignation")]
         public IActionResult DeleteDesignation([FromBody] int id)
         {

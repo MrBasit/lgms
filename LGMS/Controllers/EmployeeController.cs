@@ -126,7 +126,13 @@ namespace LGMS.Controllers
         [HttpGet("GetUserEmployees")]
         public IActionResult GetUserEmployees()
         {
-            var employees = _dbContext.Employees.Include(e => e.IdentityUser).Where(e => e.IdentityUser != null).OrderBy(e => e.Name).ToList();
+            var employees = _dbContext.Employees.Include(e => e.IdentityUser).Where(e => e.IdentityUser != null).OrderBy(e => e.Name)
+                .Select(v => new {
+                    name = v.Name,
+                    employeeNumber = v.EmployeeNumber,
+                    userName = v.IdentityUser.UserName, 
+                    userEmail = v.IdentityUser.Email
+                });
             return Ok(employees);
         }
 

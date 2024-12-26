@@ -181,6 +181,19 @@ namespace LGMS.Controllers
             });
         }
 
+        [HttpGet("GetUserPermissions")]
+        public async Task<IActionResult> GetUserPermissions(string username)
+        {
+            var user = await _userManager.FindByNameAsync(username);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            return Ok(roles);
+        }
+
         [HttpGet("GetPermissions")]
         public async Task<IActionResult> GetPermissions()
         {
@@ -205,8 +218,18 @@ namespace LGMS.Controllers
                     return BadRequest(string.Format("Role(s) with name [{0}] not found", string.Join(", ", rolesNotFound))); 
                 }
             }
+            var existingRoles = await _userManager.GetRolesAsync(await user);
+            var removeResult = await _userManager.RemoveFromRolesAsync(await user, existingRoles);
+            if (!removeResult.Succeeded)
+            {
+                return BadRequest("Failed to remove existing roles");
+            }
 
-            await _userManager.AddToRolesAsync(await user, roles.Select(r => r.Name).ToList());
+            var addResult = await _userManager.AddToRolesAsync(await user, roles.Select(r => r.Name).ToList());
+            if (!addResult.Succeeded)
+            {
+                return BadRequest("Failed to assign new roles");
+            }
 
             return Ok();
         }
@@ -387,6 +410,7 @@ namespace LGMS.Controllers
         //    return StatusCode(StatusCodes.Status404NotFound, new Response { Message = "User with this email not found", Status = "Failed" });
         //}
 
+        //[AllowAnonymous]
         //[HttpPost("ForgetPassword")]
         //public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequest request)
         //{
@@ -425,14 +449,6 @@ namespace LGMS.Controllers
         //    }
 
         //    return BadRequest(new { message = "Error resetting password: " + string.Join(", ", result.Errors.Select(e => e.Description)) });
-        //}
-
-        //[HttpGet("TestEmail")]
-        //public async Task<IActionResult> TestEmail()
-        //{
-        //    var message = new Message(new string[] { "logicade.domains@gmail.com" }, "Test Email from Project Progress", "<h1>Welcome To Project Progress</h1>");
-        //    _emailService.SendEmail(message);
-        //    return StatusCode(StatusCodes.Status200OK, new Response { Status = "Success", Message = "Email Sent Succesfully" });
         //}
 
         private IdentityUser GetUserFromToken(string token)

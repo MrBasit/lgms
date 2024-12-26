@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LGMS.Controllers
 {
-    [Authorize("Admin")]
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class AttendanceIdController : ControllerBase

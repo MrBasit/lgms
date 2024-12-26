@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 
 namespace LGMS.Controllers
 {
-    [Authorize("Stores")]
+    [Authorize(Roles = "Stores")]
     [Route("api/[controller]")]
     [ApiController]
     public class EquipmentController : ControllerBase
