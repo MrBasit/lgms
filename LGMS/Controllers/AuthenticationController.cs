@@ -206,26 +206,35 @@ namespace LGMS.Controllers
         public async Task<IActionResult> GrantPermission([FromBody] GrantPermissionModel permissionModel)
         {
             var rolestore = new RoleStore<IdentityRole>(_context);
-            var user = _userManager.FindByNameAsync(permissionModel.Username);
-            if ((await user) == null) return BadRequest("User Not Found");
+            var user = await _userManager.FindByNameAsync(permissionModel.Username);
+            if (user == null) return BadRequest("User Not Found");
 
             var roles = rolestore.Roles.Where(r => permissionModel.Roles.Contains(r.NormalizedName)).ToList();
-            
-            if(roles.Count != permissionModel.Roles.Length)
+
+            if (roles.Count != permissionModel.Roles.Length)
             {
-                var rolesNotFound = permissionModel.Roles.Where(r => !roles.Select(rr=>rr.NormalizedName).Contains(r)).ToList();
-                if (rolesNotFound.Count > 0) { 
-                    return BadRequest(string.Format("Role(s) with name [{0}] not found", string.Join(", ", rolesNotFound))); 
+                var rolesNotFound = permissionModel.Roles.Where(r => !roles.Select(rr => rr.NormalizedName).Contains(r)).ToList();
+                if (rolesNotFound.Count > 0)
+                {
+                    return BadRequest(string.Format("Role(s) with name [{0}] not found", string.Join(", ", rolesNotFound)));
                 }
             }
-            var existingRoles = await _userManager.GetRolesAsync(await user);
-            var removeResult = await _userManager.RemoveFromRolesAsync(await user, existingRoles);
+
+            var existingRoles = await _userManager.GetRolesAsync(user);
+
+            var rolesToKeep = existingRoles.Intersect(roles.Select(r => r.Name)).ToList();
+
+            var rolesToRemove = existingRoles.Except(roles.Select(r => r.Name)).ToList();
+
+            var rolesToAdd = roles.Select(r => r.Name).Except(existingRoles).ToList();
+
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
             if (!removeResult.Succeeded)
             {
                 return BadRequest("Failed to remove existing roles");
             }
 
-            var addResult = await _userManager.AddToRolesAsync(await user, roles.Select(r => r.Name).ToList());
+            var addResult = await _userManager.AddToRolesAsync(user, rolesToAdd);
             if (!addResult.Succeeded)
             {
                 return BadRequest("Failed to assign new roles");
@@ -233,6 +242,7 @@ namespace LGMS.Controllers
 
             return Ok();
         }
+
 
         [AllowAnonymous]
         [HttpPost("UserLogin")]

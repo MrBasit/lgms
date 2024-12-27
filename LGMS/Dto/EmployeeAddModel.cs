@@ -5,6 +5,7 @@ namespace LGMS.Dto
     public class EmployeeAddModel
     {
         public string EmployeeName { get; set; }
+        public string FatherName { get; set; }
         public string? AttendanceId { get; set; }
         public string? Email { get; set; }
         public string? PhoneNumber { get; set; }

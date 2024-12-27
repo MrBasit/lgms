@@ -116,6 +116,7 @@ namespace LGMS.Controllers
             return Ok(pagedEmployeesResult);
         }
 
+        [Authorize(Roles = "Stores")]
         [HttpGet("GetEmployees")]
         public IActionResult GetEmployees()
         {
@@ -240,6 +241,7 @@ namespace LGMS.Controllers
                 {
                     AttendanceId = attendanceId,
                     Name = employeeDetails.EmployeeName,
+                    FatherName = employeeDetails.FatherName,
                     Email = employeeDetails.Email,
                     PhoneNumber = employeeDetails.PhoneNumber,
                     NIC = employeeDetails.NIC,
@@ -315,6 +317,7 @@ namespace LGMS.Controllers
             try
             {
                 existingEmployee.Name = employeeDetails.EmployeeName;
+                existingEmployee.FatherName = employeeDetails.FatherName;
                 existingEmployee.Email = employeeDetails.Email;
                 existingEmployee.PhoneNumber = employeeDetails.PhoneNumber;
                 existingEmployee.NIC = employeeDetails.NIC;

@@ -13,6 +13,7 @@ namespace LGMS.Data.Model
         public int Id { get; set; }
         public AttendanceId? AttendanceId { get; set; }
         public string Name { get; set; }
+        public string FatherName { get; set; }
         public string EmployeeNumber { get; set; }
         public string? Email { get; set; }
         public string? NIC { get; set; }
