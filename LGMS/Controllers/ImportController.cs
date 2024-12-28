@@ -1,6 +1,7 @@
 ﻿using LGMS.Data.Context;
 using LGMS.Data.Model;
 using LGMS.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,7 @@ namespace LGMS.Controllers
             _attendanceRecordService = attendanceRecordService;
         }
 
+        [Authorize(Roles = "Stores")]
         [HttpPost("UploadEquipments")]
         public async Task<IActionResult> UploadEquipments(IFormFile file)
         {
@@ -50,6 +52,7 @@ namespace LGMS.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("UploadAttendanceRecords")]
         public async Task<IActionResult> UploadAttendanceRecords(IFormFile file)
         {
@@ -75,6 +78,7 @@ namespace LGMS.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("UploadRawAttendanceRecords")]
         public async Task<IActionResult> UploadRawAttendanceRecords(IFormFile file)
         {

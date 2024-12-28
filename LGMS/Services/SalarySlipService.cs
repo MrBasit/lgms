@@ -5,7 +5,7 @@ namespace LGMS.Services
 {
     public class SalarySlipService
     {
-        public SalarySlipDTO GenerateSalarySlip(AttendanceReportDTO report, int year, int month, Employee employee)
+        public SalarySlipDTO GenerateSalarySlip(AttendanceReportDTO report, int year, int month, EmployeeDTO employee)
         {
             var salarySlipDate = new DateTime(year, month, 1);
             var salarySlip = new SalarySlipDTO

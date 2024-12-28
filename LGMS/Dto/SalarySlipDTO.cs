@@ -4,7 +4,7 @@ namespace LGMS.Dto
 {
     public class SalarySlipDTO
     {
-        public Employee Employee { get; set; }
+        public EmployeeDTO Employee { get; set; }
         public DateTime? GenratedDate { get; set; }
         public DateTime? PayPeriod { get; set; }
         public int Salary { get; set; }

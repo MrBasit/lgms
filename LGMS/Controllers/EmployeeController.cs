@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pag
 
 namespace LGMS.Controllers
 {
-    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeeController : ControllerBase
@@ -23,6 +22,16 @@ namespace LGMS.Controllers
             _dbContext = dbContext;
             _pagedData = new PagedData<Employee>();
         }
+
+        [Authorize(Roles = "Admin, Access")]
+        [HttpGet("GetEmployees")]
+        public IActionResult GetEmployees()
+        {
+            var employees = _dbContext.Employees.Include(e => e.AttendanceId).Where(e => e.AttendanceId != null && e.Status.Title == "Active").OrderBy(e => e.Name).ToList();
+            return Ok(employees);
+        }
+
+        [Authorize(Roles = "Admin")]
         [HttpPost("GetEmployeesWithFilters")]
         public IActionResult GetEmployeesWithFilters(EmployeesSearchModel employeeSearchModel)
         {
@@ -116,14 +125,7 @@ namespace LGMS.Controllers
             return Ok(pagedEmployeesResult);
         }
 
-        [Authorize(Roles = "Stores")]
-        [HttpGet("GetEmployees")]
-        public IActionResult GetEmployees()
-        {
-            var employees = _dbContext.Employees.Include(e => e.AttendanceId).Where(e => e.AttendanceId != null && e.Status.Title == "Active").OrderBy(e => e.Name).ToList();
-            return Ok(employees);
-        }
-
+        [Authorize(Roles = "Admin, Access")]
         [HttpGet("GetUserEmployees")]
         public IActionResult GetUserEmployees()
         {
@@ -137,6 +139,7 @@ namespace LGMS.Controllers
             return Ok(employees);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("GetEmployeeById")]
         public IActionResult GetEmployeeById(int employeeId)
         {
@@ -154,6 +157,7 @@ namespace LGMS.Controllers
             return Ok(employee);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("GetEmployeeByName")]
         public IActionResult GetEmployeeByName(string employeeName)
         {
@@ -168,7 +172,8 @@ namespace LGMS.Controllers
             if (employee.Count() > 1) return BadRequest(new { message = string.Format("Multiple employees found with employee name {0}", employeeName) });
             return Ok(employee);
         }
-        
+
+        [Authorize(Roles = "Admin, Stores")]
         [HttpGet("GetEmployessIdAndName")]
         public IActionResult GetEmployeesIdAndName()
         {
@@ -183,6 +188,7 @@ namespace LGMS.Controllers
             return Ok(employees);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("AddEmployee")]
         public IActionResult AddEmployee(EmployeeAddModel employeeDetails)
         {
@@ -270,8 +276,7 @@ namespace LGMS.Controllers
             }
         }
 
-
-
+        [Authorize(Roles = "Admin")]
         [HttpPost("EditEmployee")]
         public ActionResult EditEmployee(EmployeeEditModel employeeDetails)
         {
@@ -367,8 +372,7 @@ namespace LGMS.Controllers
             }
         }
 
-
-
+        [Authorize(Roles = "Admin")]
         [HttpPost("DeleteEmployee")]
         public IActionResult DeleteEmployee([FromBody]int EmployeeId)
         {
@@ -396,7 +400,7 @@ namespace LGMS.Controllers
             }
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("GetIncomingBirthdays")]
         public ActionResult GetIncomingBirthDays()
         {
@@ -423,8 +427,7 @@ namespace LGMS.Controllers
             return Ok(upcomingBirthdays);
         }
 
-
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("GetIncomingAgreementExpiration")]
         public ActionResult GetIncomingAgreementExpiration()
         {
@@ -435,6 +438,7 @@ namespace LGMS.Controllers
             return Ok(Employees);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("GetDepartmentsWithEmployeeCount")]
         public ActionResult GetDepartmentsWithEmployeeCount()
         {
@@ -449,7 +453,6 @@ namespace LGMS.Controllers
 
             return Ok(departmentsWithCount);
         }
-
 
         private string GenerateEmployeeNumber()
         {

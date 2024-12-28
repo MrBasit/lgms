@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.IO.Compression;
 using QuestPDF.Fluent;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace LGMS.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class SalarySlipController : ControllerBase
@@ -100,8 +102,28 @@ namespace LGMS.Controllers
                         .Include(e => e.Status)
                         .Where(e => e.AttendanceId.MachineName.ToUpper() == report.Name.ToUpper())
                         .FirstOrDefault();
+                    if(employee == null) return BadRequest(new {message = $"Employee not found"});
+                    var employeeDTO = new EmployeeDTO
+                    {
+                        Id = employee.Id,
+                        Name = employee.Name,
+                        FatherName = employee.FatherName,
+                        EmployeeNumber = employee.EmployeeNumber,
+                        Email = employee.Email,
+                        NIC = employee.NIC,
+                        PhoneNumber = employee.PhoneNumber,
+                        BirthDate = employee.BirthDate,
+                        Department = employee.Department,
+                        Designation = employee.Designation,
+                        JoiningDate = employee.JoiningDate,
+                        BasicSalary = employee.BasicSalary,
+                        AgreementExpiration = employee.AgreementExpiration,
+                        Status = employee.Status,
+                        SecurityDeposits = employee.SecurityDeposits,
+                        Loans = employee.Loans
 
-                    var salarySlip = salarySlipService.GenerateSalarySlip(report, searchModel.Year, searchModel.Month, employee);
+                    };
+                    var salarySlip = salarySlipService.GenerateSalarySlip(report, searchModel.Year, searchModel.Month, employeeDTO);
                     salarySlips.Add(salarySlip);
                 }
 
@@ -422,7 +444,7 @@ namespace LGMS.Controllers
         }
 
         [HttpPost("DownloadSalarySlips")]
-        public IActionResult DownloadSalarySlips([FromBody] List<SalarySlip> salarySlips)
+        public IActionResult DownloadSalarySlips([FromBody] List<SalarySlipDTO> salarySlips)
         {
             string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "company-logo.png");
             string check = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "checked.png");
@@ -436,7 +458,7 @@ namespace LGMS.Controllers
                     {
                         using (var memoryStream = new MemoryStream())
                         {
-                            var document = _pdfService.DownloadSalarySlip(slip, logoPath, check, uncheck);
+                            var document = _pdfService.CreateSalarySlipPdf(slip, logoPath, check, uncheck);
                             document.GeneratePdf(memoryStream);
 
                             var zipEntry = archive.CreateEntry($"{slip.Employee.Name}_SalarySlip.pdf", CompressionLevel.Optimal);

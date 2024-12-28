@@ -2,6 +2,7 @@
 using LGMS.Data.Model;
 using LGMS.Dto;
 using LGMS.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,7 @@ namespace LGMS.Controllers
             _dbContext = dbContext;
         }
 
+        [Authorize(Roles = "Stores")]
         [HttpPost("DownloadEquipment")]
         public IActionResult DownloadEquipment(EquipmentExportSearchModel searchModel)
         {
@@ -129,6 +131,7 @@ namespace LGMS.Controllers
             
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("DownloadAttendanceRecords")]
         public IActionResult DownloadAttendanceRecords(AttendanceRecordSearchModel searchModel)
         {

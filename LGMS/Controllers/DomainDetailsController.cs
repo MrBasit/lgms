@@ -2,6 +2,7 @@
 using LGMS.Data.Model;
 using LGMS.Dto;
 using LGMS.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using System.Diagnostics.Contracts;
 
 namespace LGMS.Controllers
 {
+    [Authorize(Roles = "Sales")]
     [Route("api/[controller]")]
     [ApiController]
     public class DomainDetailsController : ControllerBase

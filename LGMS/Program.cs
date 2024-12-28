@@ -27,6 +27,7 @@ builder.Services.AddScoped<AttendanceReportService>();
 builder.Services.AddScoped<SalarySlipService>();
 builder.Services.AddScoped<OverviewService>();
 builder.Services.AddScoped<SalarySlipPDFService>();
+builder.Services.AddScoped<QuotationPDFService>();
 builder.Services.AddScoped<ImageService>();
 builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<LgmsDbContext>().AddDefaultTokenProviders();
 builder.Services.AddAuthentication(options =>

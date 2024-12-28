@@ -2,9 +2,12 @@
 using LGMS.Data.Model;
 using LGMS.Dto;
 using LGMS.Interface;
+using LGMS.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.IO.Compression;
+using QuestPDF.Fluent;
 
 namespace LGMS.Controllers
 {
@@ -14,10 +17,12 @@ namespace LGMS.Controllers
     {
         LgmsDbContext _dbContext;
         PagedData<Quotation> _pagedData;
-        public QuotationController(LgmsDbContext dbContext)
+        private readonly QuotationPDFService _pdfService;
+        public QuotationController(LgmsDbContext dbContext, QuotationPDFService pdfService)
         {
             _dbContext = dbContext;
             _pagedData = new PagedData<Quotation>();
+            _pdfService = pdfService;
         }
 
         [HttpPost("GetQuotationsWithFilters")]
@@ -216,6 +221,21 @@ namespace LGMS.Controllers
                 {
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
+            }
+        }
+
+        [HttpPost("GenerateQuotation")]
+        public IActionResult GenerateQuotation(GenerateQuotationModel model)
+        {
+            string header = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "quotationheader.png");
+            string footer = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "quotationfooter.png");
+            using (var memoryStream = new MemoryStream())
+            {
+                var document = _pdfService.CreateQuotationPDF(model.Quotation, model.BankAccounts, header, footer);
+                document.GeneratePdf(memoryStream);
+
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                return File(memoryStream.ToArray(), "application/pdf", $"{model.Quotation.Number}_Quotation.pdf");
             }
         }
 

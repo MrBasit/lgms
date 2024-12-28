@@ -2,11 +2,13 @@
 using LGMS.Data.Model;
 using LGMS.Dto;
 using LGMS.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LGMS.Controllers
 {
+    [Authorize(Roles = "Stores")]
     [Route("api/[controller]")]
     [ApiController]
     public class EquipmentStatusController : ControllerBase
