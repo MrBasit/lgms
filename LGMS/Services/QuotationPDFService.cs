@@ -40,7 +40,7 @@ namespace LGMS.Services
                             table.Cell().PaddingBottom(3).Text(quotation.Number);
 
                             table.Cell().PaddingBottom(3).Text("Name: ").Bold();
-                            table.Cell().PaddingBottom(3).Text(quotation.Client.Name);
+                            table.Cell().PaddingBottom(3).Text(quotation.Client.Name).FontColor("#010943");
                             table.Cell().PaddingBottom(3).Text("Address: ").Bold();
                             table.Cell().PaddingBottom(3).Text(quotation.Client.Location != null ? quotation.Client.Location : "-");
 
@@ -61,15 +61,15 @@ namespace LGMS.Services
                                     columns.RelativeColumn();
                                     columns.RelativeColumn();
                                 });
-                                table.Cell().Border(1).Padding(3).Text("Product Name").Bold();
-                                table.Cell().Border(1).Padding(3).Text("Discount").Bold();
-                                table.Cell().Border(1).Padding(3).Text("Quantity").Bold();
-                                table.Cell().Border(1).Padding(3).Text("Price").Bold();
+                                table.Cell().Border(1).Background("#F27E63").Padding(3).Text("Product Name").FontColor(Colors.White).Bold();
+                                table.Cell().Border(1).Background("#010943").Padding(3).Text("Discount").FontColor(Colors.White).Bold();
+                                table.Cell().Border(1).Background("#F27E63").Padding(3).Text("Quantity").FontColor(Colors.White).Bold();
+                                table.Cell().Border(1).Background("#010943").Padding(3).Text("Price").FontColor(Colors.White).Bold();
 
                                 foreach (var package in quotation.QuotationPackageInformations)
                                 {
                                     table.Cell().Border(1).Padding(3).Text(package.Title);
-                                    table.Cell().Border(1).Padding(3).Text(package.Discount);
+                                    table.Cell().Border(1).Padding(3).Text(package.Discount + "%");
                                     table.Cell().Border(1).Padding(3).Text(package.Quantity);
                                     table.Cell().Border(1).Padding(3).Text(package.Total.ToString("N0"));
                                 }
@@ -82,7 +82,7 @@ namespace LGMS.Services
                                     columns.RelativeColumn();
                                 });
                                 table.Cell().Border(1).Padding(3).AlignCenter().Text("Total").Bold();
-                                table.Cell().Border(1).Padding(3).AlignCenter().Text(totalAmount.ToString("N0"));
+                                table.Cell().Border(1).Background("#D3D3D3").Padding(3).AlignCenter().Text(totalAmount.ToString("N0"));
                             });
                         }
 

@@ -10,7 +10,7 @@ namespace LGMS.Services
 {
     public class SalarySlipPDFService
     {
-        public IDocument CreateSalarySlipPdf(SalarySlipDTO slip, string logoPath, string check, string uncheck)
+        public IDocument CreateSalarySlipPdf(SalarySlipDTO slip, string header, string footer)
         {
             decimal basicSalary = slip.Employee.BasicSalary;
             decimal onTimeAllowance = slip.OnTimeAllowance ? CalculateAllowances(true, basicSalary) : 0;
@@ -38,31 +38,28 @@ namespace LGMS.Services
                 container.Page(page =>
                 {
                     page.Size(PageSizes.A4);
-                    page.Margin(2, Unit.Centimetre);
                     page.PageColor(Colors.White);
                     page.DefaultTextStyle(x => x.FontSize(10));
 
-                    page.Header().AlignCenter().Height(80).Image(logoPath, ImageScaling.FitHeight);
+                    page.Header().Height(110).AlignCenter().Image(header, ImageScaling.FitArea);
 
-                    page.Content().PaddingVertical(10).Column(col =>
+                    page.Content().PaddingRight(70).PaddingLeft(70).Column(col =>
                     {
-
-                        col.Item().AlignCenter().Text("SALARY SLIP").Bold().FontSize(16).FontColor(Colors.Black);
 
                         col.Item().PaddingTop(10).Table(table =>
                         {
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.ConstantColumn(150);
+                                columns.ConstantColumn(110);
                                 columns.RelativeColumn();
-                                columns.ConstantColumn(150);
+                                columns.ConstantColumn(110);
                                 columns.RelativeColumn();
                             });
 
                             table.Cell().Padding(3).Text("Genrated Date:").Bold();
                             table.Cell().Padding(3).Text(DateTime.Now.ToString("yyyy-MM-dd"));
                             table.Cell().Padding(3).Text("Employee Name:").Bold();
-                            table.Cell().Padding(3).Text(slip.Employee.Name);
+                            table.Cell().Padding(3).Text(slip.Employee.Name).FontColor("#010943");
 
                             table.Cell().Padding(3).Text("Pay Period:").Bold();
                             table.Cell().Padding(3).Text(slip.PayPeriod.Value.ToString("MMM yyyy"));
@@ -92,8 +89,8 @@ namespace LGMS.Services
                                     columns.RelativeColumn();
                                 });
 
-                                earningsTable.Cell().Border(1).BorderRight(0).Padding(3).Text("Earnings").Bold();
-                                earningsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text("Amount").Bold();
+                                earningsTable.Cell().Border(1).BorderRight(0).Background("#F27E63").Padding(3).Text("Earnings").FontColor(Colors.White).Bold();
+                                earningsTable.Cell().Border(1).BorderLeft(0).Background("#010943").Padding(3).Text("Amount").FontColor(Colors.White).Bold();
 
                                 earningsTable.Cell().BorderLeft(1).Padding(3).Text("Basic Pay").Bold();
                                 earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Employee.BasicSalary.ToString("N0", new CultureInfo("ur-PK")));
@@ -114,7 +111,7 @@ namespace LGMS.Services
                                 earningsTable.Cell().BorderRight(1).Padding(3).Text(slip.Comission.HasValue ? slip.Comission.Value.ToString("N0", new CultureInfo("ur-PK")) : "N/A");
 
                                 earningsTable.Cell().Border(1).BorderRight(0).Padding(3).Text("Gross Total").Bold();
-                                earningsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text(grossTotal.ToString("N0", new CultureInfo("ur-PK"))).Bold();
+                                earningsTable.Cell().Border(1).BorderLeft(0).Background("#D3D3D3").Padding(3).Text(grossTotal.ToString("N0", new CultureInfo("ur-PK"))).Bold();
                             });
 
                             table.Cell().Padding(0).Table(deductionsTable =>
@@ -125,8 +122,8 @@ namespace LGMS.Services
                                     columns.RelativeColumn();
                                 });
 
-                                deductionsTable.Cell().Border(1).BorderRight(0).BorderLeft(0).Padding(3).Text("Deductions").Bold();
-                                deductionsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text("Amount").Bold();
+                                deductionsTable.Cell().Border(1).BorderRight(0).BorderLeft(0).Background("#F27E63").Padding(3).Text("Deductions").FontColor(Colors.White).Bold();
+                                deductionsTable.Cell().Border(1).BorderLeft(0).Background("#010943").Padding(3).Text("Amount").FontColor(Colors.White).Bold();
 
                                 deductionsTable.Cell().Padding(3).Text("Off/Late deduction").Bold();
                                 deductionsTable.Cell().BorderRight(1).Padding(3).Text("(" + slip.Deductions.ToString("N0", new CultureInfo("ur-PK")) + ")");
@@ -156,15 +153,9 @@ namespace LGMS.Services
                                 deductionsTable.Cell().BorderRight(1).Padding(3).Text("");
 
                                 deductionsTable.Cell().Border(1).BorderLeft(0).BorderRight(0).Padding(3).Text("Total Deductions").Bold();
-                                deductionsTable.Cell().Border(1).BorderLeft(0).Padding(3).Text("(" +  totalDeductions.ToString("N0", new CultureInfo("ur-PK")) + ")" ).Bold();
+                                deductionsTable.Cell().Border(1).BorderLeft(0).Background("#D3D3D3").Padding(3).Text("(" +  totalDeductions.ToString("N0", new CultureInfo("ur-PK")) + ")" ).Bold();
                             });
                         });
-
-                        //col.Item().AlignRight().PaddingTop(20).Row(row =>
-                        //{
-                        //    row.RelativeItem().AlignRight().Text($"Deduction Applied:").Bold().FontSize(12);
-                        //    row.RelativeItem().Height(12).Image(slip.DeductionApplied ? check : uncheck);
-                        //});
 
                         col.Item().PaddingTop(20).Row(row =>
                         {
@@ -177,12 +168,7 @@ namespace LGMS.Services
                         });
                     });
 
-                    page.Footer().AlignCenter().Text(text =>
-                    {
-                        text.CurrentPageNumber();
-                        text.Span(" / ");
-                        text.TotalPages();
-                    });
+                    page.Footer().Height(62).Image(footer, ImageScaling.FitArea);
                 });
             });
         }

@@ -7,6 +7,7 @@ namespace LGMS.Dto
         public int ContractAmount { get; set; }
         public DateTime ExpectedCompletion { get; set; }
         public string Details { get; set; }
+        public string? ServicesInclude { get; set; }
         public DateTime StartDate { get; set; }
         public Client Client { get; set; }
         public ContractStatus Status { get; set; }

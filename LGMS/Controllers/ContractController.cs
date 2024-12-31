@@ -2,11 +2,12 @@
 using LGMS.Data.Model;
 using LGMS.Dto;
 using LGMS.Interface;
+using LGMS.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-//using System.Diagnostics.Contracts;
+using QuestPDF.Fluent;
 
 namespace LGMS.Controllers
 {
@@ -17,10 +18,12 @@ namespace LGMS.Controllers
     {
         LgmsDbContext _dbContext;
         PagedData<Contract> _pagedData;
-        public ContractController(LgmsDbContext dbContext)
+        private readonly InvoicePDFService _pdfService;
+        public ContractController(LgmsDbContext dbContext, InvoicePDFService pdfService)
         {
             _dbContext = dbContext;
             _pagedData = new PagedData<Contract>();
+            _pdfService = pdfService;
         }
 
         [HttpPost("GetContractsWithFilters")]
@@ -188,6 +191,7 @@ namespace LGMS.Controllers
                 Contract contract = new Contract()
                 {
                     Number = contractNumber,
+                    ServicesInclude = details.ServicesInclude,
                     ContractAmount = details.ContractAmount,
                     Client = client,
                     ExpectedCompletion = details.ExpectedCompletion,
@@ -320,6 +324,7 @@ namespace LGMS.Controllers
             try
             {
                 contract.ContractAmount = details.ContractAmount;
+                contract.ServicesInclude = details.ServicesInclude;
                 contract.Client= client;
                 contract.ExpectedCompletion = details.ExpectedCompletion;
                 contract.StartDate = details.StartDate;
@@ -413,6 +418,21 @@ namespace LGMS.Controllers
                 {
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
+            }
+        }
+
+        [HttpPost("GenerateInvoice")]
+        public IActionResult GenerateInvoice(GenerateInvoiceModel model)
+        {
+            string header = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "invoice.png");
+            string footer = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "footer.png");
+            using (var memoryStream = new MemoryStream())
+            {
+                var document = _pdfService.CreateInvoicePDF(model.Contract, header, footer);
+                document.GeneratePdf(memoryStream);
+
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                return File(memoryStream.ToArray(), "application/pdf", $"{model.Contract.Number}Contract.pdf");
             }
         }
 

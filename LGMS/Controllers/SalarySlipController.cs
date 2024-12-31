@@ -294,9 +294,8 @@ namespace LGMS.Controllers
                 return BadRequest(new { message = "Salary slips data is required." });
             }
 
-            string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "company-logo.png");
-            string check = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "checked.png");
-            string uncheck = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "uncheck.png");
+            string header = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "salaryslip.png");
+            string footer = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "footer.png");
 
             try
             {
@@ -352,7 +351,7 @@ namespace LGMS.Controllers
                         {
                             using (var memoryStream = new MemoryStream())
                             {
-                                var document = _pdfService.CreateSalarySlipPdf(slip, logoPath, check, uncheck);
+                                var document = _pdfService.CreateSalarySlipPdf(slip, header, footer);
                                 document.GeneratePdf(memoryStream);
 
                                 var zipEntry = archive.CreateEntry($"{slip.Employee.Name}_SalarySlip.pdf", CompressionLevel.Optimal);
@@ -446,9 +445,8 @@ namespace LGMS.Controllers
         [HttpPost("DownloadSalarySlips")]
         public IActionResult DownloadSalarySlips([FromBody] List<SalarySlipDTO> salarySlips)
         {
-            string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "company-logo.png");
-            string check = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "checked.png");
-            string uncheck = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "uncheck.png");
+            string header = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "salaryslip.png");
+            string footer = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "footer.png");
 
             using (var zipStream = new MemoryStream())
             {
@@ -458,7 +456,7 @@ namespace LGMS.Controllers
                     {
                         using (var memoryStream = new MemoryStream())
                         {
-                            var document = _pdfService.CreateSalarySlipPdf(slip, logoPath, check, uncheck);
+                            var document = _pdfService.CreateSalarySlipPdf(slip, header, footer);
                             document.GeneratePdf(memoryStream);
 
                             var zipEntry = archive.CreateEntry($"{slip.Employee.Name}_SalarySlip.pdf", CompressionLevel.Optimal);

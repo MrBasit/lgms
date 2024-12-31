@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.IO.Compression;
 using QuestPDF.Fluent;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LGMS.Controllers
 {
+    [Authorize(Roles = "Sales")]
     [Route("api/[controller]")]
     [ApiController]
     public class QuotationController : ControllerBase
@@ -227,8 +229,8 @@ namespace LGMS.Controllers
         [HttpPost("GenerateQuotation")]
         public IActionResult GenerateQuotation(GenerateQuotationModel model)
         {
-            string header = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "quotationheader.png");
-            string footer = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "quotationfooter.png");
+            string header = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "quotation.png");
+            string footer = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "footer.png");
             using (var memoryStream = new MemoryStream())
             {
                 var document = _pdfService.CreateQuotationPDF(model.Quotation, model.BankAccounts, header, footer);

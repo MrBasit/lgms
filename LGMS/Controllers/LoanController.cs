@@ -1,11 +1,13 @@
 ﻿using LGMS.Data.Context;
 using LGMS.Data.Model;
 using LGMS.Dto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LGMS.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class LoanController : ControllerBase
