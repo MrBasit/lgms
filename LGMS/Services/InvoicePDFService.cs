@@ -182,9 +182,9 @@ namespace LGMS.Services
                                 table.Cell().Border(1).Background("#F27E63").Padding(3).AlignCenter().Text("Title").FontColor(Colors.White).Bold();
                                 table.Cell().Border(1).Background("#010943").Padding(3).AlignCenter().Text("Amount").FontColor(Colors.White).Bold();
                                 table.Cell().Border(1).Background("#F27E63").Padding(3).AlignCenter().Text("Date").FontColor(Colors.White).Bold();
-                                table.Cell().Border(1).Padding(3).AlignCenter().Text(latestpayment.Title).Bold();
-                                table.Cell().Border(1).Padding(3).AlignCenter().Text(latestpayment.Amount.ToString("N0")).Bold();
-                                table.Cell().Border(1).Padding(3).AlignCenter().Text(latestpayment.Date.ToString("yyyy-MM-dd")).Bold();
+                                table.Cell().Border(1).Padding(3).AlignCenter().Text(latestpayment.Title);
+                                table.Cell().Border(1).Padding(3).AlignCenter().Text(latestpayment.Amount.ToString("N0"));
+                                table.Cell().Border(1).Padding(3).AlignCenter().Text(latestpayment.Date.ToString("yyyy-MM-dd"));
                             });
                         }
 
@@ -202,8 +202,8 @@ namespace LGMS.Services
                                 table.Cell().Border(1).Background("#010943").Padding(3).AlignCenter().Text("Expiry Date").FontColor(Colors.White).Bold();
                                 foreach (var exp in contract.Expirations)
                                 {
-                                    table.Cell().Border(1).Padding(3).Text(exp.Title).Bold();
-                                    table.Cell().Border(1).Padding(3).Text(exp.Date.ToString("yyyy-MM-dd")).Bold();
+                                    table.Cell().Border(1).Padding(3).Text(exp.Title);
+                                    table.Cell().Border(1).Padding(3).Text(exp.Date.ToString("yyyy-MM-dd"));
                                 }
                             });
                         }
