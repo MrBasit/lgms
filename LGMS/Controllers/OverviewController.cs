@@ -72,30 +72,41 @@ namespace LGMS.Controllers
             var startDateForCurrentPeriod = today.AddDays(-30);
             var startDateForPreviousPeriod = today.AddDays(-60);
 
-            var currentPeriodContractsCount = _dbContext.Contracts
-                .Where(c => c.StartDate >= startDateForCurrentPeriod && c.StartDate < today)
+            var previousClients = _dbContext.Contracts
+                .Where(c => c.StartDate < startDateForCurrentPeriod)
+                .Select(c => c.Client.Id)
+                .Distinct()
+                .ToList();
+
+            var currentPeriodNewContractsCount = _dbContext.Contracts
+                .Where(c => c.StartDate >= startDateForCurrentPeriod
+                            && c.StartDate < today
+                            && !previousClients.Contains(c.Client.Id))
                 .Count();
 
-            var previousPeriodContractsCount = _dbContext.Contracts
-                .Where(c => c.StartDate >= startDateForPreviousPeriod && c.StartDate < startDateForCurrentPeriod)
+            var previousPeriodNewContractsCount = _dbContext.Contracts
+                .Where(c => c.StartDate >= startDateForPreviousPeriod
+                            && c.StartDate < startDateForCurrentPeriod
+                            && !previousClients.Contains(c.Client.Id))
                 .Count();
 
             int percentageChange = 0;
-            if (previousPeriodContractsCount > 0)
+            if (previousPeriodNewContractsCount > 0)
             {
-                percentageChange = (int)Math.Round(((double)(currentPeriodContractsCount - previousPeriodContractsCount) / previousPeriodContractsCount) * 100);
+                percentageChange = (int)Math.Round(((double)(currentPeriodNewContractsCount - previousPeriodNewContractsCount) / previousPeriodNewContractsCount) * 100);
             }
-            else if (currentPeriodContractsCount > 0)
+            else if (currentPeriodNewContractsCount > 0)
             {
                 percentageChange = 100;
             }
 
             return Ok(new
             {
-                NewContractsCount = currentPeriodContractsCount,
+                NewContractsCount = currentPeriodNewContractsCount,
                 PercentageChange = percentageChange
             });
         }
+
 
         [HttpGet("GetRetainContracts")]
         public IActionResult GetRetainContracts()

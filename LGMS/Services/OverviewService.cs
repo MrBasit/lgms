@@ -27,7 +27,13 @@ namespace LGMS.Services
                     labels.AddRange(new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" });
                     break;
                 case "2 Years":
-                    labels.AddRange(new[] { "Year 1", "Year 2" });
+                    DateTime start = DateTime.Now.AddYears(-1);
+                    for (int i = 0; i < 12; i++)
+                    {
+                        var startMonth = start.AddMonths(i * 2);
+                        var endMonth = startMonth.AddMonths(1);
+                        labels.Add($"{startMonth.ToString("MMM")}-{endMonth.ToString("MMM yy")}");
+                    }
                     break;
                 default:
                     throw new ArgumentException("Invalid range");
@@ -35,6 +41,7 @@ namespace LGMS.Services
 
             return labels;
         }
+
 
 
         public List<object> GetContractCountsByTimePeriod(List<Contract> contracts, string range)
@@ -85,9 +92,10 @@ namespace LGMS.Services
                     endPeriod = startPeriod.AddMonths(1);
                     break;
                 case "2 Years":
-                    var yearNumber = GetYearNumber(label);
-                    startPeriod = new DateTime(DateTime.Now.Year - (2 - yearNumber), 1, 1);
-                    endPeriod = startPeriod.AddYears(1);
+                    var months = label.Split('-');
+                    var startDate = DateTime.ParseExact(months[0] + " " + label.Substring(label.Length - 2), "MMM yy", CultureInfo.InvariantCulture);
+                    startPeriod = new DateTime(startDate.Year, startDate.Month, 1);
+                    endPeriod = startPeriod.AddMonths(2);
                     break;
                 default:
                     throw new ArgumentException("Invalid range");
@@ -96,6 +104,7 @@ namespace LGMS.Services
             count = typeGroup.Count(c => c.CompletionDate >= startPeriod && c.CompletionDate < endPeriod);
             return count;
         }
+
 
 
 
