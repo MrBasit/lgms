@@ -80,7 +80,7 @@ namespace LGMS.Controllers
 
             var currentPeriodNewContractsCount = _dbContext.Contracts
                 .Where(c => c.StartDate >= startDateForCurrentPeriod
-                            && c.StartDate < today
+                            && c.StartDate <= today
                             && !previousClients.Contains(c.Client.Id))
                 .Count();
 
@@ -122,7 +122,7 @@ namespace LGMS.Controllers
                 .ToList();
 
             var currentPeriodRetainedContractsCount = _dbContext.Contracts
-                .Where(c => c.StartDate >= startDateForCurrentPeriod && c.StartDate < today && previousClients.Contains(c.Client.Id))
+                .Where(c => c.StartDate >= startDateForCurrentPeriod && c.StartDate <= today && previousClients.Contains(c.Client.Id))
                 .Count();
 
             var previousPeriodRetainedContractsCount = _dbContext.Contracts
@@ -169,7 +169,7 @@ namespace LGMS.Controllers
             var currentPeriodContractsCount = _dbContext.Contracts
                 .Where(c => c.CompletionDate != null &&
                             c.CompletionDate.Value >= startDateForCurrentPeriod &&
-                            c.CompletionDate.Value < today &&
+                            c.CompletionDate.Value <= today &&
                             c.Status.Title == "Completed")
                 .Count();
 
@@ -206,11 +206,11 @@ namespace LGMS.Controllers
             var startDateForPreviousPeriod = today.AddDays(-60);
 
             var currentPeriodPayments = _dbContext.Payments
-                .Where(c => c.Date >= startDateForCurrentPeriod && c.Date < today)
+                .Where(c => c.Date >= startDateForCurrentPeriod && c.Date <= today)
                 .Sum(c => c.Amount);
 
             var previousPeriodPayments = _dbContext.Payments
-                .Where(c => c.Date >= startDateForPreviousPeriod && c.Date < startDateForCurrentPeriod)
+                .Where(c => c.Date >= startDateForPreviousPeriod && c.Date <= startDateForCurrentPeriod)
                 .Sum(c => c.Amount);
 
             int percentageChange = 0;

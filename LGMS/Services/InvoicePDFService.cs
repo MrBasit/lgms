@@ -63,14 +63,14 @@ namespace LGMS.Services
                                     columns.RelativeColumn();
                                 });
                                 table.Cell().Border(1).Background("#F27E63").Padding(3).Text("Product Name").FontColor(Colors.White).Bold();
-                                table.Cell().Border(1).Background("#010943").Padding(3).Text("Discount").FontColor(Colors.White).Bold();
+                                table.Cell().Border(1).Background("#010943").Padding(3).Text("Discount Amount").FontColor(Colors.White).Bold();
                                 table.Cell().Border(1).Background("#F27E63").Padding(3).Text("Quantity").FontColor(Colors.White).Bold();
                                 table.Cell().Border(1).Background("#010943").Padding(3).Text("Price").FontColor(Colors.White).Bold();
 
                                 foreach (var package in contract.ContractPackageInformations)
                                 {
                                     table.Cell().Border(1).Padding(3).Text(package.Title);
-                                    table.Cell().Border(1).Padding(3).Text(package.Discount + "%");
+                                    table.Cell().Border(1).Padding(3).Text(package.Discount).FontColor("#FF0000");
                                     table.Cell().Border(1).Padding(3).Text(package.Quantity);
                                     table.Cell().Border(1).Padding(3).Text(package.Total.ToString("N0"));
                                 }
@@ -127,38 +127,58 @@ namespace LGMS.Services
                                 }
                             });
                         }
-
-                        col.Item().PaddingTop(10).Text("Additional Charges: ").Bold().FontSize(14).FontColor(Colors.Black);
-
-                        col.Item().Padding(10).Table(table =>
+                        if (!string.IsNullOrEmpty(contract.AdditionalCharges))
                         {
-                            table.ColumnsDefinition(columns =>
+                            col.Item().PaddingTop(10).Text("Additional Charges: ").Bold().FontSize(14).FontColor(Colors.Black);
+                            var services = ParseServicesInclude(contract.AdditionalCharges);
+                            col.Item().Padding(10).Table(table =>
                             {
-                                columns.RelativeColumn();
-                                columns.RelativeColumn();
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.RelativeColumn();
+                                    columns.RelativeColumn();
+                                });
+                                table.Cell().Border(1).Background("#F27E63").Padding(3).AlignCenter().Text("Additional Charges").FontColor(Colors.White).Bold();
+                                table.Cell().Border(1).Background("#010943").Padding(3).AlignCenter().Text("Charges").FontColor(Colors.White).Bold();
+                                foreach (var service in services)
+                                {
+                                    table.Cell().Border(1).Padding(3).Text(service.Key);
+                                    table.Cell().Border(1).Padding(3).Text(service.Value);
+                                }
                             });
-                            table.Cell().Border(1).Background("#F27E63").Padding(3).AlignCenter().Text("Additional Charges").FontColor(Colors.White).Bold();
-                            table.Cell().Border(1).Background("#010943").Padding(3).AlignCenter().Text("Charges").FontColor(Colors.White).Bold();
-                            table.Cell().Border(1).Padding(3).Text("Additional product add");
-                            table.Cell().Border(1).Padding(3).Text("50");
-                            table.Cell().Border(1).Padding(3).Text("Additional Banner design");
-                            table.Cell().Border(1).Padding(3).Text("200");
-                            table.Cell().Border(1).Padding(3).Text("Additional logo concept");
-                            table.Cell().Border(1).Padding(3).Text("1000");
-                            table.Cell().Border(1).Padding(3).Text("Additional Page");
-                            table.Cell().Border(1).Padding(3).Text("1,500");
-                            table.Cell().Border(1).Padding(3).Text("Additional Payment method");
-                            table.Cell().Border(1).Padding(3).Text("1,000");
-                            table.Cell().Border(1).Padding(3).Text("Domain Charges (.shop, .store, .site, .online)");
-                            table.Cell().Border(1).Padding(3).Text("1,000");
-                            table.Cell().Border(1).Padding(3).Text("Domain Charges (.com)");
-                            table.Cell().Border(1).Padding(3).Text("3,000");
-                            table.Cell().Border(1).Padding(3).Text("Content writing ChatGPT 4 with (Human touch)");
-                            table.Cell().Border(1).Padding(3).Text("Per word 3 Rupees");
-                            table.Cell().Border(1).Padding(3).Text("Content writing ChatGPT 4 (SEO content with keyword)");
-                            table.Cell().Border(1).Padding(3).Text("Per word 4 Rupees");
+                        }
 
-                        });
+                        
+
+                        //col.Item().Padding(10).Table(table =>
+                        //{
+                        //    table.ColumnsDefinition(columns =>
+                        //    {
+                        //        columns.RelativeColumn();
+                        //        columns.RelativeColumn();
+                        //    });
+                        //    table.Cell().Border(1).Background("#F27E63").Padding(3).AlignCenter().Text("Additional Charges").FontColor(Colors.White).Bold();
+                        //    table.Cell().Border(1).Background("#010943").Padding(3).AlignCenter().Text("Charges").FontColor(Colors.White).Bold();
+                        //    table.Cell().Border(1).Padding(3).Text("Additional product add");
+                        //    table.Cell().Border(1).Padding(3).Text("50");
+                        //    table.Cell().Border(1).Padding(3).Text("Additional Banner design");
+                        //    table.Cell().Border(1).Padding(3).Text("200");
+                        //    table.Cell().Border(1).Padding(3).Text("Additional logo concept");
+                        //    table.Cell().Border(1).Padding(3).Text("1000");
+                        //    table.Cell().Border(1).Padding(3).Text("Additional Page");
+                        //    table.Cell().Border(1).Padding(3).Text("1,500");
+                        //    table.Cell().Border(1).Padding(3).Text("Additional Payment method");
+                        //    table.Cell().Border(1).Padding(3).Text("1,000");
+                        //    table.Cell().Border(1).Padding(3).Text("Domain Charges (.shop, .store, .site, .online)");
+                        //    table.Cell().Border(1).Padding(3).Text("1,000");
+                        //    table.Cell().Border(1).Padding(3).Text("Domain Charges (.com)");
+                        //    table.Cell().Border(1).Padding(3).Text("3,000");
+                        //    table.Cell().Border(1).Padding(3).Text("Content writing ChatGPT 4 with (Human touch)");
+                        //    table.Cell().Border(1).Padding(3).Text("Per word 3 Rupees");
+                        //    table.Cell().Border(1).Padding(3).Text("Content writing ChatGPT 4 (SEO content with keyword)");
+                        //    table.Cell().Border(1).Padding(3).Text("Per word 4 Rupees");
+
+                        //});
 
                         col.Item().PaddingTop(10)
                                     .Text(text =>
