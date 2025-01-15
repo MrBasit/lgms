@@ -438,7 +438,7 @@ namespace LGMS.Controllers
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var baseurl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
-            var resetLink = $"{baseurl}/#/reset-password?token={Uri.EscapeDataString(token)}&email={user.Email}";
+            var resetLink = $"{baseurl}/reset-password?token={Uri.EscapeDataString(token)}&email={user.Email}";
 
             var message = new Message(new string[] { user.Email }, "Reset Password - Project Progress", resetLink);
             _emailService.SendEmail(message);
