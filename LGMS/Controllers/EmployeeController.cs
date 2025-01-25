@@ -71,6 +71,7 @@ namespace LGMS.Controllers
             {
                 employees = employees.Where(e =>
                     e.Name.ToUpper().Contains(employeeSearchModel.SearchDetails.SearchTerm.ToUpper()) ||
+                    e.EmployeeNumber.ToUpper().Contains(employeeSearchModel.SearchDetails.SearchTerm.ToUpper()) ||
                     e.Designation.Title.ToUpper().Contains(employeeSearchModel.SearchDetails.SearchTerm.ToUpper())
                 ).ToList();
             }

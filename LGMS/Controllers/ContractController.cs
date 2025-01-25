@@ -192,6 +192,7 @@ namespace LGMS.Controllers
                 {
                     Number = contractNumber,
                     ServicesInclude = details.ServicesInclude,
+                    AdditionalCharges = details.AdditionalCharges,
                     ContractAmount = details.ContractAmount,
                     Client = client,
                     ExpectedCompletion = details.ExpectedCompletion,
@@ -325,6 +326,7 @@ namespace LGMS.Controllers
             {
                 contract.ContractAmount = details.ContractAmount;
                 contract.ServicesInclude = details.ServicesInclude;
+                contract.AdditionalCharges = details.AdditionalCharges;
                 contract.Client= client;
                 contract.ExpectedCompletion = details.ExpectedCompletion;
                 contract.StartDate = details.StartDate;

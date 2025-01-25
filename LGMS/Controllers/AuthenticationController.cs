@@ -14,6 +14,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
+using System.Net;
+using Microsoft.AspNetCore.Identity.Data;
 
 namespace LGMS.Controllers
 {
@@ -259,7 +261,7 @@ namespace LGMS.Controllers
                 var TwoFA = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
                 var message = new Message(new string[] { user.Email }, "Project Progreses - OTP", $"Your login OTP is {TwoFA}");
 
-                return await UserLogin2FA(userLogin.Username, TwoFA,true);
+                //return await UserLogin2FA(userLogin.Username, TwoFA,true);
 
                 _emailService.SendEmail(message);
                 return StatusCode(StatusCodes.Status200OK, new Response { Status = "Success", Message = "Signed In, Please continue login with OTP sent to your email" });
@@ -322,6 +324,7 @@ namespace LGMS.Controllers
                 return Ok(new
                 {
                     token = new JwtSecurityTokenHandler().WriteToken(token),
+                    email = user.Email
                 });
             }
             return Unauthorized();
@@ -389,77 +392,80 @@ namespace LGMS.Controllers
             });
         }
 
-        //[HttpPost("ResendOTP")]
-        //public async Task<IActionResult> ResendOTP([FromBody] ResendOtpRequest request)
-        //{
-        //    var user = await _userManager.FindByEmailAsync(request.Username) ?? await _userManager.FindByNameAsync(request.Username);
+        [AllowAnonymous]
+        [HttpPost("ResendOTP")]
+        public async Task<IActionResult> ResendOTP([FromBody] ResendOtpRequest request)
+        {
+            var user = await _userManager.FindByEmailAsync(request.Username) ?? await _userManager.FindByNameAsync(request.Username);
 
-        //    if (user == null)
-        //    {
-        //        return StatusCode(StatusCodes.Status404NotFound, new Response { Status = "Failed", Message = "User not found" });
-        //    }
+            if (user == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new Response { Status = "Failed", Message = "User not found" });
+            }
 
-        //    var otp = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
-        //    var message = new Message(new string[] { user.Email }, "Project Progress - OTP Resend", $"Your new login OTP is {otp}");
+            var otp = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+            var message = new Message(new string[] { user.Email }, "Project Progress - OTP Resend", $"Your new login OTP is {otp}");
 
-        //    _emailService.SendEmail(message);
+            _emailService.SendEmail(message);
 
-        //    return StatusCode(StatusCodes.Status200OK, new Response { Status = "Success", Message = "New OTP sent successfully to your email." });
-        //}
+            return StatusCode(StatusCodes.Status200OK, new Response { Status = "Success", Message = "New OTP sent successfully to your email." });
+        }
 
-        //[HttpGet("ConfirmEmail")]
-        //public async Task<IActionResult> ConfirmEmail(string token, string email)
-        //{
-        //    var user = await _userManager.FindByEmailAsync(email);
-        //    if (user != null)
-        //    {
-        //        var result = await _userManager.ConfirmEmailAsync(user, token);
-        //        if (result.Succeeded) { return StatusCode(StatusCodes.Status200OK, new Response { Message = "Verification Email Successfully", Status = "Success" }); }
-        //        return StatusCode(StatusCodes.Status500InternalServerError, new Response { Message = "Something went wrong while verifying email", Status = "Success" });
-        //    }
-        //    return StatusCode(StatusCodes.Status404NotFound, new Response { Message = "User with this email not found", Status = "Failed" });
-        //}
+        [AllowAnonymous]
+        [HttpGet("ConfirmEmail")]
+        public async Task<IActionResult> ConfirmEmail(string token, string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user != null)
+            {
+                var result = await _userManager.ConfirmEmailAsync(user, token);
+                if (result.Succeeded) { return StatusCode(StatusCodes.Status200OK, new Response { Message = "Verification Email Successfully", Status = "Success" }); }
+                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Message = "Something went wrong while verifying email", Status = "Success" });
+            }
+            return StatusCode(StatusCodes.Status404NotFound, new Response { Message = "User with this email not found", Status = "Failed" });
+        }
 
-        //[AllowAnonymous]
-        //[HttpPost("ForgetPassword")]
-        //public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequest request)
-        //{
-        //    var user = await _userManager.FindByEmailAsync(request.Email);
+        [AllowAnonymous]
+        [HttpPost("ForgetPassword")]
+        public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequest request)
+        {
+            var user = await _userManager.FindByEmailAsync(request.Email);
 
-        //    if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
-        //    {
-        //        return BadRequest(new { message = "User not found or email not confirmed." });
-        //    }
+            if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+            {
+                return BadRequest(new { message = "User not found or email not confirmed." });
+            }
 
-        //    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-        //    var baseurl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
-        //    var resetLink = $"{baseurl}/#/reset-password?token={Uri.EscapeDataString(token)}&email={user.Email}";
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var baseurl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
+            var resetLink = $"{baseurl}/reset-password?token={Uri.EscapeDataString(token)}&email={user.Email}";
 
-        //    var message = new Message(new string[] { user.Email }, "Reset Password - Project Progress", resetLink);
-        //    _emailService.SendEmail(message);
+            var message = new Message(new string[] { user.Email }, "Reset Password - Project Progress", resetLink);
+            _emailService.SendEmail(message);
 
-        //    return Ok(new Response { Status = "Success", Message = "Password reset link has been sent to your email." });
-        //}
+            return Ok(new Response { Status = "Success", Message = "Password reset link has been sent to your email." });
+        }
 
-        //[HttpPost("ResetPassword")]
-        //public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
-        //{
-        //    var user = await _userManager.FindByEmailAsync(request.Email);
-        //    if (user == null)
-        //    {
-        //        return BadRequest(new { message = "User not found." });
-        //    }
+        [AllowAnonymous]
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                return BadRequest(new { message = "User not found." });
+            }
 
-        //    var resetCode = WebUtility.UrlDecode(request.ResetCode);
+            var resetCode = WebUtility.UrlDecode(request.ResetCode);
 
-        //    var result = await _userManager.ResetPasswordAsync(user, resetCode, request.NewPassword);
-        //    if (result.Succeeded)
-        //    {
-        //        return Ok(new Response { Status = "Success", Message = "Password has been reset successfully." });
-        //    }
+            var result = await _userManager.ResetPasswordAsync(user, resetCode, request.NewPassword);
+            if (result.Succeeded)
+            {
+                return Ok(new Response { Status = "Success", Message = "Password has been reset successfully." });
+            }
 
-        //    return BadRequest(new { message = "Error resetting password: " + string.Join(", ", result.Errors.Select(e => e.Description)) });
-        //}
+            return BadRequest(new { message = "Error resetting password: " + string.Join(", ", result.Errors.Select(e => e.Description)) });
+        }
 
         private IdentityUser GetUserFromToken(string token)
         {

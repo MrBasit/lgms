@@ -29,8 +29,11 @@ namespace LGMS.Services
                 throw new Exception("One or more statuses are missing in the database.");
             }
 
-            if (requiredWork == "00:00:00")
+            if (requiredWork == "00:00:00" && actualWork == "00:00:00")
                 return _statuses["Holiday"];
+            
+            if (requiredWork == "00:00:00" && actualWork != "00:00:00")
+                return _statuses["Extra Day"];
 
             if (date.DayOfWeek == DayOfWeek.Sunday && actualWork == "00:00:00")
                 return _statuses["Weekend"];

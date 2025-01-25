@@ -62,14 +62,14 @@ namespace LGMS.Services
                                     columns.RelativeColumn();
                                 });
                                 table.Cell().Border(1).Background("#F27E63").Padding(3).Text("Product Name").FontColor(Colors.White).Bold();
-                                table.Cell().Border(1).Background("#010943").Padding(3).Text("Discount").FontColor(Colors.White).Bold();
+                                table.Cell().Border(1).Background("#010943").Padding(3).Text("Discount Amount").FontColor(Colors.White).Bold();
                                 table.Cell().Border(1).Background("#F27E63").Padding(3).Text("Quantity").FontColor(Colors.White).Bold();
                                 table.Cell().Border(1).Background("#010943").Padding(3).Text("Price").FontColor(Colors.White).Bold();
 
                                 foreach (var package in quotation.QuotationPackageInformations)
                                 {
                                     table.Cell().Border(1).Padding(3).Text(package.Title);
-                                    table.Cell().Border(1).Padding(3).Text(package.Discount + "%");
+                                    table.Cell().Border(1).Padding(3).Text(package.Discount).FontColor("#FF0000");
                                     table.Cell().Border(1).Padding(3).Text(package.Quantity);
                                     table.Cell().Border(1).Padding(3).Text(package.Total.ToString("N0"));
                                 }
