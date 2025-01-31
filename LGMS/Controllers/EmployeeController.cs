@@ -55,7 +55,7 @@ namespace LGMS.Controllers
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
-            if (!employees.Any()) return NotFound(new { message = "No employees are there" });
+            //if (!employees.Any()) return NotFound(new { message = "No employees are there" });
 
 
             var employeesWithIncludedStatuses = new List<Employee>();

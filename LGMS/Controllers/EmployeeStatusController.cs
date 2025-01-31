@@ -49,7 +49,7 @@ namespace LGMS.Controllers
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
-            if (!employeeStatuses.Any()) return NotFound(new { message = "Employee status Not Found" });
+            //if (!employeeStatuses.Any()) return NotFound(new { message = "Employee status Not Found" });
 
             if (!string.IsNullOrEmpty(employeeStatusesSearchModel.SearchDetails.SearchTerm))
             {

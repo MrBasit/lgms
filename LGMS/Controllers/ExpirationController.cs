@@ -43,7 +43,7 @@ namespace LGMS.Controllers
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
-            if (!expirations.Any()) return NotFound(new { message = "Expirations Not Found" });
+            //if (!expirations.Any()) return NotFound(new { message = "Expirations Not Found" });
 
             if (searchModel.RecordType == "7 days")
             {

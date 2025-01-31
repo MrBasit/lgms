@@ -47,7 +47,7 @@ namespace LGMS.Controllers
                 });
             }
 
-            if (!equipmentTypes.Any()) return NotFound(new { message = "No equipment types are there" });
+            //if (!equipmentTypes.Any()) return NotFound(new { message = "No equipment types are there" });
 
             if (!string.IsNullOrEmpty(equipmentTypesSearchModel.SearchDetails.SearchTerm))
             {

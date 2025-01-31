@@ -47,7 +47,7 @@ namespace LGMS.Controllers
                 });
             }
 
-            if (!vendors.Any()) return NotFound(new { message = "No vendors are there" });
+            //if (!vendors.Any()) return NotFound(new { message = "No vendors are there" });
 
             if (!string.IsNullOrEmpty(vendorSearchModel.SearchDetails.SearchTerm))
             {

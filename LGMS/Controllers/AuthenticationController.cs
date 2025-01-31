@@ -440,7 +440,7 @@ namespace LGMS.Controllers
             var baseurl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
             var resetLink = $"{baseurl}/reset-password?token={Uri.EscapeDataString(token)}&email={user.Email}";
 
-            var message = new Message(new string[] { user.Email }, "Reset Password - Project Progress", resetLink);
+            var message = new Message(new string[] { user.Email }, "Reset Password - Lgms", resetLink);
             _emailService.SendEmail(message);
 
             return Ok(new Response { Status = "Success", Message = "Password reset link has been sent to your email." });

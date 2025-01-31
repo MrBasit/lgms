@@ -43,7 +43,7 @@ namespace LGMS.Controllers
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
-            if (!payments.Any()) return NotFound(new { message = "Payments Not Found" });
+            //if (!payments.Any()) return NotFound(new { message = "Payments Not Found" });
 
             if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))
             {

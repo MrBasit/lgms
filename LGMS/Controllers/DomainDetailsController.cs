@@ -49,7 +49,7 @@ namespace LGMS.Controllers
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
-            if (!domains.Any()) return NotFound(new { message = "No domain details are there" });
+            //if (!domains.Any()) return NotFound(new { message = "No domain details are there" });
 
             if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))
             {

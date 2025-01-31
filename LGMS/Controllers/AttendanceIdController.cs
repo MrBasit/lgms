@@ -38,7 +38,7 @@ namespace LGMS.Controllers
                 });
             }
 
-            if (!attendanceIds.Any()) return NotFound(new{message="No attendance ids are there"});
+            //if (!attendanceIds.Any()) return NotFound(new{message="No attendance ids are there"});
             if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))
             {
                 if (int.TryParse(searchModel.SearchDetails.SearchTerm, out int searchTermAsInt))

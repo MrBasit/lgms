@@ -40,7 +40,7 @@ namespace LGMS.Controllers
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
-            if (!clients.Any()) return NotFound(new { message = "No clients are there" });
+            //if (!clients.Any()) return NotFound(new { message = "No clients are there" });
 
 
             if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))

@@ -46,7 +46,7 @@ namespace LGMS.Controllers
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
-            if (!bankAccounts.Any()) return NotFound(new { message = "No bank accounts are there" });
+            //if (!bankAccounts.Any()) return NotFound(new { message = "No bank accounts are there" });
 
 
             if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))

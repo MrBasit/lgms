@@ -50,7 +50,7 @@ namespace LGMS.Controllers
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
-            if (!designations.Any()) return NotFound(new { message = "No designations are there" });
+            //if (!designations.Any()) return NotFound(new { message = "No designations are there" });
 
             if (!string.IsNullOrEmpty(designationsSearchModel.SearchDetails.SearchTerm))
             {

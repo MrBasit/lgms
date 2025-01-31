@@ -67,7 +67,7 @@ namespace LGMS.Controllers
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
-            if (!contracts.Any()) return NotFound(new { message = "No contracts are there" });
+            //if (!contracts.Any()) return NotFound(new { message = "No contracts are there" });
 
 
             if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))

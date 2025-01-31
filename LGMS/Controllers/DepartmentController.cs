@@ -50,7 +50,7 @@ namespace LGMS.Controllers
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
-            if (!departments.Any()) return NotFound(new { message = "No departments are there" });
+            //if (!departments.Any()) return NotFound(new { message = "No departments are there" });
 
             if (!string.IsNullOrEmpty(departmentSearchModel.SearchDetails.SearchTerm))
             {
