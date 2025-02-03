@@ -17,8 +17,8 @@ ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 // Add services to the container.
-var IsBuildForProdEnv = false;
-builder.Services.AddDbContext<LgmsDbContext>(db => db.UseSqlServer(builder.Configuration.GetConnectionString(IsBuildForProdEnv?"":"LgmsDev01INTSER")));
+var IsProdBuild = Boolean.Parse(builder.Configuration["App:IsProdBuild"]);
+builder.Services.AddDbContext<LgmsDbContext>(db => db.UseSqlServer(builder.Configuration.GetConnectionString(IsProdBuild? "LgmsINTSER" : "LgmsDev01INTSER")));
 builder.Services.AddControllersWithViews().AddNewtonsoftJson(n=>n.SerializerSettings.ReferenceLoopHandling=Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 builder.Services.AddTransient<ExcelService>();
 builder.Services.AddScoped<ExcelImportService>();
@@ -91,7 +91,10 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+if (
+    app.Environment.IsDevelopment() ||
+    bool.Parse(builder.Configuration["App:EnableSwagger"])
+)
 {
     app.UseSwagger();
     app.UseSwaggerUI();

@@ -46,7 +46,6 @@ namespace LGMS.Controllers
             _emailService = emailService;
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPost("RegisterUser")]
         public async Task<IActionResult> RegisterUser(RegisterUser registerUser)
         {
@@ -225,33 +224,22 @@ namespace LGMS.Controllers
                 await _signInManager.GetTwoFactorAuthenticationUserAsync();
                 var TwoFA = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
                 var message = new Message(new string[] { user.Email }, "Project Progreses - OTP", $"Your login OTP is {TwoFA}");
-
-                return await UserLogin2FA(userLogin.Username, TwoFA,true);
-
-                _emailService.SendEmail(message);
-                return StatusCode(StatusCodes.Status200OK, new Response { Status = "Success", Message = "Signed In, Please continue login with OTP sent to your email" });
-
-
-                var authClaims = new List<Claim>
+                if (!Boolean.Parse(_configuration["App:Enable2FA"]))
                 {
-                    new Claim(ClaimTypes.Name, userLogin.Username),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                };
-
-                var userRoles = await _userManager.GetRolesAsync(user);
-                foreach (var userRole in userRoles)
-                {
-                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+                    return await UserLogin2FA(userLogin.Username, TwoFA,true);
                 }
 
-                var token = GetJwtToken(authClaims);
-
-                return Ok(new
-                {
-                    token = new JwtSecurityTokenHandler().WriteToken(token),
-                    userId = user.Id,
-                    validity = token.ValidTo
-                });
+                _emailService.SendEmail(message);
+                return StatusCode(
+                    StatusCodes.Status200OK,
+                    new
+                    {
+                        token = "",
+                        email = "",
+                        response = new Response { Status = "Success", Message = "Signed In, Please continue login with OTP sent to your email" }
+                    }
+                    
+                );
             }
             return Unauthorized();
         }
@@ -290,6 +278,8 @@ namespace LGMS.Controllers
                 return Ok(new
                 {
                     token = new JwtSecurityTokenHandler().WriteToken(token),
+                    email = user.Email,
+                    response = new Response { Status = "Success", Message = "Logged In" }
                 });
             }
             return Unauthorized();
