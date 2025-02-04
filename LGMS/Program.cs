@@ -109,7 +109,11 @@ app.UseEndpoints(endpoints =>
     endpoints.MapControllers();
 });
 
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+// Configure the HTTP request pipeline.
+if (
+    app.Environment.IsDevelopment() ||
+    bool.Parse(builder.Configuration["App:EnableSwagger"])
+)
 {
     app.UseSwagger();
     app.UseSwaggerUI();
