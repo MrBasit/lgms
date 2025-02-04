@@ -49,7 +49,7 @@ namespace LGMS.Controllers
                     message = ex.Message + (ex.InnerException != null ? " - " + ex.InnerException.Message : "")
                 });
             }
-            if (!types.Any()) return NotFound(new { message = "Contract Type Not Found" });
+            //if (!types.Any()) return NotFound(new { message = "Contract Type Not Found" });
 
             if (!string.IsNullOrEmpty(searchModel.SearchDetails.SearchTerm))
             {

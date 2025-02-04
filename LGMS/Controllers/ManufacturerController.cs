@@ -47,7 +47,7 @@ namespace LGMS.Controllers
                 });
             }
 
-            if (!manufacturers.Any()) return NotFound(new { message = "No manufacturers are there" });
+            //if (!manufacturers.Any()) return NotFound(new { message = "No manufacturers are there" });
 
             if (!string.IsNullOrEmpty(manufacturerSearchModel.SearchDetails.SearchTerm))
             {

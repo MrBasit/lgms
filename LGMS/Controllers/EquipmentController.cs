@@ -51,7 +51,7 @@ namespace LGMS.Controllers
                 });
             }
 
-            if (!equipments.Any()) return NotFound(new { message = "No equipments are there" });
+            //if (!equipments.Any()) return NotFound(new { message = "No equipments are there" });
 
             var equipmentWithSelectedStatuses = new List<Equipment>();
             foreach (var status in equipmentSearchModel.Statuses)

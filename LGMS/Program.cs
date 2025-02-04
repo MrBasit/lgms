@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using MailSender.Model;
 using MailSender.Services;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,23 +93,31 @@ var app = builder.Build();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-// Configure the HTTP request pipeline.
-if (
-    app.Environment.IsDevelopment() ||
-    bool.Parse(builder.Configuration["App:EnableSwagger"])
-)
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapFallbackToFile("/index.html");
+});
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
+
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseCors(c=>c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
 app.UseHttpsRedirection();
-
-app.UseAuthentication();
-
-app.UseAuthorization();
 
 app.MapControllers();
 

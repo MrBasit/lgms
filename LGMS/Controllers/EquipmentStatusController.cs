@@ -47,7 +47,7 @@ namespace LGMS.Controllers
                 });
             }
 
-            if (!equipmentStatuses.Any()) return NotFound(new { message = "EquipmentStatus Not Found" });
+            //if (!equipmentStatuses.Any()) return NotFound(new { message = "EquipmentStatus Not Found" });
 
             if (!string.IsNullOrEmpty(equipmentStatusesSearchModel.SearchDetails.SearchTerm))
             {
