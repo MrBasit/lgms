@@ -23,6 +23,10 @@ project.lock.json
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
+
+[Pp]ublish/
+[Pp]ublish Dev01/
+
 x64/
 x86/
 build/
