@@ -40,23 +40,10 @@ namespace LGMS.Controllers
                     .Include(e => e.Status)
                     .AsQueryable();
 
-                if (searchModel.Year > 0)
+                if(searchModel.ReportFrom != null && searchModel.ReportTo != null)
                 {
-                    query = query.Where(ar => ar.Date.Year == searchModel.Year);
+                    query = query.Where(ar => ar.Date >= searchModel.ReportFrom && ar.Date <= searchModel.ReportTo);
                 }
-                else
-                {
-                    return BadRequest(new { message = "Year is required." });
-                }
-
-                if (searchModel.Months == null || !searchModel.Months.Any())
-                {
-                    return BadRequest(new { message = "At least one month is required." });
-                }
-
-                query = query.Where(ar => ar.Date.Year == searchModel.Year
-                          && searchModel.Months.Contains(ar.Date.Month));
-
                 if (searchModel.MachineNames?.Any() == true)
                 {
                     var lowerCaseMachineNames = searchModel.MachineNames.Select(name => name.ToLower()).ToList();

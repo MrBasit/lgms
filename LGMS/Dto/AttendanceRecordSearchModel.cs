@@ -9,7 +9,7 @@ namespace LGMS.Dto
         public int? Year { get; set; }
         public int? Month { get; set; }
         public int? Date { get; set; }
-        public DateTime AttendaceFrom { get; set; }
-        public DateTime AttendaceTo { get; set; }
+        public DateTime? AttendaceFrom { get; set; }
+        public DateTime? AttendaceTo { get; set; }
     }
 }
