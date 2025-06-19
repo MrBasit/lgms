@@ -93,6 +93,8 @@ var app = builder.Build();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
+app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+
 app.UseRouting();
 
 app.UseAuthentication();
@@ -102,11 +104,6 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
     endpoints.MapFallbackToFile("/index.html");
-});
-
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
 });
 
 // Configure the HTTP request pipeline.
@@ -119,7 +116,6 @@ if (
     app.UseSwaggerUI();
 }
 
-app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
 app.UseHttpsRedirection();
 
