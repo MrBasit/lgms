@@ -154,23 +154,11 @@ namespace LGMS.Controllers
                 });
             }
 
-            if (searchModel.Year > 0)
+            if (searchModel.AttendaceFrom != null && searchModel.AttendaceTo != null)
             {
-                attendanceRecords = attendanceRecords.Where(ar => ar.Date.Year == searchModel.Year).ToList();
-            }
-            else
-            {
-                return BadRequest(new { message = "Year is required" });
+                attendanceRecords = attendanceRecords.Where(ar => ar.Date >= searchModel.AttendaceFrom && ar.Date <= searchModel.AttendaceTo).ToList();
             }
 
-            if (searchModel.Month > 0)
-            {
-                attendanceRecords = attendanceRecords.Where(ar => ar.Date.Month == searchModel.Month).ToList();
-            }
-            else
-            {
-                return BadRequest(new { message = "Month is required." });
-            }
             var recordsWithIncludedNames = new List<AttendanceRecord>();
 
             foreach (var name in searchModel.MachineNames)
