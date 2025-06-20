@@ -6,6 +6,8 @@
         public Employee Employee { get; set; }
         public DateTime? GenratedDate { get; set; }
         public DateTime? PayPeriod { get; set; }
+        public DateTime? PayStartDate { get; set; }
+        public DateTime? PayEndDate { get; set; }
         public int Salary { get; set; }
         public int Deductions { get; set; }
         public bool OnTimeAllowance { get; set; }
