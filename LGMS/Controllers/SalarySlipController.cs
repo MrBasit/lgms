@@ -24,7 +24,6 @@ namespace LGMS.Controllers
         private readonly SalarySlipService _salarySlipService;
         private readonly SalarySlipPDFService _pdfService;
 
-
         public SalarySlipController(LgmsDbContext dbContext, AttendanceReportService reportService, SalarySlipService salarySlipService, SalarySlipPDFService pdfService)
         {
             _dbContext = dbContext;
@@ -38,6 +37,11 @@ namespace LGMS.Controllers
         [HttpPost("GetSalarySlips")]
         public IActionResult GetSalarySlips(SalarySlipSearchModel searchModel)
         {
+            searchModel.SalaryFrom = TimeZoneInfo.ConvertTimeFromUtc(searchModel.SalaryFrom.Value.ToUniversalTime(),
+                  TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time"));
+            searchModel.SalaryTo = TimeZoneInfo.ConvertTimeFromUtc(searchModel.SalaryTo.Value.ToUniversalTime(),
+                  TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time"));
+
             if (searchModel == null)
                 return BadRequest(new { message = "Invalid search criteria" });
 
@@ -48,24 +52,10 @@ namespace LGMS.Controllers
                     .Include(e => e.Status)
                     .AsQueryable();
 
-                if (searchModel.Year > 0)
+                if (searchModel.SalaryFrom != null && searchModel.SalaryTo != null)
                 {
-                    query = query.Where(ar => ar.Date.Year == searchModel.Year);
+                    query = query.Where(ar => ar.Date >= searchModel.SalaryFrom && ar.Date <= searchModel.SalaryTo);
                 }
-                else
-                {
-                    return BadRequest(new { message = "Year is required." });
-                }
-
-                if (searchModel.Month > 0)
-                {
-                    query = query.Where(ar => ar.Date.Month == searchModel.Month);
-                }
-                else
-                {
-                    return BadRequest(new { message = "Month is required." });
-                }
-
                 if (searchModel.MachineNames?.Any() == true)
                 {
                     var lowerCaseMachineNames = searchModel.MachineNames.Select(name => name.ToLower()).ToList();
@@ -121,9 +111,8 @@ namespace LGMS.Controllers
                         Status = employee.Status,
                         SecurityDeposits = employee.SecurityDeposits,
                         Loans = employee.Loans
-
                     };
-                    var salarySlip = salarySlipService.GenerateSalarySlip(report, searchModel.Year, searchModel.Month, employeeDTO);
+                    var salarySlip = salarySlipService.GenerateSalarySlip(report, searchModel.Year, searchModel.Month, searchModel.SalaryFrom, searchModel.SalaryTo, employeeDTO);
                     salarySlips.Add(salarySlip);
                 }
 
@@ -409,6 +398,8 @@ namespace LGMS.Controllers
                     {
                         Employee = employee,
                         GenratedDate = slip.GenratedDate,
+                        PayStartDate = slip.PayStartDate,
+                        PayEndDate = slip.PayEndDate,
                         PayPeriod = slip.PayPeriod,
                         Salary = slip.Salary,
                         Deductions = slip.Deductions,

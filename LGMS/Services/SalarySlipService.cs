@@ -5,7 +5,8 @@ namespace LGMS.Services
 {
     public class SalarySlipService
     {
-        public SalarySlipDTO GenerateSalarySlip(AttendanceReportDTO report, int year, int month, EmployeeDTO employee)
+        public SalarySlipDTO GenerateSalarySlip(AttendanceReportDTO report, int year, int month,DateTime? SalaryFrom, DateTime? SalaryTo, 
+        EmployeeDTO employee)
         {
             var salarySlipDate = new DateTime(year, month, 1);
             var salarySlip = new SalarySlipDTO
@@ -23,7 +24,9 @@ namespace LGMS.Services
                 SecurityDeposit = 0,
                 IncomeTax = 0,
                 Loan = 0,
-                Comission = 0
+                Comission = 0,
+                PayStartDate = SalaryFrom,
+                PayEndDate = SalaryTo
             };
 
             salarySlip.Total = CalculateTotal(salarySlip);

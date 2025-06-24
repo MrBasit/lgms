@@ -18,6 +18,8 @@ namespace LGMS.Dto
         public int? IncomeTax { get; set; }
         public int? Loan { get; set; }
         public int? Comission { get; set; }
+        public DateTime? PayStartDate { get; set; }
+        public DateTime? PayEndDate { get; set; }
         public int Total { get; set; }
     }
 
