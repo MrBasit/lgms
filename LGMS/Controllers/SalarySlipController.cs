@@ -413,6 +413,7 @@ namespace LGMS.Controllers
                         Loan = slip.Loan,
                         Comission = slip.Comission,
                         Total = slip.Total,
+                        GrandTotal = slip.GrandTotal,
                         Paid = true
                     });
                 }

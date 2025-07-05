@@ -21,6 +21,7 @@ namespace LGMS.Dto
         public DateTime? PayStartDate { get; set; }
         public DateTime? PayEndDate { get; set; }
         public int Total { get; set; }
+        public int GrandTotal { get; set; }
     }
 
 }

@@ -21,5 +21,6 @@
         public int? Loan { get; set; }
         public int? Comission { get; set; }
         public int Total { get; set; }
+        public int? GrandTotal { get; set; }
     }
 }
